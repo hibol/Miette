@@ -1,0 +1,803 @@
+recipes:
+  - title: Pain au levain, farine bise & flocons d'avoine
+    tags:
+      - rustique
+      - confort food
+    ingredients:
+      - label: levain
+        quantity: 100
+        unit: g
+      - label: farine bise
+        quantity: 350
+        unit: g
+      - label: flocons d'avoine
+        quantity: 50
+        unit: g
+      - label: eau
+        quantity: 280
+        unit: g
+      - label: sel
+        quantity: 8
+        unit: g
+    steps:
+      - "Autolyse : mélanger la farine, les flocons et l'eau, laisser reposer 30-45 min."
+      - "Ajouter le levain et le sel. Pétrissage doux."
+      - "Pointage : environ 4h à température ambiante avec 3 rabats."
+      - "Façonnage"
+      - "Apprêt : 2-3h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 240°C, enfourner avec de la vapeur, baisser à 220°C et cuire 35-40 min."
+  
+  - title: Pain au levain, farine blanche & épeautre clair
+    tags:
+      - classique
+      - léger
+    ingredients:
+      - label: levain
+        quantity: 150
+        unit: g
+      - label: farine blanche
+        quantity: 300
+        unit: g
+      - label: farine d'épeautre clair
+        quantity: 200
+        unit: g
+      - label: eau
+        quantity: 360
+        unit: g
+      - label: sel
+        quantity: 10
+        unit: g
+    steps:
+      - "Autolyse : mélanger toutes les farines avec l'eau, laisser reposer 30 min."
+      - "Ajouter le levain. Pétrissage 5-7 min."
+      - "Ajouter le sel, pétrir encore 3-5 min."
+      - "Pointage : 3h à température ambiante avec 2 rabats."
+      - "Façonnage"
+      - "Apprêt : 2-3h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 240°C, enfourner avec de la vapeur, baisser à 200°C et cuire 45 min."
+  
+  - title: Pain de seigle
+    tags:
+      - rustique
+      - dense
+    ingredients:
+      - label: levain de seigle
+        quantity: 100
+        unit: g
+      - label: farine de seigle
+        quantity: 200
+        unit: g
+      - label: farine blanche ou mi-blanche
+        quantity: 100
+        unit: g
+      - label: eau
+        quantity: 200
+        unit: g
+      - label: sel
+        quantity: 5
+        unit: g
+      - label: miel
+        quantity: 1
+        unit: càs
+    steps:
+      - "Autolyse : mélanger la farine de seigle, la farine blanche et l'eau, laisser reposer 30 min."
+      - "Ajouter le levain et le sel. Pétrissage 5-7 min."
+      - "Ajouter le miel, pétrir encore 2-3 min."
+      - "Pointage : 3h à température ambiante avec 2 rabats."
+      - "Façonnage"
+      - "Apprêt : 2-3h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 240°C, enfourner avec de la vapeur, baisser à 200°C et cuire 35-40 min."
+
+  - title: Petits pains au levain et pépites de chocolat
+    tags:
+      - gourmand
+      - sucré
+    ingredients:
+      - label: levain
+        quantity: 200
+        unit: g
+      - label: farine mi-blanche
+        quantity: 350
+        unit: g
+      - label: lait tiède
+        quantity: 120
+        unit: g
+      - label: oeuf
+        quantity: 1
+        unit: pièce
+      - label: sucre
+        quantity: 40
+        unit: g
+      - label: beurre mou
+        quantity: 60
+        unit: g
+      - label: pépites de chocolat
+        quantity: 120
+        unit: g
+      - label: sel
+        quantity: 5
+        unit: g
+    steps:
+      - "Mélanger le levain, le lait tiède, l'œuf et le sucre. Laisser reposer 30 min"
+      - "Ajouter la farine et le sel. Pétrissage 8-10 min."
+      - "Ajouter le beurre mou, pétrir encore 5 min."
+      - "Incorporer les pépites de chocolat, mélanger par rabats."
+      - "Pointage : 1h30 à 2h à température ambiante."
+      - "Façonnage : former 6 boules de pâte."
+      - "Apprêt : 1-2h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 180°C, cuire 20-25 min."
+
+  - title: Baguettes blanches au levain
+    tags:
+      - classique
+      - croustillant
+      - traditionnel
+      - sandwich
+    ingredients:
+      - label: levain
+        quantity: 200
+        unit: g
+      - label: farine blanche
+        quantity: 500
+        unit: g
+      - label: eau
+        quantity: 340
+        unit: g
+      - label: sel
+        quantity: 10
+        unit: g
+    steps:
+      - "Autolyse : mélanger la farine et l'eau, laisser reposer 30 min."
+      - "Ajouter le levain et le sel. Pétrissage 8-10 min."
+      - "Pointage : 2h à température ambiante avec 3 rabats."
+      - "Façonnage : former 3 baguettes."
+      - "Apprêt : 1-2h à température ambiante"
+      - "Cuisson : four préchauffé à 250°C, enfourner avec de la vapeur, baisser à 230°C et cuire 25-30 min."
+
+  - title: Pâte à pizza au levain
+    tags:
+      - Italie
+      - confort food
+      - plat principal
+    ingredients:
+      - label: levain
+        quantity: 150
+        unit: g
+      - label: farine blanche
+        quantity: 250
+        unit: g
+      - label: eau
+        quantity: 170
+        unit: g
+      - label: huile d'olive
+        quantity: 15
+        unit: g
+      - label: sel
+        quantity: 6
+        unit: g
+    steps:
+      - "Mélanger la farine et l'eau, laisser reposer 30-60 min."
+      - "Ajouter le levain, l'huile d'olive et le sel. Pétrissage 8-10 min."
+      - "Pointage : 2-3h à température ambiante"
+      - "Façonnage : Etirer la pâte en la laissant se détendre."
+      - "Apprêt : 1-2h à température ambiante."
+      - "Garniture : ajouter les ingredients de votre choix."
+      - "Cuisson : four préchauffé à 250°C, cuire 10-15 min."
+
+  - title: Pain aux graines, farine Manitoba et épeutre clair
+    tags : 
+    - écureuil
+    - riche mais aéré
+    - caractère
+    - chaleur
+    - torréfié
+    ingredients :
+    - label : levain
+      quantity : 200 
+      unit : g
+    - label : farine Manitoba
+      quantity : 100
+      unit : g 
+    - label : farine d'épeautre clair
+      quantity : 300
+      unit : g
+    - label : graines mélangées
+      quantity : 60
+      unit : g
+    - label : eau
+      quantity : 320 
+      unit : g
+    - label : sel
+      quantity : 9
+      unit : g
+    steps :
+    - Griller les graines à sec dans une poêle jusqu'à ce qu'elles soient légèrement dorées et dégagent un arôme.
+    - "Autolyse : mélanger les farines et l'eau, laisser reposer 30 min."
+    - "Ajouter le levain et le sel. Pétrissage 8-10 min."
+    - "Incorporer les graines grillées, mélanger par rabats."
+    - "Pointage : 2-3h à température ambiante avec rabats."
+    - "Façonnage"
+    - "Apprêt : 2-3h à température ambiante ou toute la nuit au frigo."
+    - "Cuisson : four préchauffé à 240°C, enfourner avec de la vapeur, baisser à 200°C et cuire 40-45 min."
+
+  - title: Petits pains herbes, fromage & huile d'olive
+    tags :
+      - apéritif
+      - convivial
+      - aromatique
+      - méditerranéen
+      - jardin
+      - été
+    ingredients :
+      - label : levain
+        quantity : 150
+        unit : g
+      - label : farine d'épeautre clair
+        quantity : 300
+        unit : g
+      - label : eau
+        quantity : 180
+        unit : g
+      - label : huile d'olive
+        quantity : 20
+        unit : g
+      - label : sel
+        quantity : 6
+        unit : g
+      - label : herbes fraîches hachées (romarin, thym, origan)
+        quantity : 1
+        unit : bouquet
+      - label : fromage en petits dés (gruyère, cheddar, feta)
+        quantity : 80
+        unit : g
+    steps :
+      - "Autolyse : mélanger la farine, les herbes et l'eau, laisser reposer 30 min."
+      - "Ajouter le levain, l'huile d'olive et le sel. Pétrissage 8-10 min."
+      - "Incorporer le fromage en dés, mélanger par rabats."
+      - "Pointage : 1h30 à 2h à température ambiante."
+      - "Façonnage : former 6-8 petits pains."
+      - "Apprêt : 1-2h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 220°C, cuire 20 min."
+
+  - title: Pain-couronne aux flocons d'avoine
+    tags:
+      - partage
+      - rustique
+      - élégant
+    ingredients:
+      - label: levain
+        quantity: 200
+        unit: g
+      - label: farine mi-blanche
+        quantity: 300
+        unit: g
+      - label: farine complète
+        quantity: 50
+        unit: g
+      - label: flocons d'avoine
+        quantity: 100
+        unit: g
+      - label: eau
+        quantity: 300
+        unit: g
+      - label: sel
+        quantity: 8
+        unit: g
+    steps:
+      - "Hydrater les flocons d'avoine dans l'eau tiède pendant 20-30 min."
+      - "Autolyse : mélanger les farines avec l'eau et les flocons hydratés, laisser reposer 30 min."
+      - "Ajouter le levain et le sel. Pétrissage 8-10 min."
+      - "Pointage : 3-4h à température ambiante avec rabats."
+      - "Façonnage : former des boules de pâte et les disposer en couronne (astuce : dans un moule rond si la pâte est trop lâche)."
+      - "Apprêt : 2-3h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 240°C, enfourner avec de la vapeur, baisser à 200°C et cuire 35-40 min."
+
+  - title : Tresse au beurre au levain
+    tags :
+      - Suisse
+      - petit-déjeuner
+      - famille
+    ingredients :
+      - label : levain
+        quantity : 200
+        unit : g
+      - label : farine mi-blanche
+        quantity : 500
+        unit : g
+      - label : lait tiède
+        quantity : 200
+        unit : ml
+      - label : oeuf
+        quantity : 1
+        unit : pièce
+      - label : sucre
+        quantity : 50
+        unit : g
+      - label : beurre mou
+        quantity : 80
+        unit : g
+      - label : sel
+        quantity : 10
+        unit : g
+    steps :
+      - "Mélanger le levain, le lait tiède, l'œuf et le sucre. Laisser reposer 30 min."
+      - "Ajouter la farine et le sel. Pétrissage 8-10 min."
+      - "Ajouter le beurre mou, pétrir encore 5 min."
+      - "Pointage : 3-4h à température ambiante."
+      - "Façonnage : diviser la pâte en 2 parts égales, former des boudins et tresser."
+      - "Apprêt : 2-3h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 180°C, cuire 30-35 min. Température à cœur : 92°C."
+
+  - title: Petits pains aux flocons d'avoine et graines de chia
+    tags : 
+      - sain
+      - énergétique
+      - petit-déjeuner
+      - collation
+      - croquant
+    ingredients :
+      - label : levain
+        quantity : 200
+        unit : g 
+      - label : farine mi-blanche
+        quantity : 350
+        unit : g
+      - label : flocons d'avoine
+        quantity : 50
+        unit : g 
+      - label : graines de chia
+        quantity : 20
+        unit : g
+      - label : eau
+        quantity : 280
+        unit : g
+      - label : sel
+        quantity : 10
+        unit : g
+      - label : huile d'olive
+        quantity : 15
+        unit : g
+    steps :
+      - "Hydrater les graines de chia et les flocons d'avoine dans 180 g d'eau pendant 30 min"
+      - "Autolyse : mélanger la farine avec le reste de l'eau, les graines et les flocons, laisser reposer 30 min."
+      - "Ajouter le levain, l'huile d'olive et le sel. Pétrissage 8-10 min."
+      - "Pointage : 2-3h à température ambiante avec rabats."
+      - "Façonnage : former 6-8 petits pains."
+      - "Apprêt : 1-2h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 230°C, baisser à 200°C et cuire 20-25 min."
+
+  - title : Petits pains au lait, raisins et pavot
+    tags :
+      - sucré
+      - goûter
+      - moelleux
+      - fruité
+    ingredients :
+      - label : levain
+        quantity : 200
+        unit : g
+      - label : farine blanche
+        quantity : 400
+        unit : g
+      - label : lait tiède
+        quantity : 170
+        unit : ml
+      - label : œuf
+        quantity : 1
+        unit : pièce
+      - label : sucre
+        quantity : 50
+        unit : g
+      - label : beurre mou
+        quantity : 60
+        unit : g
+      - label : sel
+        quantity : 6
+        unit : g
+      - label : raisins secs
+        quantity : 100
+        unit : g
+      - label : graines de pavot
+        quantity : 20
+        unit : g
+    steps :
+      - "Mélanger le levain, le lait tiède, l'œuf et le sucre. Laisser reposer 30 min."
+      - "Ajouter la farine et le sel. Pétrissage 8-10 min."
+      - "Ajouter le beurre mou, pétrir encore 5 min."
+      - "Incorporer les raisins secs, mélanger par rabats."
+      - "Pointage : 1h30 à 2h à température ambiante."
+      - "Façonnage : former 8 petits pains."
+      - "Apprêt : 1-2h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 180°C, cuire 20-25 min."
+
+  - title: Pancakes au levain et à la banane
+    tags :
+      - petit-déjeuner
+      - récup
+      - sucré
+      - moelleux
+      - fruité
+    ingredients :
+      - label : levain (qu'on voudrait jeter avant de rafraîchir le reste)
+        quantity : 100
+        unit : g
+      - label : banane mûre
+        quantity : 0.5
+        unit : pièce
+      - label : farine blanche
+        quantity : 100
+        unit : g 
+      - label : lait 
+        quantity : 100
+        unit : ml
+      - label : œuf
+        quantity : 1
+        unit : pièce
+      - label : huile
+        quantity : 10
+        unit : g 
+      - label : sel
+        quantity : 1
+        unit : pincée
+    steps :
+      - "Écraser la banane dans un bol."
+      - "Ajouter le levain, l'œuf, le lait, l'huile et le sel. Mélanger jusqu'à obtenir une pâte homogène."
+      - "Incorporer la farine petit à petit jusqu'à obtenir une consistance de pâte à crêpe épaisse."
+      - "Laisser reposer la pâte 15-30 min. Ou toute la nuit au frigo pour plus de saveurs."
+      - "Chauffer une poêle à feu moyen, y verser la pâte et cuire 2-3 min de chaque côté."
+
+  - title : Pain rustique blé et polenta fine
+    tags :
+      - croustillant
+      - rustique
+      - campagne
+    ingredients :
+      - label : levain
+        quantity : 200
+        unit : g
+      - label : farine blanche
+        quantity : 300
+        unit : g
+      - label : farine épeautre
+        quantity : 100
+        unit : g
+      - label : polenta fine
+        quantity : 100
+        unit : g
+      - label : eau
+        quantity : 340
+        unit : g
+      - label : sel
+        quantity : 8
+        unit : g
+      - label : huile d'olive
+        quantity : 15
+        unit : g
+      - label : miel
+        quantity : 1
+        unit : càs
+    steps :
+      - "Faire gonfler la polenta dans l'eau chaude pendant 20-30 min."
+      - "Autolyse : mélanger les farines avec l'eau et la polenta, laisser reposer 30 min."
+      - "Ajouter le levain, le sel, l'huile d'olive et le miel. Pétrissage doux, ne pas trop insister, pâte fragile."
+      - "Pointage : 1h30 à 2h à température ambiante."
+      - "Façonnage en boule ou bâtard."
+      - "Apprêt : 2-3h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 240°C, enfourner avec de la vapeur, baisser à 200°C et cuire 40-45 min."
+
+  - title : Focaccia au levain
+    tags : 
+      - Italie
+      - apéritif
+      - convivial
+      - méditerranéen
+    ingredients :
+      - label : levain
+        quantity : 200
+        unit : g
+      - label : farine blanche
+        quantity : 400
+        unit : g
+      - label : eau
+        quantity : 300
+        unit : g 
+      - label : huile d'olive
+        quantity : 30
+        unit : g
+      - label : sel
+        quantity : 8
+        unit : g
+      - label : romarin frais hâché (ou autre garniture olives, tomates cerises, oignons rouges, fromage)
+        quantity : 1
+    steps :
+      - "Autolyse : mélanger la farine et l'eau, laisser reposer 30 min."
+      - "Ajouter le levain, l'huile d'olive et le sel. Pétrissage 8-10 min."
+      - "Pointage : 4-5h à température ambiante avec rabats." 
+      - "Façonnage : étirer la pâte sur une plaque de four"
+      - "Apprêt : 1-2h à température ambiante ou toute la nuit au frigo."
+      - "Avant la cuisson, faire des trous dans la pâte avec les doigts, arroser d'huile d'olive et ajouter la garniture."
+      - "Cuisson : four préchauffé à 230°C, cuire 20-25 min."
+
+  - title : Pannetone au levain et citron confit
+    tags :
+      - Italie
+      - fête
+      - sucré
+      - moelleux
+      - hiver
+      - lent
+    phases :
+      - label : Première pâte
+        position : 1
+        ingredients :
+          - label : levain
+            quantity : 100
+            unit : g 
+          - label : farine Manitoba
+            quantity : 300
+            unit : g
+          - label : levure sèche
+            quantity : 5
+            unit : g
+          - label : lait tiède
+            quantity : 100
+            unit : g
+          - label : jaune d'œuf
+            quantity : 3
+            unit : pièce
+          - label : sucre
+            quantity : 90
+            unit : g
+          - label : beurre mou
+            quantity : 80
+            unit : g
+          - label : sel
+            quantity : 1
+            unit : pincée
+        steps :
+          - "Mélanger le levain, la levure, le lait tiède, les jaunes d'œufs et le sucre. Laisser reposer 30 min."
+          - "Ajouter la farine et le sel. Pétrissage 10-12 min."
+          - "Ajouter le beurre mou, pétrir encore 5 min."
+          - "Premier pointage : 2-3h à température ambiante."
+      - label : Seconde pâte
+        position : 2
+        ingredients :
+          - label : première pâte
+            quantity : 1
+            unit : pièce
+          - label : farine Manitoba
+            quantity : 80
+            unit : g
+          - label : sucre
+            quantity : 40
+            unit : g
+          - label : beurre mou
+            quantity : 40
+            unit : g
+          - label : jaune d'oeuf
+            quantity : 1
+            unit : pièce
+          - label : zeste de citron
+            quantity : 1
+            unit : pièce
+          - label : citron confit en petits dés
+            quantity : 100
+            unit : g
+          - label : miel
+            quantity : 1
+            unit : càc
+        steps :
+          - "Incorporer tous les ingrédients dans la première pâte. Pétrissage 10-12 min."
+          - "Repos 20 min."
+          - "Boulage dans un moule à pannetone (astuce : ou un moule à gâteau rehaussé de papier sulfurisé)."
+          - "Second pointage : 4-8h à idéalement 24-25°C ou toute la nuit au frigo."
+          - "Cuisson : four préchauffé à 180°C, cuire 45-55 min. Température à cœur : 92-94°C."
+          - "Refroidir tête en bas ou sur le côté pour éviter un effondrement."
+
+  - title : "Brioche au levain vanille-citron"
+    tags :
+      - petit-déjeuner
+      - sucré
+      - moelleux
+      - hiver
+    ingredients :
+      - label : levain
+        quantity : 100
+        unit : g
+      - label : farine blanche (éventuellement une part de Manitoba)
+        quantity : 400
+        unit : g
+      - label : lait tiède
+        quantity : 150
+        unit : g
+      - label : œufs
+        quantity : 2
+        unit : pièce
+      - label : sucre
+        quantity : 80
+        unit : g
+      - label : beurre mou
+        quantity : 80
+        unit : g
+      - label : sel
+        quantity : 5
+        unit : g 
+      - label : zeste de citron
+        quantity : 2 
+        unit : pièce
+      - label : gousse de vanille (gratter les graines)
+        quantity : 1
+        unit : pièce
+      - label : rhum
+        quantity : 1
+        unit : càs
+      - label : sucre perlé (optionnel)
+        quantity : 20
+        unit : g
+    steps :
+      - "Mélanger les ingrédients sauf le beurre. Laisser reposer 30 min."
+      - "Ajouter le beurre mou, pétrir 8-10 min."
+      - "Pointage : 3-4h à température ambiante."
+      - "Façonnage : former une brioche tressée ou en boules dans un moule à cake."
+      - "Apprêt : 2-3h à environ 25°C ou toute la nuit au frigo. Doit doubler de volume."
+      - "Avant la cuisson, badigeonner de jaune d'œuf et saupoudrer de sucre perlé."
+      - "Cuisson : four préchauffé à 180°C, cuire 25-35 min. Température à cœur : 92°C"
+
+  - title : "Baguettes au levain 100% épeautre"
+    tags :
+      - rustique
+      - saveur
+      - croustillant
+    ingredients :
+      - label : levain
+        quantity : 100
+        unit : g
+      - label : farine d'épeautre complète
+        quantity : 500
+        unit : g
+      - label : eau
+        quantity : 360 
+        unit : g
+      - label : sel
+        quantity : 10
+        unit : g
+    steps :
+      - "Autolyse : mélanger la farine et l'eau, laisser reposer 30-45 min."
+      - "Ajouter le levain et le sel. Pétrissage doux, maximum 2-3 min, pâte collante."
+      - "Pointage : 3-4h à température ambiante avec 3 rabats espacés de 30 min."
+      - "Façonnage : former 3 baguettes en manipulant le moins possible pour ne pas dégazer."
+      - "Apprêt : 45-75 min à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 240°C, enfourner avec de la vapeur, baisser à 210°C et cuire 30-35 min."
+
+  - title : Pain doré à la farine de maïs et Manitoba
+    tags :
+      - croustillant
+      - doré
+      - coloré
+    ingredients :
+      - label : levain
+        quantity : 100
+        unit : g
+      - label : farine de maïs
+        quantity : 150
+        unit : g
+      - label : farine de Manitoba
+        quantity : 250
+        unit : g
+      - label : eau
+        quantity : 270
+        unit : g
+      - label : sel
+        quantity : 10
+        unit : g
+      - label : miel ou sirop d'érable
+        quantity : 1
+        unit : càs
+      - label : huile d'olive
+        quantity : 15
+        unit : g
+      - label : curcuma (optionnel)
+        quantity : 0.5
+        unit : càc
+    steps :
+      - "Autolyse : mélanger les farines, l'eau et le curcuma, laisser reposer 30 min."
+      - "Ajouter le levain, le sel, le miel et l'huile d'olive. Pétrissage 5-8 min."
+      - "Pointage : 3-4h à température ambiante avec rabats."
+      - "Façonnage en boule ou en bâtard."
+      - "Apprêt : 1h à environ 25°C ou 2-3h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 240°C, avec vapeur, baisser à 200°C et cuire 30-35 min. Astuce pour la croûte : laisser le four entrouvert les 10 dernières minutes."
+
+  - title : Pain aux noix, miel et huiile d'olive
+    tags :
+      - automne
+      - rustique
+      - gourmand
+    ingredients :
+      - label : levain
+        quantity : 200
+        unit : g
+      - label : farine mi-blanche
+        quantity : 300
+        unit : g
+      - label : farine Manitoba
+        quantity : 100
+        unit : g
+      - label : farine complète à choix (seigle pour plus de caractère)
+        quantity : 100
+        unit : g
+      - label : eau
+        quantity : 340
+        unit : g
+      - label : sel
+        quantity : 8
+        unit : g
+      - label : miel
+        quantity : 2
+        unit : càs
+      - label : huile d'olive
+        quantity : 25
+        unit : g
+      - label : noix concassées (torréfiées 10 min à 160°C pour plus de saveur)
+        quantity : 120
+        unit : g
+    steps :
+      - "Autolyse : mélanger les farines et l'eau, laisser reposer 30 min."
+      - "Ajouter le levain, le sel, le miel et l'huile d'olive. Pétrissage 8-10 min."
+      - "Incorporer les noix concassées, mélanger par rabats."
+      - "Pointage : 3-4h à température ambiante avec 2 rabats."
+      - "Façonnage en boule ou en bâtard. Laisser reposer 15 min avant de finaliser la forme."
+      - "Apprêt : 1-2h à température ambiante ou toute la nuit au frigo."
+      - "Cuisson : four préchauffé à 240°C, enfourner avec de la vapeur, baisser à 200°C et cuire 35-40 min."
+  
+  - title : Pains de Sils
+    tags :
+      - Suisse
+      - traditionnel
+      - salé
+    phases :
+      - label : Pâte
+        position : 1
+        ingredients :
+          - label : levain
+            quantity : 100
+            unit : g
+          - label : farine blanche
+            quantity : 450
+            unit : g
+          - label : eau
+            quantity : 230
+            unit : g
+          - label : sel
+            quantity : 10
+            unit : g 
+          - label : beurre mou
+            quantity : 40
+            unit : g
+          - label : sucre
+            quantity : 10
+            unit : g
+          - label : levure sèche (optionnel)
+            quantity : 2
+            unit : g
+        steps :
+          - "Autolyse : mélanger la farine et l'eau, laisser reposer 30 min."
+          - "Ajouter le levain, le sel, le sucre et la levure sèche si utilisée. Pétrissage 8-10 min."
+          - "Ajouter le beurre mou, pétrir encore 5 min."
+          - "Pointage : 1h30 à 2h à température ambiante (gain de volume de 50%)."
+          - "Façonnage : former 6 pâtons et les bouler sous forme allongée."
+      - label : Bain
+        position : 2
+        ingredients :
+          - label : eau à ébullition
+            quantity : 1
+            unit : l
+          - label : bicarbonate de soude
+            quantity : 30
+            unit : g
+        steps :
+          - "Porter l'eau à ébullition dans une grande casserole."
+          - "Ajouter le bicarbonate de soude en remuant."
+          - "Plonger les pâtons dans le bain bouillant 30 sec de chaque côté à l'aide d'une écumoire."
+          - "Égoutter sur une grille."
+          - "Cuisson : four préchauffé à 220°C, enfourner les pâtons, baisser à 200°C et cuire 15-20 min."
+
