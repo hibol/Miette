@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "recipe_rel_linkedFile")
-public class RecipeFile {
+@Table(name = "recipe_rel_asset")
+public class RecipeAsset {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -15,6 +15,6 @@ public class RecipeFile {
     private Recipe recipe;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "linkedFileId", nullable = false)
-    private LinkedFile linkedFile;
+    @JoinColumn(name = "assetId", nullable = false)
+    private Asset asset;
 }

@@ -22,5 +22,5 @@ public class Recipe {
     private List<RecipeTag> tags = new java.util.ArrayList<>();
     
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
-    private List<RecipeFile> files = new java.util.ArrayList<>();
+    private List<RecipeAsset> files = new java.util.ArrayList<>();
 }
