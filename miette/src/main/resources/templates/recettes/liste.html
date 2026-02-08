@@ -4,10 +4,37 @@
     <title>Mes Recettes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
+    
 </head>
 <body class="container mt-5">
     <h1>🥖 Mes Recettes</h1>
+    
+    <!-- Barre de recherche -->
+    <div class="search-bar mb-4">
+        <form method="GET" class="d-flex">
+            <input type="search" name="q" 
+            th:value="${query}" 
+            th:placeholder="${isSearchMode} ? 'Recherche active...' : '🍳 Titre, ingrédients, étapes, tags...'"
+            class="form-control form-control-lg me-2">
+            <button type="submit" class="btn btn-primary btn-lg px-4">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+    </div>
+    
+    <!-- Résultats ou "Tout" + bouton reset -->
+    <div th:if="${isSearchMode}" class="alert alert-info d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-search"></i> 
+            <span th:text="'Trouvé ' + ${resultCount} + ' recette(s)'"></span>
+        </span>
+        <a href="/recettes" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-grid-3x3-gap"></i> Voir toutes les recettes
+        </a>
+    </div>
+    <div th:unless="${isSearchMode}" class="alert alert-success">
+        <i class="bi bi-list-ul"></i> Toutes les recettes (
+        <span th:text="${resultCount}"></span>)
+    </div>
     
     <div th:if="${recipes.isEmpty()}">
         <p class="alert alert-info">Aucune recette</p>
@@ -20,8 +47,8 @@
                     <h5 class="card-title mb-0" th:text="${recipe.title}">Recette</h5>
                     <div th:if="${!#lists.isEmpty(recipe.tags)}" class="mt-2">
                         <span th:each="tagRel : ${recipe.tags}" 
-                              th:text="${tagRel.tag.label}" 
-                              class="badge bg-secondary me-1"></span>
+                        th:text="${tagRel.tag.label}" 
+                        class="badge bg-secondary me-1"></span>
                     </div>
                 </div>
                 <div class="card-body">
@@ -31,19 +58,19 @@
                         <h6><i class="bi bi-egg-fried"></i> Ingrédients</h6>
                         <ul class="list-unstyled small">
                             <li th:each="ingRel : ${recipe.phases[0].ingredientPhases}" 
-                                th:text="${ingRel.ingredient.label} + ' : ' + 
-                                        (${ingRel.quantity} % 1 == 0 ? 
-                                            ${#numbers.formatDecimal(ingRel.quantity, 0, 0)} : 
-                                            ${#numbers.formatDecimal(ingRel.quantity, 0, 1)}) + 
-                                        ' ' + 
-                                        (${ingRel.ingredient.unit} == null ? '' : ${ingRel.ingredient.unit})">
+                            th:text="${ingRel.ingredient.label} + ' : ' + 
+                            (${ingRel.quantity} % 1 == 0 ? 
+                            ${#numbers.formatDecimal(ingRel.quantity, 0, 0)} : 
+                            ${#numbers.formatDecimal(ingRel.quantity, 0, 1)}) + 
+                            ' ' + 
+                            (${ingRel.ingredient.unit} == null ? '' : ${ingRel.ingredient.unit})">
                         </ul>
                         
                         <!-- Étapes -->
                         <h6 class="mt-3"><i class="bi bi-list-numbered"></i> Étapes</h6>
                         <ol class="small">
                             <li th:each="step : ${recipe.phases[0].steps}" 
-                                th:text="${step.label}"></li>
+                            th:text="${step.label}"></li>
                         </ol>
                     </div>
                     
@@ -57,12 +84,12 @@
                                 <small class="text-muted">Ingrédients :</small>
                                 <ul class="list-unstyled small mt-1">
                                     <li th:each="ingRel : ${phase.ingredientPhases}" 
-                                        th:text="${ingRel.ingredient.label} + ' : ' + 
-                                        (${ingRel.quantity} % 1 == 0 ? 
-                                            ${#numbers.formatDecimal(ingRel.quantity, 0, 0)} : 
-                                            ${#numbers.formatDecimal(ingRel.quantity, 0, 1)}) + 
-                                        ' ' + 
-                                        (${ingRel.ingredient.unit} == null ? '' : ${ingRel.ingredient.unit})">
+                                    th:text="${ingRel.ingredient.label} + ' : ' + 
+                                    (${ingRel.quantity} % 1 == 0 ? 
+                                    ${#numbers.formatDecimal(ingRel.quantity, 0, 0)} : 
+                                    ${#numbers.formatDecimal(ingRel.quantity, 0, 1)}) + 
+                                    ' ' + 
+                                    (${ingRel.ingredient.unit} == null ? '' : ${ingRel.ingredient.unit})">
                                 </ul>
                             </div>
                             
@@ -70,7 +97,7 @@
                             <div th:if="${#lists.size(phase.steps) > 0}" class="mt-2">
                                 <ol class="small mb-0">
                                     <li th:each="step : ${phase.steps}" 
-                                       th:text="${step.label}"></li>
+                                    th:text="${step.label}"></li>
                                 </ol>
                             </div>
                         </div>

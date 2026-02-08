@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -18,12 +19,15 @@ import com.hibol.miette.entity.Ingredient;
 import com.hibol.miette.entity.IngredientPhase;
 import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
+import com.hibol.miette.entity.RecipeSearchIndex;
 import com.hibol.miette.entity.RecipeTag;
 import com.hibol.miette.entity.Step;
 import com.hibol.miette.entity.Tag;
 import com.hibol.miette.repository.IngredientRepository;
 import com.hibol.miette.repository.RecipeRepository;
+import com.hibol.miette.repository.RecipeSearchIndexRepository;
 import com.hibol.miette.repository.TagRepository;
+import com.hibol.miette.service.RecipeIndexingService;
 
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +41,9 @@ public class DataSeeder {
     private final RecipeRepository recipeRepo;
     private final TagRepository tagRepo;
     private final IngredientRepository ingredientRepo;
+    private final RecipeSearchIndexRepository searchIndexRepo;
+    private final RecipeIndexingService indexingService;
+    private final JdbcTemplate jdbcTemplate;
 
     @Bean
     CommandLineRunner seed() {
@@ -48,6 +55,9 @@ public class DataSeeder {
             } else {
                 log.info("⏭️  Seeder skipped (DB already initialized)");
             }
+
+            updateSearchIndexes();
+            log.info("✅ {} indexed recipes", searchIndexRepo.count());
         };
     }
 
@@ -157,5 +167,24 @@ public class DataSeeder {
         } catch (Exception e) {
             log.error("❌ Erreur seeding YAML", e);
         }
+    }
+
+    @Transactional
+    private void updateSearchIndexes() {
+        indexingService.getAllForIndexing().forEach(dto -> {
+            RecipeSearchIndex index = new RecipeSearchIndex();
+            index.setRecipeId(dto.id());
+            index.setSearchContent(
+                String.join(" ", 
+                dto.title(),
+                String.join(" ", dto.tags()),
+                String.join(" ", dto.ingredients()),
+                String.join(" ", dto.steps())
+                )
+            );
+            searchIndexRepo.save(index);
+        });
+
+        jdbcTemplate.execute("ALTER TABLE recipe_search_index ADD FULLTEXT(search_content)");
     }
 }
