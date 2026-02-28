@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -23,10 +24,12 @@ import com.hibol.miette.entity.RecipeSearchIndex;
 import com.hibol.miette.entity.RecipeTag;
 import com.hibol.miette.entity.Step;
 import com.hibol.miette.entity.Tag;
+import com.hibol.miette.entity.User;
 import com.hibol.miette.repository.IngredientRepository;
 import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.RecipeSearchIndexRepository;
 import com.hibol.miette.repository.TagRepository;
+import com.hibol.miette.repository.UserRepository;
 import com.hibol.miette.service.RecipeIndexingService;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
 public class DataSeeder {
 
@@ -44,6 +47,8 @@ public class DataSeeder {
     private final RecipeSearchIndexRepository searchIndexRepo;
     private final RecipeIndexingService indexingService;
     private final JdbcTemplate jdbcTemplate;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
     CommandLineRunner seed() {
@@ -58,6 +63,22 @@ public class DataSeeder {
 
             updateSearchIndexes();
             log.info("✅ {} indexed recipes", searchIndexRepo.count());
+            
+            if (userRepository.findByUsername("hibol").isEmpty()) {
+                String adminPassword = System.getenv("MIETTE_ADMIN_PASSWORD");
+                if (adminPassword != null) {
+                    User admin = new User();
+                    admin.setUsername("hibol");
+                    admin.setPassword(passwordEncoder.encode(adminPassword));
+                    admin.setRole(User.Role.ADMIN);
+                    userRepository.save(admin);
+                    log.info("✅ Admin hibol créé");
+                }  else {
+                    log.info("ℹ️  Skip admin creation (set MIETTE_ADMIN_PASSWORD)");
+                }
+            } else {
+                log.info("⏭️  Admin user already exists, skipping creation");
+            }
         };
     }
 

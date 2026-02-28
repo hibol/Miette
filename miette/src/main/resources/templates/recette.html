@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${recipe.title + ' - Mes Recettes'}">Recette</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="container mt-5">
+    <div th:replace="~{fragments/header :: site-header}"></div>
+    
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <!-- Bouton Retour (gauche) -->
+            <a th:href="${returnUrl}" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+        
+        <!-- Boutons ADMIN (droite, 1 ligne) -->
+        <div sec:authorize="hasRole('ADMIN')" class="col-md-8 d-flex gap-2 justify-content-end">
+            <a th:href="@{/admin/recette/{id}/edit(id=${recipe.id})}" 
+            class="btn btn-success flex-fill">
+                <i class="bi bi-pencil"></i> Modifier
+            </a>
+            <button class="btn btn-danger flex-fill" onclick="confirmDelete()">
+                <i class="bi bi-trash"></i> Supprimer
+            </button>
+        </div>
+    </div>
+
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="recipe-detail" th:data-recipe-title="${recipe.title}" th:data-recipe-id="${recipe.id}">
+                <!-- Titre + tags -->
+                <h1 th:text="${recipe.title}" class="mb-4">Recette</h1>
+                <div class="mb-4" th:if="${!#lists.isEmpty(recipe.tags)}">
+                    <span th:each="tagRel : ${recipe.tags}" 
+                        th:text="${tagRel.tag.label}" 
+                        class="badge bg-primary me-2 mb-2"></span>
+                </div>
+                
+                <!-- Phases / ingrédients / étapes (même logique que liste.html) -->
+                <div th:if="${#lists.size(recipe.phases) == 1 and recipe.phases[0].label == ''}">
+                    <!-- UNE phase vide = ingrédients/étapes directs -->
+                    <section class="mb-5">
+                        <h3><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h3>
+                        <ul class="list-group list-group-flush">
+                            <li th:each="ingRel : ${recipe.phases[0].ingredientPhases}" 
+                                class="list-group-item px-0 border-0 py-2" 
+                                th:text="${ingRel.ingredient.label} + ' : ' + 
+                                (${ingRel.quantity} % 1 == 0 ? 
+                                ${#numbers.formatDecimal(ingRel.quantity, 0, 0)} : 
+                                ${#numbers.formatDecimal(ingRel.quantity, 0, 1)}) + 
+                                ' ' + ${ingRel.ingredient.unit}">
+                        </li>
+                        </ul>
+                    </section>
+                    
+                    <section>
+                        <h3><i class="bi bi-list-numbered text-info"></i> Étapes</h3>
+                        <ol class="list-group list-group-numbered list-group-flush">
+                            <li th:each="step : ${recipe.phases[0].steps}" 
+                                class="list-group-item px-0 border-0 py-3">
+                                <span th:text="${step.label}"></span>
+                            </li>
+                        </ol>
+                    </section>
+                </div>
+                
+                <!-- Multiples phases -->
+                <div th:unless="${#lists.size(recipe.phases) == 1 and recipe.phases[0].label == ''}">
+                    <div th:each="phase : ${recipe.phases}" class="mb-5">
+                        <h3 class="fw-bold text-primary mb-4" th:text="${phase.label}">Phase</h3>
+                        
+                        <section th:if="${!#lists.isEmpty(phase.ingredientPhases)}">
+                            <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
+                            <ul class="list-group list-group-flush">
+                                <li th:each="ingRel : ${phase.ingredientPhases}" 
+                                    class="list-group-item px-0 border-0 py-2"
+                                    th:text="${ingRel.ingredient.label} + ' : ' + 
+                                    (${ingRel.quantity} % 1 == 0 ? 
+                                    ${#numbers.formatDecimal(ingRel.quantity, 0, 0)} : 
+                                    ${#numbers.formatDecimal(ingRel.quantity, 0, 1)}) + 
+                                    ' ' + ${ingRel.ingredient.unit}">
+                            </li>
+                            </ul>
+                        </section>
+                        
+                        <section th:if="${!#lists.isEmpty(phase.steps)}" class="mt-4">
+                            <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
+                            <ol class="list-group list-group-numbered list-group-flush">
+                                <li th:each="step : ${phase.steps}" 
+                                    class="list-group-item px-0 border-0 py-3">
+                                    <span th:text="${step.label}"></span>
+                                </li>
+                            </ol>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function confirmDelete() {
+        const recipeTitle = document.querySelector('[data-recipe-title]').dataset.recipeTitle;
+        const recipeId = document.querySelector('[data-recipe-id]').dataset.recipeId;
+        
+        if (confirm(`⚠️ Supprimer '${recipeTitle}' ?`)) {
+            window.location.href = `/admin/recette/${recipeId}/delete`;
+        }
+    }
+    </script>
+
+</body>
+</html>

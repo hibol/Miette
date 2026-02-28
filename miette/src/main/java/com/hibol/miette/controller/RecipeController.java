@@ -4,26 +4,37 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.hibol.miette.entity.Recipe;
 import com.hibol.miette.entity.RecipeSearchIndex;
 import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.RecipeSearchIndexRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 
 @Controller
-@RequestMapping("/recettes")
 public class RecipeController {
     
     @Autowired private RecipeRepository recipeRepo;
     @Autowired private RecipeSearchIndexRepository searchIndexRepo;
 
-    @GetMapping
+    @GetMapping("/login")
+    public String login(@RequestParam(required = false) String from, Model model) {
+        model.addAttribute("redirectTo", from != null ? from : "/recettes");
+        return "login";
+    }
+
+    @GetMapping("/recettes")
     public String list(@RequestParam(required = false) String q,
                       @RequestParam(defaultValue = "0") int page,
                       Model model) {
@@ -32,7 +43,7 @@ public class RecipeController {
         
         if (q != null && !q.trim().isEmpty()) {
             // Recherche full-text
-            List<RecipeSearchIndex> results = searchIndexRepo.search(q);
+            List<RecipeSearchIndex> results = searchIndexRepo.search(q.trim() + "*"); // wildcard pour partial match
             List<Long> recipeIds = results.stream()
                 .map(RecipeSearchIndex::getRecipeId)
                 .collect(Collectors.toList());
@@ -47,6 +58,40 @@ public class RecipeController {
         model.addAttribute("resultCount", recipes.size());
         model.addAttribute("isSearchMode", q != null && !q.trim().isEmpty());
         
-        return "recettes/liste"; 
+        return "liste"; 
+    }
+
+    @GetMapping("/recette/{id}")
+    public String detail(@PathVariable Long id, HttpServletRequest request, Model model) {
+        Recipe recipe = recipeRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
+        
+        // Sauvegarde URL actuelle pour retour
+        String referer = request.getHeader("Referer");
+        String returnUrl = "/recettes"; // default
+
+        if (referer != null && !referer.contains("/login") && 
+            (referer.contains("/recettes") || referer.contains("/recette"))) {
+            returnUrl = referer;
+        }
+        model.addAttribute("returnUrl", returnUrl);
+
+        model.addAttribute("recipe", recipe);
+        return "recette";
+    }
+
+    @GetMapping("/admin/recette/{id}/delete")
+    public String deleteRecipe(@PathVariable Long id, HttpServletRequest request, RedirectAttributes redirectAttributes, UriComponentsBuilder uriBuilder) {
+        Recipe recipe = recipeRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
+        
+        String title = recipe.getTitle();
+        recipeRepo.deleteById(id);
+        
+        // Retour intelligent : garde la recherche précédente
+        String returnUrl = uriBuilder.replacePath("/recettes").query(request.getQueryString()).build().toString();
+        redirectAttributes.addFlashAttribute("message", "✅ '" + title + "' supprimée !");
+        
+        return "redirect:" + returnUrl;
     }
 }
