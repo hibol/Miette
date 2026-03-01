@@ -20,6 +20,7 @@ import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.RecipeSearchIndexRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 
 @Controller
@@ -27,12 +28,6 @@ public class RecipeController {
     
     @Autowired private RecipeRepository recipeRepo;
     @Autowired private RecipeSearchIndexRepository searchIndexRepo;
-
-    @GetMapping("/login")
-    public String login(@RequestParam(required = false) String from, Model model) {
-        model.addAttribute("redirectTo", from != null ? from : "/recettes");
-        return "login";
-    }
 
     @GetMapping("/recettes")
     public String list(@RequestParam(required = false) String q,
@@ -65,16 +60,16 @@ public class RecipeController {
     public String detail(@PathVariable Long id, HttpServletRequest request, Model model) {
         Recipe recipe = recipeRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
-        
-        // Sauvegarde URL actuelle pour retour
-        String referer = request.getHeader("Referer");
-        String returnUrl = "/recettes"; // default
 
-        if (referer != null && !referer.contains("/login") && 
-            (referer.contains("/recettes") || referer.contains("/recette"))) {
-            returnUrl = referer;
+        String referer = request.getHeader("Referer");
+        HttpSession session = request.getSession();
+
+        if (referer != null && referer.contains("/recettes")) {
+            session.setAttribute("returnUrl", referer);
         }
-        model.addAttribute("returnUrl", returnUrl);
+
+        String returnUrl = (String) session.getAttribute("returnUrl");
+        model.addAttribute("returnUrl", returnUrl != null ? returnUrl : "/recettes");
 
         model.addAttribute("recipe", recipe);
         return "recette";

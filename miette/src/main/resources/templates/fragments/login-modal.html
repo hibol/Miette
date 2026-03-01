@@ -1,0 +1,64 @@
+<div th:fragment="login-modal">
+    <!-- Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">🔐 Connexion Admin</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="login-error" class="alert alert-danger d-none">
+                        Identifiants incorrects.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Utilisateur</label>
+                        <input type="text" id="modal-username" class="form-control" autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mot de passe</label>
+                        <input type="password" id="modal-password" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary w-100" id="modal-login-btn">
+                        <i class="bi bi-box-arrow-in-right"></i> Se connecter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('modal-login-btn').addEventListener('click', async () => {
+            const csrf = document.querySelector('meta[name="_csrf"]').content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            const username = document.getElementById('modal-username').value;
+            const password = document.getElementById('modal-password').value;
+
+            const params = new URLSearchParams();
+            params.append('username', username);
+            params.append('password', password);
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+                    [csrfHeader]: csrf
+                 },
+                body: params
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                document.getElementById('login-error').classList.remove('d-none');
+            }
+        });
+
+        document.getElementById('modal-password').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('modal-login-btn').click();
+            }
+        });
+    </script>
+</div>

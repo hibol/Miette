@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -32,19 +31,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-            .requestMatchers("/", "/recettes", "/recettes**", "/recette/**", "/css/**", "/js/**", "/login", "/login**").permitAll()
+            .requestMatchers("/", "/recettes", "/recettes**", "/recette/**", "/css/**", "/js/**").permitAll()
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated()
         )
         .formLogin(form -> form
-            .loginPage("/login")
             .successHandler((request, response, authentication) -> {
-                String redirectTo = request.getParameter("redirectTo");
-                if (redirectTo != null && redirectTo.startsWith("/")) {
-                    response.sendRedirect(redirectTo);
-                } else {
-                    response.sendRedirect("/recettes");
-                }
+                response.setStatus(200);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"success\":true}");
+            })
+            .failureHandler((request, response, exception) -> {
+                response.setStatus(401);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"success\":false}");
             })
             .permitAll()
         )

@@ -13,9 +13,9 @@
         <div class="d-flex align-items-center gap-2">
             <!-- Non connecté -->
             <div sec:authorize="!isAuthenticated()">
-                <a th:href="@{/login(from=${currentPath})}" class="btn btn-outline-secondary">
+                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
                     <i class="bi bi-person-circle"></i> Connexion
-                </a>
+                </button>
             </div>
 
             <!-- Connecté -->
