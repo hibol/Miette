@@ -16,19 +16,22 @@
         <!-- Boutons ADMIN (droite, 1 ligne) -->
         <div sec:authorize="hasRole('ADMIN')" class="col-md-8 d-flex gap-2 justify-content-end">
             <a th:href="@{/admin/recette/{id}/edit(id=${recipe.id})}" 
-            class="btn btn-success flex-fill">
+            class="btn btn-success">
                 <i class="bi bi-pencil"></i> Modifier
             </a>
-            <button class="btn btn-danger flex-fill" onclick="confirmDelete()">
-                <i class="bi bi-trash"></i> Supprimer
-            </button>
+            <form th:action="@{/admin/recette/{id}/delete(id=${recipe.id})}" method="post"
+                onsubmit="return confirm('⚠️ Confirmer la suppression ?');">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Supprimer
+                </button>
+            </form>
         </div>
     </div>
 
     
     <div class="row">
         <div class="col-lg-8">
-            <div class="recipe-detail" th:data-recipe-title="${recipe.title}" th:data-recipe-id="${recipe.id}">
+            <div class="recipe-detail">
                 <!-- Titre + tags -->
                 <h1 th:text="${recipe.title}" class="mb-4">Recette</h1>
                 <div class="mb-4" th:if="${!#lists.isEmpty(recipe.tags)}">
@@ -98,17 +101,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-    function confirmDelete() {
-        const recipeTitle = document.querySelector('[data-recipe-title]').dataset.recipeTitle;
-        const recipeId = document.querySelector('[data-recipe-id]').dataset.recipeId;
-        
-        if (confirm(`⚠️ Supprimer '${recipeTitle}' ?`)) {
-            window.location.href = `/admin/recette/${recipeId}/delete`;
-        }
-    }
-    </script>
 
 </body>
 <div th:replace="~{fragments/layout :: scripts}"></div>

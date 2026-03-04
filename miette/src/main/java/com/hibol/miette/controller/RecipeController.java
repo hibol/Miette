@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import com.hibol.miette.entity.Recipe;
 import com.hibol.miette.entity.RecipeSearchIndex;
@@ -73,20 +71,5 @@ public class RecipeController {
 
         model.addAttribute("recipe", recipe);
         return "recette";
-    }
-
-    @GetMapping("/admin/recette/{id}/delete")
-    public String deleteRecipe(@PathVariable Long id, HttpServletRequest request, RedirectAttributes redirectAttributes, UriComponentsBuilder uriBuilder) {
-        Recipe recipe = recipeRepo.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
-        
-        String title = recipe.getTitle();
-        recipeRepo.deleteById(id);
-        
-        // Retour intelligent : garde la recherche précédente
-        String returnUrl = uriBuilder.replacePath("/recettes").query(request.getQueryString()).build().toString();
-        redirectAttributes.addFlashAttribute("message", "✅ '" + title + "' supprimée !");
-        
-        return "redirect:" + returnUrl;
     }
 }
