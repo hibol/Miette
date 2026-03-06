@@ -1,28 +1,29 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Liste des recettes')}"></head>
-<body class="container mt-5">
+<body class="container-fluid px-3 px-md-4 mt-3 mt-md-5">
     <div th:replace="~{fragments/header :: site-header}"></div>
     <div th:replace="~{fragments/login-modal :: login-modal}"></div>
     
     <div class="row mb-4">
-        <div class="col-md-4">
-            <!-- Bouton Retour (gauche) -->
-            <a th:href="${returnUrl}" class="btn btn-outline-secondary w-100">
-                <i class="bi bi-arrow-left"></i> Retour à la liste
+        <div class="col-auto">
+            <a th:href="${returnUrl}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i>
+                <span class="d-none d-md-inline"> Retour à la liste</span>
             </a>
         </div>
         
-        <!-- Boutons ADMIN (droite, 1 ligne) -->
-        <div sec:authorize="hasRole('ADMIN')" class="col-md-8 d-flex gap-2 justify-content-end">
+        <div sec:authorize="hasRole('ADMIN')" class="col d-flex gap-2 justify-content-end">
             <a th:href="@{/admin/recette/{id}/edit(id=${recipe.id})}" 
             class="btn btn-success">
-                <i class="bi bi-pencil"></i> Modifier
+                <i class="bi bi-pencil"></i>
+                <span class="d-none d-md-inline"> Modifier</span>
             </a>
             <form th:action="@{/admin/recette/{id}/delete(id=${recipe.id})}" method="post"
                 onsubmit="return confirm('⚠️ Confirmer la suppression ?');">
                 <button type="submit" class="btn btn-danger">
-                    <i class="bi bi-trash"></i> Supprimer
+                    <i class="bi bi-trash"></i>
+                    <span class="d-none d-md-inline"> Supprimer</span>
                 </button>
             </form>
         </div>

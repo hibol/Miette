@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Liste des recettes')}"></head>
-<body class="container mt-5">
+<body class="container-fluid px-3 px-md-4 mt-3 mt-md-5">
     <div th:replace="~{fragments/header :: site-header}"></div>
     <div th:replace="~{fragments/login-modal :: login-modal}"></div>
     
@@ -43,8 +43,8 @@
         <p class="alert alert-info">Aucune recette</p>
     </div>
     
-    <div th:unless="${recipes.isEmpty()}" class="row g-4">
-        <div th:each="recipe : ${recipes}" class="col-md-6 col-lg-4">
+    <div th:unless="${recipes.isEmpty()}" class="row g-3">
+        <div th:each="recipe : ${recipes}" class="col-12 col-md-6 col-lg-4">
             <a th:href="@{/recette/{id}(id=${recipe.id})}" class="text-decoration-none recipe-link">
                 <div class="card h-100">
                     <div class="card-header">
