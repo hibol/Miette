@@ -34,14 +34,14 @@
             <div class="recipe-detail">
                 <!-- Titre + tags -->
                 <h1 th:text="${recipe.title}" class="mb-4">Recette</h1>
-                <div class="mb-4" th:if="${!#lists.isEmpty(recipe.tags)}">
+                <div class="mb-4" th:if="${!#sets.isEmpty(recipe.tags)}">
                     <span th:each="tagRel : ${recipe.tags}" 
                         th:text="${tagRel.tag.label}" 
                         class="badge bg-primary me-2 mb-2"></span>
                 </div>
                 
                 <!-- Phases / ingrédients / étapes (même logique que liste.html) -->
-                <div th:if="${#lists.size(recipe.phases) == 1 and recipe.phases[0].label == ''}">
+                <div th:if="${#sets.size(recipe.phases) == 1 and recipe.phases[0].label == ''}">
                     <!-- UNE phase vide = ingrédients/étapes directs -->
                     <section class="mb-5">
                         <h3><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h3>
@@ -69,11 +69,11 @@
                 </div>
                 
                 <!-- Multiples phases -->
-                <div th:unless="${#lists.size(recipe.phases) == 1 and recipe.phases[0].label == ''}">
+                <div th:unless="${#sets.size(recipe.phases) == 1 and recipe.phases[0].label == ''}">
                     <div th:each="phase : ${recipe.phases}" class="mb-5">
                         <h3 class="fw-bold text-primary mb-4" th:text="${phase.label}">Phase</h3>
                         
-                        <section th:if="${!#lists.isEmpty(phase.ingredientPhases)}">
+                        <section th:if="${!#sets.isEmpty(phase.ingredientPhases)}">
                             <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
                             <ul class="list-group list-group-flush">
                                 <li th:each="ingRel : ${phase.ingredientPhases}" 
@@ -87,7 +87,7 @@
                             </ul>
                         </section>
                         
-                        <section th:if="${!#lists.isEmpty(phase.steps)}" class="mt-4">
+                        <section th:if="${!#sets.isEmpty(phase.steps)}" class="mt-4">
                             <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
                             <ol class="list-group list-group-numbered list-group-flush">
                                 <li th:each="step : ${phase.steps}" 

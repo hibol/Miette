@@ -1,15 +1,18 @@
 package com.hibol.miette.entity;
 
-import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(name = "phase")
 public class Phase {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
     
     @Column(nullable = false)
@@ -23,7 +26,9 @@ public class Phase {
     private Recipe recipe;
 
     @OneToMany(mappedBy = "phase", cascade = CascadeType.ALL)
-    private List<IngredientPhase> ingredientPhases = new java.util.ArrayList<>();
+    private Set<IngredientPhase> ingredientPhases = new java.util.HashSet<>();
+    
     @OneToMany(mappedBy = "phase", cascade = CascadeType.ALL)
-    private List<Step> steps = new java.util.ArrayList<>();
+    @OrderBy("position ASC")
+    private Set<Step> steps = new java.util.HashSet<>();
 }

@@ -1,9 +1,7 @@
 package com.hibol.miette.controller;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,38 +11,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.hibol.miette.entity.Recipe;
-import com.hibol.miette.entity.RecipeSearchIndex;
-import com.hibol.miette.repository.RecipeRepository;
-import com.hibol.miette.repository.RecipeSearchIndexRepository;
+import com.hibol.miette.service.RecipeService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 
 @Controller
+@RequiredArgsConstructor
 public class RecipeController {
     
-    @Autowired private RecipeRepository recipeRepo;
-    @Autowired private RecipeSearchIndexRepository searchIndexRepo;
+    private final RecipeService recipeService;
 
     @GetMapping("/recettes")
-    public String list(@RequestParam(required = false) String q,
-                      @RequestParam(defaultValue = "0") int page,
-                      Model model) {
+    public String list(@RequestParam(required = false) String q, @RequestParam(defaultValue = "0") int page, Model model) {
         
-        List<Recipe> recipes;
-        
-        if (q != null && !q.trim().isEmpty()) {
-            // Recherche full-text
-            List<RecipeSearchIndex> results = searchIndexRepo.search(q.trim() + "*"); // wildcard pour partial match
-            List<Long> recipeIds = results.stream()
-                .map(RecipeSearchIndex::getRecipeId)
-                .collect(Collectors.toList());
-            recipes = recipeRepo.findAllById(recipeIds);
-        } else {
-            // Toutes les recettes
-            recipes = recipeRepo.findAll();
-        }
+        List<Recipe> recipes = (q != null && !q.trim().isEmpty()) ? recipeService.search(q.trim()) : recipeService.findAllWithDetails();
         
         model.addAttribute("recipes", recipes);
         model.addAttribute("query", q);
@@ -56,7 +39,7 @@ public class RecipeController {
 
     @GetMapping("/recette/{id}")
     public String detail(@PathVariable Long id, HttpServletRequest request, Model model) {
-        Recipe recipe = recipeRepo.findById(id)
+        Recipe recipe = recipeService.findByIdWithDetails(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
 
         String referer = request.getHeader("Referer");
