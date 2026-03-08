@@ -137,8 +137,9 @@ public class DataSeeder {
         phase.setRecipe(recipe);
 
         if (yamlPhase.getIngredients() != null) {
-            yamlPhase.getIngredients().forEach(yIng ->
-                phase.getIngredientPhases().add(buildIngredientPhase(yIng, phase)));
+            for (int i = 0; i < yamlPhase.getIngredients().size(); i++) {
+                phase.getIngredientPhases().add(buildIngredientPhase(yamlPhase.getIngredients().get(i), phase, i + 1));
+            }
         }
 
         if (yamlPhase.getSteps() != null) {
@@ -157,8 +158,9 @@ public class DataSeeder {
         phase.setRecipe(recipe);
 
         if (yamlRecipe.getIngredients() != null) {
-            yamlRecipe.getIngredients().forEach(yIng ->
-                phase.getIngredientPhases().add(buildIngredientPhase(yIng, phase)));
+            for (int i = 0; i < yamlRecipe.getIngredients().size(); i++) {
+                phase.getIngredientPhases().add(buildIngredientPhase(yamlRecipe.getIngredients().get(i), phase, i + 1));
+            }
         }
 
         if (yamlRecipe.getSteps() != null) {
@@ -170,7 +172,7 @@ public class DataSeeder {
         return phase;
     }
 
-    private IngredientPhase buildIngredientPhase(YamlIngredient yIng, Phase phase) {
+    private IngredientPhase buildIngredientPhase(YamlIngredient yIng, Phase phase, int position) {
         Ingredient ingredient = ingredientRepo.findByLabel(yIng.getLabel()).orElseGet(() -> {
             Ingredient ing = new Ingredient();
             ing.setLabel(yIng.getLabel());
@@ -182,6 +184,7 @@ public class DataSeeder {
         ingPhase.setIngredient(ingredient);
         ingPhase.setPhase(phase);
         ingPhase.setQuantity(yIng.getQuantity());
+        ingPhase.setPosition(position);
         return ingPhase;
     }
 

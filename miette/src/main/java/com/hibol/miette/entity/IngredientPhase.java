@@ -20,4 +20,7 @@ public class IngredientPhase {
 
     @Column
     private Double quantity;
+
+    @Column(nullable = false)
+    private Integer position;
 }

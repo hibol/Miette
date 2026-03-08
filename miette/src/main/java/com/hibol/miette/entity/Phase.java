@@ -26,6 +26,7 @@ public class Phase {
     private Recipe recipe;
 
     @OneToMany(mappedBy = "phase", cascade = CascadeType.ALL)
+    @OrderBy("position ASC")
     private Set<IngredientPhase> ingredientPhases = new java.util.HashSet<>();
     
     @OneToMany(mappedBy = "phase", cascade = CascadeType.ALL)
