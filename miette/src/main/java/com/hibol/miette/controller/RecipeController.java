@@ -24,6 +24,11 @@ public class RecipeController {
     
     private final RecipeService recipeService;
 
+    @GetMapping("/")
+    public String home() {
+        return "redirect:/recettes";
+    }
+
     @GetMapping("/recettes")
     public String list(@RequestParam(required = false) String q, @RequestParam(defaultValue = "0") int page, Model model) {
         
