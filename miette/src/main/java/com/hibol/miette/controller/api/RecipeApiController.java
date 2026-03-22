@@ -1,8 +1,10 @@
 package com.hibol.miette.controller.api;
 
 import com.hibol.miette.dto.api.RecipeDto;
+import com.hibol.miette.entity.Recipe;
 import com.hibol.miette.mapper.RecipeMapper;
 import com.hibol.miette.service.RecipeService;
+import com.hibol.miette.service.RecipeWriteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,7 @@ import java.util.List;
 public class RecipeApiController {
 
     private final RecipeService recipeService;
+    private final RecipeWriteService recipeWriteService;
     private final RecipeMapper recipeMapper;
 
     @GetMapping
@@ -43,13 +46,13 @@ public class RecipeApiController {
 
     @PutMapping("/{id}")
     public ResponseEntity<RecipeDto> update(@PathVariable Long id, @RequestBody RecipeDto dto) {
-        // TODO point 5
-        return ResponseEntity.status(501).build();
+        Recipe updated = recipeWriteService.update(id, dto);
+        return ResponseEntity.ok(recipeMapper.toDto(updated));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        // TODO point 5
-        return ResponseEntity.status(501).build();
+        recipeWriteService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

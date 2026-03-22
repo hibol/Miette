@@ -18,6 +18,8 @@ public class RecipeMapper {
         return new RecipeDto(
             recipe.getId(),
             recipe.getTitle(),
+            recipe.getCreatedAt(),
+            recipe.getUpdatedAt(),
             recipe.getTags().stream()
                 .map(rt -> rt.getTag().getLabel())
                 .sorted()

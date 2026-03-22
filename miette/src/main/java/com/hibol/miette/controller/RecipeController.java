@@ -43,7 +43,7 @@ public class RecipeController {
     }
 
     @GetMapping("/recette/{id}")
-    public String detail(@PathVariable Long id, HttpServletRequest request, Model model) {
+    public String detail(@PathVariable Long id, @RequestParam(required = false) String edit, HttpServletRequest request, Model model) {
         Recipe recipe = recipeService.findByIdWithDetails(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
 
@@ -55,9 +55,9 @@ public class RecipeController {
         }
 
         String returnUrl = (String) session.getAttribute("returnUrl");
+        model.addAttribute("recipeId", id);
+        model.addAttribute("editMode", edit != null);
         model.addAttribute("returnUrl", returnUrl != null ? returnUrl : "/recettes");
-
-        model.addAttribute("recipe", recipe);
         return "recette";
     }
 }
