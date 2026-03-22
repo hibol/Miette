@@ -110,4 +110,65 @@ public class RecipeWriteService {
         indexingService.removeFromIndex(id);
         log.info("✅ Recipe {} deleted", id);
     }
+
+    @Transactional
+    public Recipe create(RecipeDto dto) {
+        Recipe recipe = new Recipe();
+        recipe.setTitle(dto.title());
+        recipe.setCreatedAt(LocalDateTime.now());
+
+        // Tags
+        for (String tagLabel : dto.tags()) {
+            Tag tag = tagRepo.findByLabel(tagLabel).orElseGet(() -> {
+                Tag t = new Tag();
+                t.setLabel(tagLabel);
+                return tagRepo.save(t);
+            });
+            RecipeTag recipeTag = new RecipeTag();
+            recipeTag.setRecipe(recipe);
+            recipeTag.setTag(tag);
+            recipe.getTags().add(recipeTag);
+        }
+
+        // Phases
+        for (int i = 0; i < dto.phases().size(); i++) {
+            PhaseDto phaseDto = dto.phases().get(i);
+            Phase phase = new Phase();
+            phase.setLabel(phaseDto.label());
+            phase.setPosition(i + 1);
+            phase.setRecipe(recipe);
+
+            for (int j = 0; j < phaseDto.ingredients().size(); j++) {
+                IngredientDto ingDto = phaseDto.ingredients().get(j);
+                Ingredient ingredient = ingredientRepo.findByLabel(ingDto.label()).orElseGet(() -> {
+                    Ingredient ing = new Ingredient();
+                    ing.setLabel(ingDto.label());
+                    ing.setUnit(ingDto.unit());
+                    return ingredientRepo.save(ing);
+                });
+                IngredientPhase ingPhase = new IngredientPhase();
+                ingPhase.setIngredient(ingredient);
+                ingPhase.setPhase(phase);
+                ingPhase.setQuantity(ingDto.quantity());
+                ingPhase.setPosition(j + 1);
+                phase.getIngredientPhases().add(ingPhase);
+            }
+
+            for (int j = 0; j < phaseDto.steps().size(); j++) {
+                StepDto stepDto = phaseDto.steps().get(j);
+                Step step = new Step();
+                step.setLabel(stepDto.label());
+                step.setPosition(j + 1);
+                step.setPhase(phase);
+                phase.getSteps().add(step);
+            }
+
+            recipe.getPhases().add(phase);
+        }
+
+        Recipe saved = recipeRepo.save(recipe);
+        indexingService.indexRecipe(saved.getId());
+        log.info("✅ Recipe {} created", saved.getId());
+        return saved;
+    }
 }

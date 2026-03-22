@@ -6,7 +6,7 @@
     <div th:replace="~{fragments/login-modal :: login-modal}"></div>
 
     <div id="app"
-        th:data-recipe-id="${recipeId}"
+        th:data-recipe-id="${recipeId != null ? recipeId : ''}"
         th:data-return-url="${returnUrl}"
         th:data-edit-mode="${editMode}"
         th:data-is-admin="${#authorization.expression('hasRole(''ADMIN'')')}">

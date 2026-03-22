@@ -60,4 +60,12 @@ public class RecipeController {
         model.addAttribute("returnUrl", returnUrl != null ? returnUrl : "/recettes");
         return "recette";
     }
+
+    @GetMapping("/recette/new")
+    public String newRecipe(Model model) {
+        model.addAttribute("recipeId", null);
+        model.addAttribute("editMode", true);
+        model.addAttribute("returnUrl", "/recettes");
+        return "recette";
+    }
 }

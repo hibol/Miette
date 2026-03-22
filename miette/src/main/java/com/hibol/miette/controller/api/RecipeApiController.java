@@ -6,7 +6,10 @@ import com.hibol.miette.mapper.RecipeMapper;
 import com.hibol.miette.service.RecipeService;
 import com.hibol.miette.service.RecipeWriteService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/recipes")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class RecipeApiController {
 
     private final RecipeService recipeService;
@@ -21,6 +25,7 @@ public class RecipeApiController {
     private final RecipeMapper recipeMapper;
 
     @GetMapping
+    @PreAuthorize("permitAll()")
     public List<RecipeDto> list(@RequestParam(required = false) String q) {
         var recipes = (q != null && !q.trim().isEmpty())
             ? recipeService.search(q.trim())
@@ -31,17 +36,12 @@ public class RecipeApiController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<RecipeDto> get(@PathVariable Long id) {
         return recipeService.findByIdWithDetails(id)
             .map(recipeMapper::toDto)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public ResponseEntity<RecipeDto> create(@RequestBody RecipeDto dto) {
-        // TODO point 5
-        return ResponseEntity.status(501).build();
     }
 
     @PutMapping("/{id}")
@@ -54,5 +54,11 @@ public class RecipeApiController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         recipeWriteService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping
+    public ResponseEntity<RecipeDto> create(@RequestBody RecipeDto dto) {
+        Recipe created = recipeWriteService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(recipeMapper.toDto(created));
     }
 }

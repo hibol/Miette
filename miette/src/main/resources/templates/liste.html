@@ -38,6 +38,13 @@
         <i class="bi bi-list-ul"></i> Toutes les recettes (
         <span th:text="${resultCount}"></span>)
     </div>
+
+    <!-- Bouton "Nouvelle recette" (si admin) -->
+    <div sec:authorize="hasRole('ADMIN')" class="mb-4">
+        <a th:href="@{/recette/new}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Nouvelle recette
+        </a>
+    </div>
     
     <div th:if="${recipes.isEmpty()}">
         <p class="alert alert-info">Aucune recette</p>

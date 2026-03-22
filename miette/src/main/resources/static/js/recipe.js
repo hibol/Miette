@@ -15,11 +15,19 @@ createApp({
             isAdmin.value = appEl.dataset.isAdmin === 'true';
             const recipeId = appEl.dataset.recipeId;
             try {
-                const response = await fetch(`/api/recipes/${recipeId}`);
-                if (!response.ok) throw new Error('Recette introuvable');
-                recipe.value = await response.json();
-                if (appEl.dataset.editMode === 'true') {
+                if (!recipeId) {
+                    // Mode création
+                    recipe.value = { id: null, title: '', tags: [], phases: [
+                        { id: null, label: '', position: 1, ingredients: [], steps: [] }
+                    ]};
                     startEdit();
+                } else {
+                    const response = await fetch(`/api/recipes/${recipeId}`);
+                    if (!response.ok) throw new Error('Recette introuvable');
+                    recipe.value = await response.json();
+                    if (appEl.dataset.editMode === 'true') {
+                        startEdit();
+                    }
                 }
             } catch (e) {
                 error.value = e.message;
@@ -86,8 +94,11 @@ createApp({
                 const csrf = document.querySelector('meta[name="_csrf"]').content;
                 const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-                const response = await fetch(`/api/recipes/${recipe.value.id}`, {
-                    method: 'PUT',
+                const isNew = recipe.value.id === null;
+                const url = isNew ? '/api/recipes' : `/api/recipes/${recipe.value.id}`;
+                const method = isNew ? 'POST' : 'PUT';
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                         [csrfHeader]: csrf
@@ -99,6 +110,10 @@ createApp({
                     recipe.value = await response.json();
                     editMode.value = false;
                     draft.value = null;
+                    // Si création, mettre à jour l'URL
+                    if (isNew) {
+                        window.history.replaceState(null, '', `/recette/${recipe.value.id}`);
+                    }
                 } else {
                     alert('Erreur lors de la sauvegarde');
                 }
@@ -177,9 +192,16 @@ createApp({
                         <button @click="draft.tags.splice(index, 1)"
                             class="btn-close btn-close-white" style="font-size: 0.6rem;"></button>
                     </span>
-                    <input v-model="newTag" @keydown.enter.prevent="addTag"
-                        class="form-control form-control-sm" style="width: 150px"
-                        placeholder="+ tag..." />
+                    <div class="d-flex gap-1">
+                        <input v-model="newTag" 
+                            @keydown.enter.prevent="addTag"
+                            class="form-control form-control-sm" 
+                            style="width: 120px"
+                            placeholder="+ tag..." />
+                        <button @click="addTag" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
