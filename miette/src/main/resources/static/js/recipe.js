@@ -1,10 +1,61 @@
 const { createApp, ref, onMounted, computed } = Vue;
 
+const vSortableSteps = {
+    mounted(el, binding) {
+        Sortable.create(el, {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd(evt) {
+                const steps = binding.value;
+                const item = steps.splice(evt.oldIndex, 1)[0];
+                steps.splice(evt.newIndex, 0, item);
+                steps.forEach((s, i) => s.position = i + 1);
+            }
+        });
+    }
+};
+
+const vSortableIngredients = {
+    mounted(el, binding) {
+        Sortable.create(el, {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd(evt) {
+                const ingredients = binding.value;
+                const item = ingredients.splice(evt.oldIndex, 1)[0];
+                ingredients.splice(evt.newIndex, 0, item);
+                ingredients.forEach((ing, i) => ing.position = i + 1);
+            }
+        });
+    }
+};
+
+const vSortablePhases = {
+    mounted(el, binding) {
+        Sortable.create(el, {
+            animation: 150,
+            handle: '.phase-drag-handle',
+            onStart() {
+                binding.value.setDragging(true);
+            },
+            onEnd(evt) {
+                binding.value.setDragging(false);
+                const phases = binding.value.phases;
+                const item = phases.splice(evt.oldIndex, 1)[0];
+                phases.splice(evt.newIndex, 0, item);
+                phases.forEach((p, i) => p.position = i + 1);
+            }
+        });
+    }
+};
+
 createApp({
+    directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases },
     setup() {
         const recipe = ref(null);
         const loading = ref(true);
         const saving = ref(false);
+        const isDraggingPhase = ref(false);
         const error = ref(null);
         const isAdmin = ref(false);
         const editMode = ref(false);
@@ -151,7 +202,7 @@ createApp({
             }
         }
 
-        return { recipe, loading, saving, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSingleUnnamedPhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe };
+        return { recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSingleUnnamedPhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe };
     },
 
     template: `
@@ -270,11 +321,14 @@ createApp({
             </div>
 
             <!-- Phases en édition -->
-            <div v-if="editMode">
+            <div v-if="editMode" v-sortable-phases="{ phases: draft.phases, setDragging: (val) => isDraggingPhase = val }">
                 <div v-for="(phase, phaseIndex) in draft.phases" :key="phase.id" class="mb-5">
                     
                     <!-- Label phase (seulement si multiples phases) -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
+                        <i v-if="draft.phases.length > 1" 
+                            class="bi bi-grip-vertical phase-drag-handle text-muted me-2" 
+                            style="cursor: grab"></i>
                         <input v-if="draft.phases.length > 1" v-model="phase.label"
                             class="form-control fw-bold text-primary" placeholder="Nom de la phase" />
                         <h5 v-else class="mb-0 text-muted">Phase unique</h5>
@@ -285,44 +339,48 @@ createApp({
                         </button>
                     </div>
                     
-                    <!-- Ingrédients -->
-                    <section class="mb-4">
-                        <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
-                        <ul class="list-group list-group-flush">
-                            <li v-for="(ing, ingIndex) in phase.ingredients" :key="ing.id"
-                                class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
-                                <input v-model="ing.label" class="form-control" placeholder="Ingrédient" />
-                                <input v-model="ing.quantity" type="number" class="form-control" style="width: 80px" />
-                                <input v-model="ing.unit" class="form-control" style="width: 80px" placeholder="unité" />
-                                <button @click="phase.ingredients.splice(ingIndex, 1)" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </li>
-                        </ul>
-                        <button @click="phase.ingredients.push({id: null, label: '', quantity: null, unit: '', position: phase.ingredients.length + 1})"
-                            class="btn btn-outline-secondary btn-sm mt-2">
-                            <i class="bi bi-plus"></i> Ajouter un ingrédient
-                        </button>
-                    </section>
+                    <div v-show="!isDraggingPhase" >
+                        <!-- Ingrédients -->
+                        <section class="mb-4">
+                            <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
+                            <ul v-sortable-ingredients="phase.ingredients" class="list-group list-group-flush">
+                                <li v-for="(ing, ingIndex) in phase.ingredients" :key="ing.id"
+                                    class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
+                                    <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
+                                    <input v-model="ing.label" class="form-control" placeholder="Ingrédient" />
+                                    <input v-model="ing.quantity" type="number" class="form-control" style="width: 80px" />
+                                    <input v-model="ing.unit" class="form-control" style="width: 80px" placeholder="unité" />
+                                    <button @click="phase.ingredients.splice(ingIndex, 1)" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </li>
+                            </ul>
+                            <button @click="phase.ingredients.push({id: null, label: '', quantity: null, unit: '', position: phase.ingredients.length + 1})"
+                                class="btn btn-outline-secondary btn-sm mt-2">
+                                <i class="bi bi-plus"></i> Ajouter un ingrédient
+                            </button>
+                        </section>
 
-                    <!-- Étapes -->
-                    <section>
-                        <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
-                        <ol class="list-group list-group-flush">
-                            <li v-for="(step, stepIndex) in phase.steps" :key="step.id"
-                                class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
-                                <span class="text-muted me-1">{{ stepIndex + 1 }}.</span>
-                                <input v-model="step.label" class="form-control" />
-                                <button @click="phase.steps.splice(stepIndex, 1)" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </li>
-                        </ol>
-                        <button @click="phase.steps.push({id: null, label: '', position: phase.steps.length + 1})"
-                            class="btn btn-outline-secondary btn-sm mt-2">
-                            <i class="bi bi-plus"></i> Ajouter une étape
-                        </button>
-                    </section>
+                        <!-- Étapes -->
+                        <section>
+                            <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
+                            <ol v-sortable-steps="phase.steps" class="list-group list-group-flush">
+                                <li v-for="(step, stepIndex) in phase.steps" :key="step.id"
+                                    class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
+                                    <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
+                                    <span class="text-muted me-1">{{ stepIndex + 1 }}.</span>
+                                    <input v-model="step.label" class="form-control" />
+                                    <button @click="phase.steps.splice(stepIndex, 1)" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </li>
+                            </ol>
+                            <button @click="phase.steps.push({id: null, label: '', position: phase.steps.length + 1})"
+                                class="btn btn-outline-secondary btn-sm mt-2">
+                                <i class="bi bi-plus"></i> Ajouter une étape
+                            </button>
+                        </section>
+                    </div>
                 </div>
                 <!-- Ajouter une phase -->
                 <button @click="addPhase" class="btn btn-outline-secondary btn-sm mt-2">
