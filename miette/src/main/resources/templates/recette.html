@@ -3,12 +3,13 @@
 <head th:replace="~{fragments/layout :: head('Recette')}"></head>
 <body class="container-fluid px-3 px-md-4 mt-3 mt-md-5">
     <div th:replace="~{fragments/header :: site-header}"></div>
+    <div th:replace="~{fragments/login-modal :: login-modal}"></div>
 
     <div id="app"
         th:data-recipe-id="${recipeId}"
         th:data-return-url="${returnUrl}"
         th:data-edit-mode="${editMode}"
-        sec:authorize="hasRole('ADMIN')" th:data-is-admin="true">
+        th:data-is-admin="${#authorization.expression('hasRole(''ADMIN'')')}">
         <p>Chargement...</p>
     </div>
 
