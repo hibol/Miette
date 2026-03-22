@@ -4,6 +4,7 @@ createApp({
     setup() {
         const recipe = ref(null);
         const loading = ref(true);
+        const saving = ref(false);
         const error = ref(null);
         const isAdmin = ref(false);
         const editMode = ref(false);
@@ -80,24 +81,29 @@ createApp({
         }
 
         async function saveRecipe() {
-            const csrf = document.querySelector('meta[name="_csrf"]').content;
-            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            saving.value = true;
+            try {
+                const csrf = document.querySelector('meta[name="_csrf"]').content;
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-            const response = await fetch(`/api/recipes/${recipe.value.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    [csrfHeader]: csrf
-                },
-                body: JSON.stringify(draft.value)
-            });
+                const response = await fetch(`/api/recipes/${recipe.value.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrf
+                    },
+                    body: JSON.stringify(draft.value)
+                });
 
-            if (response.ok) {
-                recipe.value = await response.json();
-                editMode.value = false;
-                draft.value = null;
-            } else {
-                alert('Erreur lors de la sauvegarde');
+                if (response.ok) {
+                    recipe.value = await response.json();
+                    editMode.value = false;
+                    draft.value = null;
+                } else {
+                    alert('Erreur lors de la sauvegarde');
+                }
+            } finally {
+                saving.value = false;
             }
         }
 
@@ -119,7 +125,7 @@ createApp({
             }
         }
 
-        return { recipe, loading, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSingleUnnamedPhase, formatQuantity, returnUrl, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe };
+        return { recipe, loading, saving, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSingleUnnamedPhase, formatQuantity, returnUrl, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe };
     },
 
     template: `
@@ -148,9 +154,10 @@ createApp({
                         <i class="bi bi-trash"></i>
                         <span class="d-none d-md-inline"> Supprimer</span>
                     </button>
-                    <button v-if="editMode" @click="saveRecipe" class="btn btn-primary">
-                        <i class="bi bi-floppy"></i>
-                        <span class="d-none d-md-inline"> Enregistrer</span>
+                    <button v-if="editMode" @click="saveRecipe" :disabled="saving" class="btn btn-primary">
+                        <span v-if="saving" class="spinner-border spinner-border-sm me-1"></span>
+                        <i v-else class="bi bi-floppy"></i>
+                        <span class="d-none d-md-inline">{{ saving ? ' Enregistrement...' : ' Enregistrer' }}</span>
                     </button>
                 </div>
             </div>
