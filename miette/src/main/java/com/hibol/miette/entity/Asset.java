@@ -2,24 +2,27 @@ package com.hibol.miette.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(name = "asset")
 public class Asset {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
     
     @Column
     private String path;
 
-    @Column @Temporal(TemporalType.TIMESTAMP)
-    private Date date;
+    @Column(nullable = false)
+    private LocalDateTime date;
 
     @Column
     private String description;
