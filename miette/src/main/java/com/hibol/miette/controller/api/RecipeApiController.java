@@ -2,11 +2,12 @@ package com.hibol.miette.controller.api;
 
 import com.hibol.miette.dto.api.RecipeDto;
 import com.hibol.miette.entity.Recipe;
+import com.hibol.miette.entity.Tag;
 import com.hibol.miette.mapper.RecipeMapper;
 import com.hibol.miette.service.RecipeService;
+import com.hibol.miette.repository.TagRepository;
 import com.hibol.miette.service.RecipeWriteService;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +24,7 @@ public class RecipeApiController {
     private final RecipeService recipeService;
     private final RecipeWriteService recipeWriteService;
     private final RecipeMapper recipeMapper;
+    private final TagRepository tagRepo;
 
     @GetMapping
     @PreAuthorize("permitAll()")
@@ -60,5 +62,14 @@ public class RecipeApiController {
     public ResponseEntity<RecipeDto> create(@RequestBody RecipeDto dto) {
         Recipe created = recipeWriteService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(recipeMapper.toDto(created));
+    }
+
+    @GetMapping("/tags")
+    @PreAuthorize("permitAll()")
+    public List<String> tags() {
+        return tagRepo.findAll().stream()
+            .map(Tag::getLabel)
+            .sorted()
+            .toList();
     }
 }

@@ -9,6 +9,14 @@ createApp({
         const isAdmin = ref(false);
         const editMode = ref(false);
         const draft = ref(null); // copie de travail en mode édition
+        const availableTags = ref([]);
+        const filteredTags = computed(() => {
+            if (!newTag.value.trim()) return [];
+            return availableTags.value.filter(t => 
+                t.toLowerCase().includes(newTag.value.toLowerCase()) &&
+                !draft.value.tags.includes(t)
+            );
+        });
 
         onMounted(async () => {
             const appEl = document.getElementById('app');
@@ -29,6 +37,9 @@ createApp({
                         startEdit();
                     }
                 }
+
+                const tagsResponse = await fetch('/api/tags');
+                availableTags.value = await tagsResponse.json();
             } catch (e) {
                 error.value = e.message;
             } finally {
@@ -140,7 +151,7 @@ createApp({
             }
         }
 
-        return { recipe, loading, saving, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSingleUnnamedPhase, formatQuantity, returnUrl, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe };
+        return { recipe, loading, saving, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSingleUnnamedPhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe };
     },
 
     template: `
@@ -192,7 +203,7 @@ createApp({
                         <button @click="draft.tags.splice(index, 1)"
                             class="btn-close btn-close-white" style="font-size: 0.6rem;"></button>
                     </span>
-                    <div class="d-flex gap-1">
+                    <div class="d-flex gap-1 position-relative">
                         <input v-model="newTag" 
                             @keydown.enter.prevent="addTag"
                             class="form-control form-control-sm" 
@@ -201,6 +212,17 @@ createApp({
                         <button @click="addTag" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-plus"></i>
                         </button>
+                        <!-- Dropdown suggestions -->
+                        <ul v-if="filteredTags.length > 0" 
+                            class="list-group position-absolute shadow-sm"
+                            style="top: 100%; left: 0; z-index: 1000; min-width: 150px">
+                            <li v-for="tag in filteredTags" :key="tag"
+                                @click="draft.tags.push(tag); newTag = ''"
+                                class="list-group-item list-group-item-action py-1 px-2" 
+                                style="cursor: pointer; font-size: 0.85rem">
+                                {{ tag }}
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
