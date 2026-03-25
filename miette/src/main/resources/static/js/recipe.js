@@ -124,10 +124,10 @@ createApp({
             newTag.value = '';
         }
 
-        const isSingleUnnamedPhase = computed(() => {
+        const isSinglePhase = computed(() => {
             const data = recipe.value;
             if (!data || !data.phases || data.phases.length === 0) return false;
-            return data.phases.length === 1 && data.phases[0].label === '';
+            return data.phases.length === 1;
         });
 
         function addPhase() {
@@ -202,7 +202,7 @@ createApp({
             }
         }
 
-        return { recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSingleUnnamedPhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe };
+        return { recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSinglePhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe };
     },
 
     template: `
@@ -279,7 +279,7 @@ createApp({
             </div>
 
             <!-- Phases en lecture -->
-            <div v-if="!editMode && isSingleUnnamedPhase">
+            <div v-if="!editMode && isSinglePhase">
                 <section class="mb-5">
                     <h3><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h3>
                     <ul class="list-group list-group-flush">
@@ -298,7 +298,7 @@ createApp({
                 </section>
             </div>
 
-            <div v-else-if="!editMode && !isSingleUnnamedPhase">
+            <div v-else-if="!editMode && !isSinglePhase">
                 <div v-for="phase in recipe.phases" :key="phase.id" class="mb-5">
                     <h3 class="fw-bold text-primary mb-4">{{ phase.label }}</h3>
                     <section v-if="phase.ingredients.length > 0">
