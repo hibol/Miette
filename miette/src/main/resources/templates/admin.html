@@ -24,6 +24,38 @@
         </div>
     </div>
 
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Ingrédients orphelins</h5>
+            <p class="card-text text-muted">
+                Ingrédients présents en base mais n'appartenant à aucune recette.
+            </p>
+
+            <div th:if="${#lists.isEmpty(orphanIngredients)}" class="text-success mb-3">
+                <i class="bi bi-check-circle"></i> Aucun ingrédient orphelin.
+            </div>
+
+            <div th:if="${!#lists.isEmpty(orphanIngredients)}">
+                <ul class="list-group list-group-flush mb-3">
+                    <li th:each="ing : ${orphanIngredients}"
+                        class="list-group-item px-0">
+                        <span th:text="${ing.label}"></span>
+                        <span th:if="${ing.unit}" class="text-muted ms-1"
+                              th:text="'(' + ${ing.unit} + ')'"></span>
+                    </li>
+                </ul>
+                <form th:action="@{/admin/ingredients/purge-orphans}" method="post"
+                      onsubmit="return confirm('Supprimer les ' + this.dataset.count + ' ingrédient(s) orphelin(s) ?')"
+                      th:data-count="${#lists.size(orphanIngredients)}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i>
+                        Supprimer les <span th:text="${#lists.size(orphanIngredients)}"></span> orphelin(s)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -13,6 +14,17 @@ import java.util.Objects;
 public class IngredientService {
 
     private final IngredientRepository ingredientRepo;
+
+    public List<Ingredient> findOrphans() {
+        return ingredientRepo.findOrphans();
+    }
+
+    @Transactional
+    public int deleteOrphans() {
+        List<Ingredient> orphans = ingredientRepo.findOrphans();
+        ingredientRepo.deleteAll(orphans);
+        return orphans.size();
+    }
 
     /**
      * Retourne l'ingrédient existant portant ce label, ou le crée s'il est inconnu.
