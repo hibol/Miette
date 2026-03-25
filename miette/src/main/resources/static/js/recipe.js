@@ -72,6 +72,10 @@ createApp({
             );
         });
 
+        window.addEventListener('beforeunload', (e) => {
+            if (editMode.value) e.preventDefault();
+        });
+
         onMounted(async () => {
             const appEl = document.getElementById('app');
             isAdmin.value = appEl.dataset.isAdmin === 'true';
@@ -158,7 +162,19 @@ createApp({
             draft.value.phases.forEach((p, i) => p.position = i + 1);
         }
 
+        function validateDraft() {
+            if (!draft.value.title?.trim()) return 'Le titre est obligatoire.';
+            for (const phase of draft.value.phases) {
+                for (const ing of phase.ingredients) {
+                    if (ing.label?.trim() && !ing.quantity) return `L'ingrédient "${ing.label}" doit avoir une quantité.`;
+                }
+            }
+            return null;
+        }
+
         async function saveRecipe() {
+            const error = validateDraft();
+            if (error) { alert(error); return; }
             saving.value = true;
             try {
                 const csrf = document.querySelector('meta[name="_csrf"]').content;

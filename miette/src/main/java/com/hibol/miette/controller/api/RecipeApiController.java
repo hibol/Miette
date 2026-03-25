@@ -8,6 +8,7 @@ import com.hibol.miette.service.RecipeService;
 import com.hibol.miette.repository.TagRepository;
 import com.hibol.miette.service.RecipeWriteService;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,7 +48,7 @@ public class RecipeApiController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RecipeDto> update(@PathVariable Long id, @RequestBody RecipeDto dto) {
+    public ResponseEntity<RecipeDto> update(@PathVariable Long id, @Valid @RequestBody RecipeDto dto) {
         Recipe updated = recipeWriteService.update(id, dto);
         return ResponseEntity.ok(recipeMapper.toDto(updated));
     }
@@ -59,7 +60,7 @@ public class RecipeApiController {
     }
 
     @PostMapping
-    public ResponseEntity<RecipeDto> create(@RequestBody RecipeDto dto) {
+    public ResponseEntity<RecipeDto> create(@Valid @RequestBody RecipeDto dto) {
         Recipe created = recipeWriteService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(recipeMapper.toDto(created));
     }

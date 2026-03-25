@@ -11,14 +11,12 @@ import com.hibol.miette.dto.api.PhaseDto;
 import com.hibol.miette.dto.api.RecipeDto;
 import com.hibol.miette.dto.api.StepDto;
 import com.hibol.miette.dto.api.IngredientDto;
-import com.hibol.miette.entity.Ingredient;
 import com.hibol.miette.entity.IngredientPhase;
 import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
 import com.hibol.miette.entity.RecipeTag;
 import com.hibol.miette.entity.Step;
 import com.hibol.miette.entity.Tag;
-import com.hibol.miette.repository.IngredientRepository;
 import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.TagRepository;
 
@@ -29,7 +27,7 @@ public class RecipeWriteService {
 
     private final RecipeRepository recipeRepo;
     private final TagRepository tagRepo;
-    private final IngredientRepository ingredientRepo;
+    private final IngredientService ingredientService;
     private final RecipeIndexingService indexingService;
 
     @Transactional
@@ -60,40 +58,7 @@ public class RecipeWriteService {
         // Phases — clear et recrée
         recipe.getPhases().clear();
         for (int i = 0; i < dto.phases().size(); i++) {
-            PhaseDto phaseDto = dto.phases().get(i);
-            Phase phase = new Phase();
-            phase.setLabel(phaseDto.label());
-            phase.setPosition(i + 1);
-            phase.setRecipe(recipe);
-
-            // Ingrédients
-            for (int j = 0; j < phaseDto.ingredients().size(); j++) {
-                IngredientDto ingDto = phaseDto.ingredients().get(j);
-                Ingredient ingredient = ingredientRepo.findByLabel(ingDto.label()).orElseGet(() -> {
-                    Ingredient ing = new Ingredient();
-                    ing.setLabel(ingDto.label());
-                    ing.setUnit(ingDto.unit());
-                    return ingredientRepo.save(ing);
-                });
-                IngredientPhase ingPhase = new IngredientPhase();
-                ingPhase.setIngredient(ingredient);
-                ingPhase.setPhase(phase);
-                ingPhase.setQuantity(ingDto.quantity());
-                ingPhase.setPosition(j + 1);
-                phase.getIngredientPhases().add(ingPhase);
-            }
-
-            // Étapes
-            for (int j = 0; j < phaseDto.steps().size(); j++) {
-                StepDto stepDto = phaseDto.steps().get(j);
-                Step step = new Step();
-                step.setLabel(stepDto.label());
-                step.setPosition(j + 1);
-                step.setPhase(phase);
-                phase.getSteps().add(step);
-            }
-
-            recipe.getPhases().add(phase);
+            recipe.getPhases().add(buildPhase(dto.phases().get(i), i + 1, recipe));
         }
 
         Recipe saved = recipeRepo.save(recipe);
@@ -132,43 +97,52 @@ public class RecipeWriteService {
 
         // Phases
         for (int i = 0; i < dto.phases().size(); i++) {
-            PhaseDto phaseDto = dto.phases().get(i);
-            Phase phase = new Phase();
-            phase.setLabel(phaseDto.label());
-            phase.setPosition(i + 1);
-            phase.setRecipe(recipe);
-
-            for (int j = 0; j < phaseDto.ingredients().size(); j++) {
-                IngredientDto ingDto = phaseDto.ingredients().get(j);
-                Ingredient ingredient = ingredientRepo.findByLabel(ingDto.label()).orElseGet(() -> {
-                    Ingredient ing = new Ingredient();
-                    ing.setLabel(ingDto.label());
-                    ing.setUnit(ingDto.unit());
-                    return ingredientRepo.save(ing);
-                });
-                IngredientPhase ingPhase = new IngredientPhase();
-                ingPhase.setIngredient(ingredient);
-                ingPhase.setPhase(phase);
-                ingPhase.setQuantity(ingDto.quantity());
-                ingPhase.setPosition(j + 1);
-                phase.getIngredientPhases().add(ingPhase);
-            }
-
-            for (int j = 0; j < phaseDto.steps().size(); j++) {
-                StepDto stepDto = phaseDto.steps().get(j);
-                Step step = new Step();
-                step.setLabel(stepDto.label());
-                step.setPosition(j + 1);
-                step.setPhase(phase);
-                phase.getSteps().add(step);
-            }
-
-            recipe.getPhases().add(phase);
+            recipe.getPhases().add(buildPhase(dto.phases().get(i), i + 1, recipe));
         }
 
         Recipe saved = recipeRepo.save(recipe);
         indexingService.indexRecipe(saved.getId());
         log.info("✅ Recipe {} created", saved.getId());
         return saved;
+    }
+
+    /**
+     * Construit une Phase à partir d'un PhaseDto.
+     * - Les ingrédients avec un label vide sont ignorés (évite de polluer la table ingredient).
+     * - Si un ingrédient existe déjà et que son unité a changé, l'unité est mise à jour.
+     * - Les étapes avec un label vide sont ignorées.
+     */
+    private Phase buildPhase(PhaseDto dto, int position, Recipe recipe) {
+        Phase phase = new Phase();
+        phase.setLabel(dto.label());
+        phase.setPosition(position);
+        phase.setRecipe(recipe);
+
+        int ingPos = 0;
+        for (IngredientDto ingDto : dto.ingredients()) {
+            if (ingDto.label() == null || ingDto.label().isBlank()) continue;
+            ingPos++;
+
+            IngredientPhase ingPhase = new IngredientPhase();
+            ingPhase.setIngredient(ingredientService.findOrCreate(ingDto.label(), ingDto.unit()));
+            ingPhase.setPhase(phase);
+            ingPhase.setQuantity(ingDto.quantity());
+            ingPhase.setPosition(ingPos);
+            phase.getIngredientPhases().add(ingPhase);
+        }
+
+        int stepPos = 0;
+        for (StepDto stepDto : dto.steps()) {
+            if (stepDto.label() == null || stepDto.label().isBlank()) continue;
+            stepPos++;
+
+            Step step = new Step();
+            step.setLabel(stepDto.label());
+            step.setPosition(stepPos);
+            step.setPhase(phase);
+            phase.getSteps().add(step);
+        }
+
+        return phase;
     }
 }
