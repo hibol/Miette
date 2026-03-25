@@ -4,9 +4,9 @@ import com.hibol.miette.dto.api.IngredientDto;
 import com.hibol.miette.dto.api.PhaseDto;
 import com.hibol.miette.dto.api.RecipeDto;
 import com.hibol.miette.dto.api.StepDto;
+import com.hibol.miette.entity.Ingredient;
 import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
-import com.hibol.miette.repository.IngredientRepository;
 import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.TagRepository;
 import org.junit.jupiter.api.Test;
@@ -42,13 +42,11 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class RecipeWriteServiceTest {
 
-    // Les dépendances du service, remplacées par des mocks (faux objets)
     @Mock RecipeRepository recipeRepo;
     @Mock TagRepository tagRepo;
-    @Mock IngredientRepository ingredientRepo;
+    @Mock IngredientService ingredientService;
     @Mock RecipeIndexingService indexingService;
 
-    // Le vrai service, instancié avec les mocks ci-dessus
     @InjectMocks RecipeWriteService service;
 
     // ─────────────────────────────────────────────
@@ -73,12 +71,16 @@ class RecipeWriteServiceTest {
     }
 
     /**
-     * Configure le mock du repository d'ingrédients pour simuler
-     * des ingrédients inconnus : findByLabel → vide, save → renvoie l'objet.
+     * Configure le mock de l'IngredientService pour simuler un findOrCreate :
+     * renvoie un Ingredient avec le label passé en paramètre.
      */
-    private void mockNouvelIngredient() {
-        when(ingredientRepo.findByLabel(any())).thenReturn(Optional.empty());
-        when(ingredientRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+    private void mockIngredientService() {
+        when(ingredientService.findOrCreate(any(), any())).thenAnswer(inv -> {
+            Ingredient ing = new Ingredient();
+            ing.setLabel(inv.getArgument(0));
+            ing.setUnit(inv.getArgument(1));
+            return ing;
+        });
     }
 
     // ─────────────────────────────────────────────
@@ -94,7 +96,7 @@ class RecipeWriteServiceTest {
         // GIVEN
         when(recipeRepo.findById(1L)).thenReturn(Optional.of(recetteExistante(1L)));
         mockSave();
-        mockNouvelIngredient();
+        mockIngredientService();
 
         RecipeDto dto = new RecipeDto(1L, "Tarte aux pommes", null, null,
             List.of(),
@@ -126,7 +128,7 @@ class RecipeWriteServiceTest {
         // GIVEN
         when(recipeRepo.findById(1L)).thenReturn(Optional.of(recetteExistante(1L)));
         mockSave();
-        mockNouvelIngredient();
+        mockIngredientService();
 
         RecipeDto dto = new RecipeDto(1L, "Quiche", null, null,
             List.of(),
@@ -152,6 +154,71 @@ class RecipeWriteServiceTest {
         assertThat(phase.getIngredientPhases())
             .as("Les 3 ingrédients doivent être présents")
             .hasSize(3);
+    }
+
+    @Test
+    void update_ingredientSansLabel_estIgnore() {
+        // GIVEN — un ingrédient avec label vide ne doit pas être persisté
+        when(recipeRepo.findById(1L)).thenReturn(Optional.of(recetteExistante(1L)));
+        mockSave();
+        mockIngredientService();
+
+        RecipeDto dto = new RecipeDto(1L, "Quiche", null, null,
+            List.of(),
+            List.of(
+                new PhaseDto(null, "", 1,
+                    List.of(
+                        new IngredientDto(null, "Œufs", 3.0, "pcs", 1),
+                        new IngredientDto(null, "",    null, "",   2),  // ← label vide
+                        new IngredientDto(null, "   ", null, "",   3)   // ← label blanc
+                    ),
+                    List.of())
+            )
+        );
+
+        // WHEN
+        service.update(1L, dto);
+
+        // THEN
+        ArgumentCaptor<Recipe> captor = ArgumentCaptor.forClass(Recipe.class);
+        verify(recipeRepo).save(captor.capture());
+
+        Phase phase = captor.getValue().getPhases().iterator().next();
+        assertThat(phase.getIngredientPhases())
+            .as("Seul l'ingrédient avec un label non vide doit être conservé")
+            .hasSize(1);
+    }
+
+    @Test
+    void update_etapeSansLabel_estIgnoree() {
+        // GIVEN
+        when(recipeRepo.findById(1L)).thenReturn(Optional.of(recetteExistante(1L)));
+        mockSave();
+
+        RecipeDto dto = new RecipeDto(1L, "Pain", null, null,
+            List.of(),
+            List.of(
+                new PhaseDto(null, "", 1,
+                    List.of(),
+                    List.of(
+                        new StepDto(null, "Pétrir", 1),
+                        new StepDto(null, "",       2),  // ← label vide
+                        new StepDto(null, "Cuire",  3)
+                    ))
+            )
+        );
+
+        // WHEN
+        service.update(1L, dto);
+
+        // THEN
+        ArgumentCaptor<Recipe> captor = ArgumentCaptor.forClass(Recipe.class);
+        verify(recipeRepo).save(captor.capture());
+
+        Phase phase = captor.getValue().getPhases().iterator().next();
+        assertThat(phase.getSteps())
+            .as("Seules les étapes avec un label non vide doivent être conservées")
+            .hasSize(2);
     }
 
     @Test
@@ -247,7 +314,7 @@ class RecipeWriteServiceTest {
     void create_avecIngredientEtEtapes_toutEstPresent() {
         // GIVEN
         mockSave();
-        mockNouvelIngredient();
+        mockIngredientService();
 
         RecipeDto dto = new RecipeDto(null, "Soupe de carottes", null, null,
             List.of(),
