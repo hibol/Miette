@@ -23,4 +23,16 @@ public class IngredientPhase {
 
     @Column(nullable = false)
     private Integer position;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof IngredientPhase other)) return false;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
