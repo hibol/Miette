@@ -52,6 +52,9 @@ const vSortablePhases = {
 createApp({
     directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases },
     setup() {
+        let _keyCounter = 0;
+        function nextTempKey() { return --_keyCounter; } // nombres négatifs : jamais en conflit avec un vrai ID
+
         const recipe = ref(null);
         const loading = ref(true);
         const saving = ref(false);
@@ -77,7 +80,7 @@ createApp({
                 if (!recipeId) {
                     // Mode création
                     recipe.value = { id: null, title: '', tags: [], phases: [
-                        { id: null, label: '', position: 1, ingredients: [], steps: [] }
+                        { id: null, _key: nextTempKey(), label: '', position: 1, ingredients: [], steps: [] }
                     ]};
                     startEdit();
                 } else {
@@ -104,6 +107,10 @@ createApp({
         }
 
         function cancelEdit() {
+            if (recipe.value.id === null) {
+                window.location.href = returnUrl; // retour à la liste des recetettes si on annule une création
+                return;
+            }
             draft.value = null;
             editMode.value = false;
         }
@@ -133,6 +140,7 @@ createApp({
         function addPhase() {
             draft.value.phases.push({
                 id: null,
+                _key: nextTempKey(),
                 label: 'Nouvelle phase',
                 position: draft.value.phases.length + 1,
                 ingredients: [],
@@ -165,7 +173,7 @@ createApp({
                         'Content-Type': 'application/json',
                         [csrfHeader]: csrf
                     },
-                    body: JSON.stringify(draft.value)
+                    body: JSON.stringify(draft.value, (key, value) => key === '_key' ? undefined : value)
                 });
 
                 if (response.ok) {
@@ -202,7 +210,7 @@ createApp({
             }
         }
 
-        return { recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSinglePhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe };
+        return { recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSinglePhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe, nextTempKey };
     },
 
     template: `
@@ -322,7 +330,7 @@ createApp({
 
             <!-- Phases en édition -->
             <div v-if="editMode" v-sortable-phases="{ phases: draft.phases, setDragging: (val) => isDraggingPhase = val }">
-                <div v-for="(phase, phaseIndex) in draft.phases" :key="phase.id" class="mb-5">
+                <div v-for="(phase, phaseIndex) in draft.phases" :key="phase.id ?? phase._key" class="mb-5">
                     
                     <!-- Label phase (seulement si multiples phases) -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -344,7 +352,7 @@ createApp({
                         <section class="mb-4">
                             <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
                             <ul v-sortable-ingredients="phase.ingredients" class="list-group list-group-flush">
-                                <li v-for="(ing, ingIndex) in phase.ingredients" :key="ing.id"
+                                <li v-for="(ing, ingIndex) in phase.ingredients" :key="ing.id ?? ing._key"
                                     class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
                                     <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
                                     <input v-model="ing.label" class="form-control" placeholder="Ingrédient" />
@@ -355,7 +363,7 @@ createApp({
                                     </button>
                                 </li>
                             </ul>
-                            <button @click="phase.ingredients.push({id: null, label: '', quantity: null, unit: '', position: phase.ingredients.length + 1})"
+                            <button @click="phase.ingredients.push({id: null, _key: nextTempKey(), label: '', quantity: null, unit: '', position: phase.ingredients.length + 1})"
                                 class="btn btn-outline-secondary btn-sm mt-2">
                                 <i class="bi bi-plus"></i> Ajouter un ingrédient
                             </button>
@@ -365,7 +373,7 @@ createApp({
                         <section>
                             <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
                             <ol v-sortable-steps="phase.steps" class="list-group list-group-flush">
-                                <li v-for="(step, stepIndex) in phase.steps" :key="step.id"
+                                <li v-for="(step, stepIndex) in phase.steps" :key="step.id ?? step._key"
                                     class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
                                     <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
                                     <span class="text-muted me-1">{{ stepIndex + 1 }}.</span>
@@ -375,7 +383,7 @@ createApp({
                                     </button>
                                 </li>
                             </ol>
-                            <button @click="phase.steps.push({id: null, label: '', position: phase.steps.length + 1})"
+                            <button @click="phase.steps.push({id: null, _key: nextTempKey(), label: '', position: phase.steps.length + 1})"
                                 class="btn btn-outline-secondary btn-sm mt-2">
                                 <i class="bi bi-plus"></i> Ajouter une étape
                             </button>
