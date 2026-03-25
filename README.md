@@ -10,7 +10,7 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 |---|---|
 | Backend | Java 17, Spring Boot 3.5 |
 | Templating | Thymeleaf + Spring Security extras |
-| Frontend | Bootstrap 5, Bootstrap Icons |
+| Frontend | Bootstrap 5, Bootstrap Icons, Vue 3, SortableJS |
 | Database | MySQL |
 | Security | Spring Security (BCrypt, Remember Me) |
 | Deployment | Railway (Docker) |
@@ -20,13 +20,29 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 
 ## Features
 
-- Browse and search recipes by title, ingredients, steps, and tags (MySQL full-text search)
-- Recipes support multiple named phases (e.g. dough / filling / assembly), each with their own ingredients and steps
-- Tag system for filtering recipes
-- Asset management (images linked to recipes)
-- Secure admin interface for creating, editing, and deleting recipes
-- Login modal (no redirect away from current page)
-- Smart logout returning to the current page
+**Browsing and search**
+- Full-text search across recipe titles, ingredients, steps, and tags (MySQL full-text index)
+- Recipe list with tag badges; search results show match count with a one-click reset
+
+**Recipe display**
+- Recipes with a single phase display ingredients and steps directly, without a phase header
+- Multi-phase recipes (e.g. dough / filling / glaze) display each phase separately with its own ingredients and steps
+
+**Recipe editing (admin)**
+- Inline editor on the recipe page — no separate edit page
+- Add, rename, reorder, and remove phases, ingredients, and steps
+- Drag & drop reordering for phases, ingredients, and steps, including on unsaved recipes
+- Tag input with autocomplete on existing tags
+- Unsaved-changes warning if navigating away mid-edit
+
+**Admin**
+- Create, edit, and delete recipes
+- Maintenance page: rebuild the full-text search index, view and delete orphan ingredients (ingredients no longer used in any recipe)
+
+**Authentication**
+- Login via modal — no redirect away from the current page
+- Logout returns to the current page
+- Remember Me (24 hours)
 
 ---
 
@@ -117,10 +133,54 @@ The full-text search index (`recipe_search_index`) aggregatestitle, tags, ingred
 
 ---
 
+## Recipe editor
+
+The recipe creation and editing UI is a Vue 3 single-page app (`recipe.js`) served within the Thymeleaf template. It handles both creation and edit modes on the same page (`/recette/new` and `/recette/{id}`).
+
+- Phases, ingredients, and steps are managed in-memory before a single save call
+- Phases, ingredients, and steps can be reordered by drag & drop at any time, including before the recipe has been saved for the first time
+- A recipe can have a single phase (displayed without a phase title) or multiple named phases
+- A phase without ingredients is valid (useful for variant phases that share ingredients with the main phase)
+- Blank ingredient and step labels are silently dropped on save; a missing title blocks the save with an explicit error
+
+---
+
+## REST API
+
+The recipe data is exposed through a JSON REST API at `/api/recipes`, consumed by the Vue editor and available for external use.
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/recipes` | Public | List all recipes (supports `?q=` full-text search) |
+| `GET` | `/api/recipes/{id}` | Public | Get a single recipe |
+| `POST` | `/api/recipes` | Admin | Create a recipe |
+| `PUT` | `/api/recipes/{id}` | Admin | Update a recipe |
+| `DELETE` | `/api/recipes/{id}` | Admin | Delete a recipe |
+| `GET` | `/api/tags` | Public | List all existing tags |
+
+Requests are validated with Bean Validation (`@NotBlank` on title). All write endpoints require `ROLE_ADMIN` and CSRF token.
+
+---
+
+## Testing
+
+Unit tests cover `RecipeWriteService` and `IngredientService` using JUnit 5 + Mockito (no database required).
+
+```bash
+./mvnw test
+```
+
+Key scenarios covered:
+- Two phases saved correctly, including a phase with no ingredients
+- Blank ingredient and step labels are filtered before persistence
+- `IngredientService.findOrCreate`: creation, reuse without save, unit update
+
+---
+
 ## Security
 
 - Authentication via Spring Security with BCrypt password hashing
-- Role-based access: `ROLE_ADMIN` required for all `/admin/**` routes
+- Role-based access: `ROLE_ADMIN` required for all write operations and `/admin/**` routes
 - Remember Me token valid for 24 hours
-- CSRF protection enabled (token passed via meta tags for AJAX login)
+- CSRF protection enabled (token passed via meta tags for AJAX calls)
 - Login handled via modal (no page navigation), logout returns user to current page
