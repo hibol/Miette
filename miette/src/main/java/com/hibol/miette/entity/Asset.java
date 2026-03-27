@@ -24,7 +24,7 @@ public class Asset {
     @Column(nullable = false)
     private LocalDateTime date;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Transient
