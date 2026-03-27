@@ -1,3 +1,6 @@
+import { useNotes } from './useNotes.js';
+import { useValidation } from './useValidation.js';
+
 const { createApp, ref, onMounted, computed } = Vue;
 
 const vSortableSteps = {
@@ -56,26 +59,26 @@ createApp({
     directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases },
     setup() {
         let _keyCounter = 0;
-        function nextTempKey() { return --_keyCounter; } // nombres négatifs : jamais en conflit avec un vrai ID
+        function nextTempKey() { return --_keyCounter; }
 
         const recipe = ref(null);
         const loading = ref(true);
         const saving = ref(false);
         const isDraggingPhase = ref(false);
-        const notesOpen = ref(false);
-        const showNoteForm = ref(false);
-        const noteDate = ref('');
-        const noteDescription = ref('');
-        const savingNote = ref(false);
-        const errors = ref({});
         const error = ref(null);
         const isAdmin = ref(false);
         const editMode = ref(false);
-        const draft = ref(null); // copie de travail en mode édition
+        const draft = ref(null);
         const availableTags = ref([]);
+        const newTag = ref('');
+        const returnUrl = document.getElementById('app').dataset.returnUrl;
+
+        const { notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate } = useNotes(recipe);
+        const { errors, validateDraft, getError, clearErrors } = useValidation(draft);
+
         const filteredTags = computed(() => {
             if (!newTag.value.trim()) return [];
-            return availableTags.value.filter(t => 
+            return availableTags.value.filter(t =>
                 t.toLowerCase().includes(newTag.value.toLowerCase()) &&
                 !draft.value.tags.includes(t)
             );
@@ -91,7 +94,6 @@ createApp({
             const recipeId = appEl.dataset.recipeId;
             try {
                 if (!recipeId) {
-                    // Mode création
                     recipe.value = { id: null, title: '', tags: [], assets: [], phases: [
                         { id: null, _key: nextTempKey(), label: '', position: 1, ingredients: [], steps: [] }
                     ]};
@@ -104,7 +106,6 @@ createApp({
                         startEdit();
                     }
                 }
-
                 const tagsResponse = await fetch('/api/tags');
                 availableTags.value = await tagsResponse.json();
             } catch (e) {
@@ -115,15 +116,15 @@ createApp({
         });
 
         function startEdit() {
-            errors.value = {};
-            draft.value = JSON.parse(JSON.stringify(recipe.value)); // deep copy
+            clearErrors();
+            draft.value = JSON.parse(JSON.stringify(recipe.value));
             editMode.value = true;
         }
 
         function cancelEdit() {
-            errors.value = {};
+            clearErrors();
             if (recipe.value.id === null) {
-                window.location.href = returnUrl; // retour à la liste des recetettes si on annule une création
+                window.location.href = returnUrl;
                 return;
             }
             draft.value = null;
@@ -134,9 +135,6 @@ createApp({
             if (quantity === null || quantity === undefined) return '';
             return quantity % 1 === 0 ? quantity.toFixed(0) : quantity.toFixed(1);
         }
-
-        const returnUrl = document.getElementById('app').dataset.returnUrl;
-        const newTag = ref('');
 
         function addTag() {
             const tag = newTag.value.trim();
@@ -173,50 +171,22 @@ createApp({
             draft.value.phases.forEach((p, i) => p.position = i + 1);
         }
 
-        function validateDraft() {
-            const errs = {};
-            if (!draft.value.title?.trim()) {
-                errs['title'] = 'Le titre est obligatoire.';
-            }
-            draft.value.phases.forEach((phase, pi) => {
-                if (draft.value.phases.length > 1 && !phase.label?.trim()) {
-                    errs[`phases[${pi}].label`] = 'Le nom de la phase est obligatoire.';
-                }
-                phase.ingredients.forEach((ing, ii) => {
-                    const hasContent = ing.quantity || ing.unit?.trim();
-                    if (hasContent && !ing.label?.trim()) {
-                        errs[`phases[${pi}].ingredients[${ii}].label`] = 'Le nom de l\'ingrédient est obligatoire.';
-                    }
-                    if (ing.label?.trim() && !ing.quantity) {
-                        errs[`phases[${pi}].ingredients[${ii}].quantity`] = 'La quantité est obligatoire.';
-                    }
-                });
-            });
-            errors.value = errs;
-            return Object.keys(errs).length === 0;
-        }
-
         async function saveRecipe() {
             if (!validateDraft()) return;
             saving.value = true;
             try {
                 const csrf = document.querySelector('meta[name="_csrf"]').content;
                 const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
                 const isNew = recipe.value.id === null;
                 const url = isNew ? '/api/recipes' : `/api/recipes/${recipe.value.id}`;
                 const method = isNew ? 'POST' : 'PUT';
                 const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        [csrfHeader]: csrf
-                    },
+                    method,
+                    headers: { 'Content-Type': 'application/json', [csrfHeader]: csrf },
                     body: JSON.stringify(draft.value, (key, value) => key === '_key' ? undefined : value)
                 });
-
                 if (response.ok) {
-                    errors.value = {};
+                    clearErrors();
                     recipe.value = await response.json();
                     editMode.value = false;
                     draft.value = null;
@@ -236,15 +206,12 @@ createApp({
 
         async function deleteRecipe() {
             if (!confirm('⚠️ Confirmer la suppression ?')) return;
-            
             const csrf = document.querySelector('meta[name="_csrf"]').content;
             const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-            
             const response = await fetch(`/api/recipes/${recipe.value.id}`, {
                 method: 'DELETE',
                 headers: { [csrfHeader]: csrf }
             });
-            
             if (response.ok) {
                 window.location.href = returnUrl;
             } else {
@@ -252,66 +219,15 @@ createApp({
             }
         }
 
-        function formatNoteDate(isoString) {
-            if (!isoString) return '';
-            const d = new Date(isoString);
-            return d.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
-        }
-
-        function openNoteForm() {
-            const now = new Date();
-            const pad = n => String(n).padStart(2, '0');
-            noteDate.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-            noteDescription.value = '';
-            showNoteForm.value = true;
-        }
-
-        async function addNote() {
-            savingNote.value = true;
-            try {
-                const csrf = document.querySelector('meta[name="_csrf"]').content;
-                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-                const response = await fetch(`/api/recipes/${recipe.value.id}/assets`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', [csrfHeader]: csrf },
-                    body: JSON.stringify({ date: noteDate.value, description: noteDescription.value })
-                });
-                if (response.ok) {
-                    const newAsset = await response.json();
-                    recipe.value.assets.unshift(newAsset);
-                    showNoteForm.value = false;
-                } else {
-                    alert("Erreur lors de l'ajout de la note");
-                }
-            } finally {
-                savingNote.value = false;
-            }
-        }
-
-        async function deleteNote(assetId) {
-            if (!confirm('Supprimer cette note ?')) return;
-            const csrf = document.querySelector('meta[name="_csrf"]').content;
-            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-            const response = await fetch(`/api/recipes/${recipe.value.id}/assets/${assetId}`, {
-                method: 'DELETE',
-                headers: { [csrfHeader]: csrf }
-            });
-            if (response.ok) {
-                recipe.value.assets = recipe.value.assets.filter(a => a.id !== assetId);
-            } else {
-                alert('Erreur lors de la suppression');
-            }
-        }
-
-        function getError(key) {
-            return errors.value[key] ?? null;
-        }
-
-        function clearErrors() {
-            errors.value = {};
-        }
-
-        return { recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSinglePhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe, nextTempKey, notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate, errors, getError, clearErrors };
+        return {
+            recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft,
+            returnUrl, availableTags, filteredTags, newTag,
+            isSinglePhase, nextTempKey, formatQuantity,
+            startEdit, cancelEdit, saveRecipe, deleteRecipe,
+            addTag, addPhase, removePhase,
+            notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
+            errors, validateDraft, getError, clearErrors
+        };
     },
 
     template: `
@@ -365,21 +281,21 @@ createApp({
                             class="btn-close btn-close-white" style="font-size: 0.6rem;"></button>
                     </span>
                     <div class="d-flex gap-1 position-relative">
-                        <input v-model="newTag" 
+                        <input v-model="newTag"
                             @keydown.enter.prevent="addTag"
-                            class="form-control form-control-sm" 
+                            class="form-control form-control-sm"
                             style="width: 120px"
                             placeholder="+ tag..." />
                         <button @click="addTag" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-plus"></i>
                         </button>
                         <!-- Dropdown suggestions -->
-                        <ul v-if="filteredTags.length > 0" 
+                        <ul v-if="filteredTags.length > 0"
                             class="list-group position-absolute shadow-sm"
                             style="top: 100%; left: 0; z-index: 1000; min-width: 150px">
                             <li v-for="tag in filteredTags" :key="tag"
                                 @click="draft.tags.push(tag); newTag = ''"
-                                class="list-group-item list-group-item-action py-1 px-2" 
+                                class="list-group-item list-group-item-action py-1 px-2"
                                 style="cursor: pointer; font-size: 0.85rem">
                                 {{ tag }}
                             </li>
@@ -486,7 +402,7 @@ createApp({
             <!-- Phases en édition -->
             <div v-if="editMode" v-sortable-phases="{ phases: draft.phases, setDragging: (val) => isDraggingPhase = val, clearErrors }">
                 <div v-for="(phase, phaseIndex) in draft.phases" :key="phase.id ?? phase._key" class="mb-5">
-                    
+
                     <!-- Label phase (seulement si multiples phases) -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <i v-if="draft.phases.length > 1"
@@ -507,7 +423,7 @@ createApp({
                             <i class="bi bi-x"></i>
                         </button>
                     </div>
-                    
+
                     <div v-show="!isDraggingPhase" >
                         <!-- Ingrédients -->
                         <section class="mb-4">
