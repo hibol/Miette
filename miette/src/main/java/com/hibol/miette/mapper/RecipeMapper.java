@@ -1,9 +1,11 @@
 package com.hibol.miette.mapper;
 
-import com.hibol.miette.dto.api.IngredientDto;
-import com.hibol.miette.dto.api.PhaseDto;
-import com.hibol.miette.dto.api.RecipeDto;
-import com.hibol.miette.dto.api.StepDto;
+import com.hibol.miette.dto.api.response.AssetDto;
+import com.hibol.miette.dto.api.response.IngredientDto;
+import com.hibol.miette.dto.api.response.PhaseDto;
+import com.hibol.miette.dto.api.response.RecipeDto;
+import com.hibol.miette.dto.api.response.StepDto;
+import com.hibol.miette.entity.Asset;
 import com.hibol.miette.entity.IngredientPhase;
 import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
@@ -27,7 +29,20 @@ public class RecipeMapper {
             recipe.getPhases().stream()
                 .sorted(Comparator.comparing(Phase::getPosition))
                 .map(this::toPhaseDto)
+                .toList(),
+            recipe.getAssets().stream()
+                .sorted(Comparator.comparing(ra -> ra.getAsset().getDate(), Comparator.reverseOrder()))
+                .map(ra -> toAssetDto(ra.getAsset()))
                 .toList()
+        );
+    }
+
+    public AssetDto toAssetDto(Asset asset) {
+        return new AssetDto(
+            asset.getId(),
+            asset.getDate(),
+            asset.getDescription(),
+            asset.getType().name()
         );
     }
 

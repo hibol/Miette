@@ -30,16 +30,27 @@ public class RecipeController {
     }
 
     @GetMapping("/recettes")
-    public String list(@RequestParam(required = false) String q, @RequestParam(defaultValue = "0") int page, Model model) {
-        
-        List<Recipe> recipes = (q != null && !q.trim().isEmpty()) ? recipeService.search(q.trim()) : recipeService.findAllWithDetails();
-        
+    public String list(@RequestParam(required = false) String q,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(required = false) String withNotes,
+                       Model model) {
+
+        List<Recipe> recipes = (q != null && !q.trim().isEmpty())
+                ? recipeService.search(q.trim())
+                : recipeService.findAllWithDetails();
+
+        boolean filterNotes = withNotes != null;
+        if (filterNotes) {
+            recipes = recipes.stream().filter(r -> !r.getAssets().isEmpty()).toList();
+        }
+
         model.addAttribute("recipes", recipes);
         model.addAttribute("query", q);
         model.addAttribute("resultCount", recipes.size());
         model.addAttribute("isSearchMode", q != null && !q.trim().isEmpty());
-        
-        return "liste"; 
+        model.addAttribute("withNotes", filterNotes);
+
+        return "liste";
     }
 
     @GetMapping("/recette/{id}")

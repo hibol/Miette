@@ -1,9 +1,9 @@
 package com.hibol.miette.service;
 
-import com.hibol.miette.dto.api.IngredientDto;
-import com.hibol.miette.dto.api.PhaseDto;
-import com.hibol.miette.dto.api.RecipeDto;
-import com.hibol.miette.dto.api.StepDto;
+import com.hibol.miette.dto.api.response.IngredientDto;
+import com.hibol.miette.dto.api.response.PhaseDto;
+import com.hibol.miette.dto.api.response.RecipeDto;
+import com.hibol.miette.dto.api.response.StepDto;
 import com.hibol.miette.entity.Ingredient;
 import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
@@ -107,7 +107,8 @@ class RecipeWriteServiceTest {
                 new PhaseDto(null, "Variante sans gluten", 2,
                     List.of(),  // ← phase intentionnellement sans ingrédients
                     List.of(new StepDto(null, "Utiliser de la farine de riz", 1)))
-            )
+            ),
+            null
         );
 
         // WHEN
@@ -140,7 +141,8 @@ class RecipeWriteServiceTest {
                         new IngredientDto(null, "Lardons", 150.0, "g", 3)
                     ),
                     List.of())
-            )
+            ),
+            null
         );
 
         // WHEN
@@ -173,7 +175,8 @@ class RecipeWriteServiceTest {
                         new IngredientDto(null, "   ", null, "",   3)   // ← label blanc
                     ),
                     List.of())
-            )
+            ),
+            null
         );
 
         // WHEN
@@ -205,7 +208,8 @@ class RecipeWriteServiceTest {
                         new StepDto(null, "",       2),  // ← label vide
                         new StepDto(null, "Cuire",  3)
                     ))
-            )
+            ),
+            null
         );
 
         // WHEN
@@ -237,7 +241,8 @@ class RecipeWriteServiceTest {
                         new StepDto(null, "Laisser lever", 2),
                         new StepDto(null, "Cuire", 3)
                     ))
-            )
+            ),
+            null
         );
 
         // WHEN
@@ -259,7 +264,7 @@ class RecipeWriteServiceTest {
         when(recipeRepo.findById(1L)).thenReturn(Optional.of(recetteExistante(1L)));
         mockSave();
 
-        RecipeDto dto = new RecipeDto(1L, "Titre modifié", null, null, List.of(), List.of());
+        RecipeDto dto = new RecipeDto(1L, "Titre modifié", null, null, List.of(), List.of(), null);
 
         // WHEN
         service.update(1L, dto);
@@ -276,7 +281,7 @@ class RecipeWriteServiceTest {
         // GIVEN
         when(recipeRepo.findById(99L)).thenReturn(Optional.empty());
 
-        RecipeDto dto = new RecipeDto(99L, "X", null, null, List.of(), List.of());
+        RecipeDto dto = new RecipeDto(99L, "X", null, null, List.of(), List.of(), null);
 
         // WHEN / THEN — on vérifie que le service lève bien une exception
         assertThatThrownBy(() -> service.update(99L, dto))
@@ -297,7 +302,8 @@ class RecipeWriteServiceTest {
             List.of(
                 new PhaseDto(null, "Phase principale", 1, List.of(), List.of()),
                 new PhaseDto(null, "Variante", 2, List.of(), List.of())
-            )
+            ),
+            null
         );
 
         // WHEN
@@ -325,7 +331,8 @@ class RecipeWriteServiceTest {
                         new StepDto(null, "Éplucher les carottes", 1),
                         new StepDto(null, "Faire bouillir", 2)
                     ))
-            )
+            ),
+            null
         );
 
         // WHEN
@@ -345,7 +352,7 @@ class RecipeWriteServiceTest {
         // GIVEN
         mockSave();
 
-        RecipeDto dto = new RecipeDto(null, "Test", null, null, List.of(), List.of());
+        RecipeDto dto = new RecipeDto(null, "Test", null, null, List.of(), List.of(), null);
 
         // WHEN
         service.create(dto);

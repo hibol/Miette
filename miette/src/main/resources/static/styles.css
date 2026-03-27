@@ -6,6 +6,12 @@
     --coffee-bean: #210203ff;
 }
 
+.form-check-input {
+    width: 1.3em;
+    height: 1.3em;
+    margin-top: 0.1em;
+}
+
 .recipe-link:hover .card {
     transform: translateY(-4px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.15);

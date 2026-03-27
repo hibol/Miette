@@ -1,4 +1,4 @@
-package com.hibol.miette.dto.api;
+package com.hibol.miette.dto.api.response;
 
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
@@ -10,5 +10,6 @@ public record RecipeDto (
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
     List<String> tags,
-    List<PhaseDto> phases
+    List<PhaseDto> phases,
+    List<AssetDto> assets
 ) {}

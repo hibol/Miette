@@ -1,6 +1,6 @@
 package com.hibol.miette.controller.api;
 
-import com.hibol.miette.dto.api.RecipeDto;
+import com.hibol.miette.dto.api.response.RecipeDto;
 import com.hibol.miette.entity.Recipe;
 import com.hibol.miette.entity.Tag;
 import com.hibol.miette.mapper.RecipeMapper;

@@ -1,22 +1,24 @@
 package com.hibol.miette.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.hibol.miette.dto.api.PhaseDto;
-import com.hibol.miette.dto.api.RecipeDto;
-import com.hibol.miette.dto.api.StepDto;
-import com.hibol.miette.dto.api.IngredientDto;
+import com.hibol.miette.dto.api.response.PhaseDto;
+import com.hibol.miette.dto.api.response.RecipeDto;
+import com.hibol.miette.dto.api.response.StepDto;
+import com.hibol.miette.dto.api.response.IngredientDto;
 import com.hibol.miette.entity.IngredientPhase;
 import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
 import com.hibol.miette.entity.RecipeTag;
 import com.hibol.miette.entity.Step;
 import com.hibol.miette.entity.Tag;
+import com.hibol.miette.repository.AssetRepository;
 import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.TagRepository;
 
@@ -29,6 +31,7 @@ public class RecipeWriteService {
     private final TagRepository tagRepo;
     private final IngredientService ingredientService;
     private final RecipeIndexingService indexingService;
+    private final AssetRepository assetRepo;
 
     @Transactional
     public Recipe update(Long id, RecipeDto dto) {
@@ -71,7 +74,14 @@ public class RecipeWriteService {
     public void delete(Long id) {
         Recipe recipe = recipeRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
-        recipeRepo.delete(recipe);
+
+        List<Long> assetIds = recipe.getAssets().stream()
+            .map(ra -> ra.getAsset().getId())
+            .toList();
+
+        recipeRepo.delete(recipe); // supprime aussi les RecipeAsset via orphanRemoval
+        assetRepo.deleteAllById(assetIds);
+
         indexingService.removeFromIndex(id);
         log.info("✅ Recipe {} deleted", id);
     }

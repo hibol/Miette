@@ -59,6 +59,11 @@ createApp({
         const loading = ref(true);
         const saving = ref(false);
         const isDraggingPhase = ref(false);
+        const notesOpen = ref(false);
+        const showNoteForm = ref(false);
+        const noteDate = ref('');
+        const noteDescription = ref('');
+        const savingNote = ref(false);
         const error = ref(null);
         const isAdmin = ref(false);
         const editMode = ref(false);
@@ -83,7 +88,7 @@ createApp({
             try {
                 if (!recipeId) {
                     // Mode création
-                    recipe.value = { id: null, title: '', tags: [], phases: [
+                    recipe.value = { id: null, title: '', tags: [], assets: [], phases: [
                         { id: null, _key: nextTempKey(), label: '', position: 1, ingredients: [], steps: [] }
                     ]};
                     startEdit();
@@ -226,7 +231,58 @@ createApp({
             }
         }
 
-        return { recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSinglePhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe, nextTempKey };
+        function formatNoteDate(isoString) {
+            if (!isoString) return '';
+            const d = new Date(isoString);
+            return d.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+        }
+
+        function openNoteForm() {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            noteDate.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            noteDescription.value = '';
+            showNoteForm.value = true;
+        }
+
+        async function addNote() {
+            savingNote.value = true;
+            try {
+                const csrf = document.querySelector('meta[name="_csrf"]').content;
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+                const response = await fetch(`/api/recipes/${recipe.value.id}/assets`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', [csrfHeader]: csrf },
+                    body: JSON.stringify({ date: noteDate.value, description: noteDescription.value })
+                });
+                if (response.ok) {
+                    const newAsset = await response.json();
+                    recipe.value.assets.unshift(newAsset);
+                    showNoteForm.value = false;
+                } else {
+                    alert("Erreur lors de l'ajout de la note");
+                }
+            } finally {
+                savingNote.value = false;
+            }
+        }
+
+        async function deleteNote(assetId) {
+            if (!confirm('Supprimer cette note ?')) return;
+            const csrf = document.querySelector('meta[name="_csrf"]').content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            const response = await fetch(`/api/recipes/${recipe.value.id}/assets/${assetId}`, {
+                method: 'DELETE',
+                headers: { [csrfHeader]: csrf }
+            });
+            if (response.ok) {
+                recipe.value.assets = recipe.value.assets.filter(a => a.id !== assetId);
+            } else {
+                alert('Erreur lors de la suppression');
+            }
+        }
+
+        return { recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSinglePhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe, nextTempKey, notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate };
     },
 
     template: `
@@ -299,6 +355,59 @@ createApp({
                             </li>
                         </ul>
                     </div>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div v-if="recipe.id !== null && (recipe.assets && recipe.assets.length > 0 || isAdmin)" class="mb-4">
+                <button @click="notesOpen = !notesOpen"
+                    class="btn btn-link text-decoration-none px-0 text-muted d-flex align-items-center gap-2">
+                    <i :class="notesOpen ? 'bi bi-chevron-down' : 'bi bi-chevron-right'"></i>
+                    <span>Notes <span v-if="recipe.assets && recipe.assets.length > 0" class="badge bg-secondary">{{ recipe.assets.length }}</span></span>
+                </button>
+
+                <div v-if="notesOpen" class="mt-2">
+                    <!-- Formulaire ajout note (admin) -->
+                    <div v-if="isAdmin && !editMode && !showNoteForm" class="mb-3">
+                        <button @click="openNoteForm" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-plus"></i> Nouvelle note
+                        </button>
+                    </div>
+                    <div v-if="isAdmin && showNoteForm" class="card mb-3">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">Date</label>
+                                <input v-model="noteDate" type="datetime-local" class="form-control form-control-sm" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">Description</label>
+                                <textarea v-model="noteDescription" class="form-control form-control-sm" rows="3"></textarea>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button @click="addNote" :disabled="savingNote" class="btn btn-primary btn-sm">
+                                    <span v-if="savingNote" class="spinner-border spinner-border-sm me-1"></span>
+                                    Enregistrer
+                                </button>
+                                <button @click="showNoteForm = false" class="btn btn-outline-secondary btn-sm">Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Liste des notes -->
+                    <div v-if="recipe.assets && recipe.assets.length > 0">
+                        <div v-for="asset in recipe.assets" :key="asset.id"
+                            class="border-start border-2 ps-3 mb-3 position-relative">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <small class="text-muted">{{ formatNoteDate(asset.date) }}</small>
+                                <button v-if="isAdmin && !editMode" @click="deleteNote(asset.id)"
+                                    class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                            <p class="mb-0 mt-1" style="white-space: pre-wrap">{{ asset.description }}</p>
+                        </div>
+                    </div>
+                    <p v-else class="text-muted small">Aucune note.</p>
                 </div>
             </div>
 

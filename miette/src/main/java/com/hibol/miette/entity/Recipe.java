@@ -3,6 +3,7 @@ package com.hibol.miette.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -33,6 +34,7 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<RecipeTag> tags = new java.util.HashSet<>();
     
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
-    private Set<RecipeAsset> files = new java.util.HashSet<>();
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
+    private Set<RecipeAsset> assets = new java.util.HashSet<>();
 }

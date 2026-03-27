@@ -1,4 +1,4 @@
-package com.hibol.miette.dto.api;
+package com.hibol.miette.dto.api.response;
 
 public record IngredientDto(
     Long id,
