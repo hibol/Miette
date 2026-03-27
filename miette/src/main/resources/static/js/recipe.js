@@ -6,10 +6,11 @@ const vSortableSteps = {
             animation: 150,
             handle: '.drag-handle',
             onEnd(evt) {
-                const steps = binding.value;
-                const item = steps.splice(evt.oldIndex, 1)[0];
-                steps.splice(evt.newIndex, 0, item);
-                steps.forEach((s, i) => s.position = i + 1);
+                const { items, clearErrors } = binding.value;
+                const item = items.splice(evt.oldIndex, 1)[0];
+                items.splice(evt.newIndex, 0, item);
+                items.forEach((s, i) => s.position = i + 1);
+                clearErrors();
             }
         });
     }
@@ -21,10 +22,11 @@ const vSortableIngredients = {
             animation: 150,
             handle: '.drag-handle',
             onEnd(evt) {
-                const ingredients = binding.value;
-                const item = ingredients.splice(evt.oldIndex, 1)[0];
-                ingredients.splice(evt.newIndex, 0, item);
-                ingredients.forEach((ing, i) => ing.position = i + 1);
+                const { items, clearErrors } = binding.value;
+                const item = items.splice(evt.oldIndex, 1)[0];
+                items.splice(evt.newIndex, 0, item);
+                items.forEach((ing, i) => ing.position = i + 1);
+                clearErrors();
             }
         });
     }
@@ -40,6 +42,7 @@ const vSortablePhases = {
             },
             onEnd(evt) {
                 binding.value.setDragging(false);
+                binding.value.clearErrors();
                 const phases = binding.value.phases;
                 const item = phases.splice(evt.oldIndex, 1)[0];
                 phases.splice(evt.newIndex, 0, item);
@@ -64,6 +67,7 @@ createApp({
         const noteDate = ref('');
         const noteDescription = ref('');
         const savingNote = ref(false);
+        const errors = ref({});
         const error = ref(null);
         const isAdmin = ref(false);
         const editMode = ref(false);
@@ -111,11 +115,13 @@ createApp({
         });
 
         function startEdit() {
+            errors.value = {};
             draft.value = JSON.parse(JSON.stringify(recipe.value)); // deep copy
             editMode.value = true;
         }
 
         function cancelEdit() {
+            errors.value = {};
             if (recipe.value.id === null) {
                 window.location.href = returnUrl; // retour à la liste des recetettes si on annule une création
                 return;
@@ -168,18 +174,30 @@ createApp({
         }
 
         function validateDraft() {
-            if (!draft.value.title?.trim()) return 'Le titre est obligatoire.';
-            for (const phase of draft.value.phases) {
-                for (const ing of phase.ingredients) {
-                    if (ing.label?.trim() && !ing.quantity) return `L'ingrédient "${ing.label}" doit avoir une quantité.`;
-                }
+            const errs = {};
+            if (!draft.value.title?.trim()) {
+                errs['title'] = 'Le titre est obligatoire.';
             }
-            return null;
+            draft.value.phases.forEach((phase, pi) => {
+                if (draft.value.phases.length > 1 && !phase.label?.trim()) {
+                    errs[`phases[${pi}].label`] = 'Le nom de la phase est obligatoire.';
+                }
+                phase.ingredients.forEach((ing, ii) => {
+                    const hasContent = ing.quantity || ing.unit?.trim();
+                    if (hasContent && !ing.label?.trim()) {
+                        errs[`phases[${pi}].ingredients[${ii}].label`] = 'Le nom de l\'ingrédient est obligatoire.';
+                    }
+                    if (ing.label?.trim() && !ing.quantity) {
+                        errs[`phases[${pi}].ingredients[${ii}].quantity`] = 'La quantité est obligatoire.';
+                    }
+                });
+            });
+            errors.value = errs;
+            return Object.keys(errs).length === 0;
         }
 
         async function saveRecipe() {
-            const error = validateDraft();
-            if (error) { alert(error); return; }
+            if (!validateDraft()) return;
             saving.value = true;
             try {
                 const csrf = document.querySelector('meta[name="_csrf"]').content;
@@ -198,13 +216,16 @@ createApp({
                 });
 
                 if (response.ok) {
+                    errors.value = {};
                     recipe.value = await response.json();
                     editMode.value = false;
                     draft.value = null;
-                    // Si création, mettre à jour l'URL
                     if (isNew) {
                         window.history.replaceState(null, '', `/recette/${recipe.value.id}`);
                     }
+                } else if (response.status === 400) {
+                    const body = await response.json();
+                    errors.value = body.errors ?? {};
                 } else {
                     alert('Erreur lors de la sauvegarde');
                 }
@@ -282,7 +303,15 @@ createApp({
             }
         }
 
-        return { recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSinglePhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe, nextTempKey, notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate };
+        function getError(key) {
+            return errors.value[key] ?? null;
+        }
+
+        function clearErrors() {
+            errors.value = {};
+        }
+
+        return { recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft, startEdit, cancelEdit, isSinglePhase, formatQuantity, returnUrl, availableTags, filteredTags, newTag, addTag, addPhase, removePhase, saveRecipe, deleteRecipe, nextTempKey, notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate, errors, getError, clearErrors };
     },
 
     template: `
@@ -321,7 +350,8 @@ createApp({
 
             <!-- Titre -->
             <h1 v-if="!editMode" class="mb-4">{{ recipe.title }}</h1>
-            <input v-else v-model="draft.title" class="form-control form-control-lg mb-4" />
+            <input v-else v-model="draft.title" class="form-control form-control-lg" :class="{'is-invalid': errors.title, 'mb-4': !errors.title, 'mb-1': errors.title}" />
+            <div v-if="errors.title" class="text-danger small mb-3">{{ errors.title }}</div>
 
             <!-- Tags -->
             <div class="mb-4">
@@ -454,18 +484,24 @@ createApp({
             </div>
 
             <!-- Phases en édition -->
-            <div v-if="editMode" v-sortable-phases="{ phases: draft.phases, setDragging: (val) => isDraggingPhase = val }">
+            <div v-if="editMode" v-sortable-phases="{ phases: draft.phases, setDragging: (val) => isDraggingPhase = val, clearErrors }">
                 <div v-for="(phase, phaseIndex) in draft.phases" :key="phase.id ?? phase._key" class="mb-5">
                     
                     <!-- Label phase (seulement si multiples phases) -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <i v-if="draft.phases.length > 1" 
-                            class="bi bi-grip-vertical phase-drag-handle text-muted me-2" 
+                        <i v-if="draft.phases.length > 1"
+                            class="bi bi-grip-vertical phase-drag-handle text-muted me-2"
                             style="cursor: grab"></i>
-                        <input v-if="draft.phases.length > 1" v-model="phase.label"
-                            class="form-control fw-bold text-primary" placeholder="Nom de la phase" />
+                        <div v-if="draft.phases.length > 1" class="flex-grow-1">
+                            <input v-model="phase.label"
+                                class="form-control fw-bold text-primary" placeholder="Nom de la phase"
+                                :class="{'is-invalid': getError('phases[' + phaseIndex + '].label')}" />
+                            <div v-if="getError('phases[' + phaseIndex + '].label')" class="text-danger small mt-1">
+                                {{ getError('phases[' + phaseIndex + '].label') }}
+                            </div>
+                        </div>
                         <h5 v-else class="mb-0 text-muted">Phase unique</h5>
-                        <button v-if="draft.phases.length > 1" 
+                        <button v-if="draft.phases.length > 1"
                                 @click="removePhase(phaseIndex)"
                                 class="btn btn-outline-danger btn-sm ms-2">
                             <i class="bi bi-x"></i>
@@ -476,16 +512,36 @@ createApp({
                         <!-- Ingrédients -->
                         <section class="mb-4">
                             <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
-                            <ul v-sortable-ingredients="phase.ingredients" class="list-group list-group-flush">
+                            <ul v-sortable-ingredients="{ items: phase.ingredients, clearErrors }" class="list-group list-group-flush">
                                 <li v-for="(ing, ingIndex) in phase.ingredients" :key="ing.id ?? ing._key"
-                                    class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
-                                    <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
-                                    <input v-model="ing.label" class="form-control" placeholder="Ingrédient" />
-                                    <input v-model="ing.quantity" type="number" class="form-control" style="width: 80px" />
-                                    <input v-model="ing.unit" class="form-control" style="width: 80px" placeholder="unité" />
-                                    <button @click="phase.ingredients.splice(ingIndex, 1)" class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-x"></i>
-                                    </button>
+                                    class="list-group-item px-0 border-0 py-2">
+                                    <div class="row g-2 align-items-start">
+                                        <div class="col-auto pt-1">
+                                            <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
+                                        </div>
+                                        <div class="col">
+                                            <input v-model="ing.label" class="form-control" placeholder="Ingrédient"
+                                                :class="{'is-invalid': getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label')}" />
+                                            <div v-if="getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label')" class="text-danger small">
+                                                {{ getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label') }}
+                                            </div>
+                                        </div>
+                                        <div class="col-3 col-md-2">
+                                            <input v-model="ing.quantity" type="number" class="form-control"
+                                                :class="{'is-invalid': getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity')}" />
+                                            <div v-if="getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity')" class="text-danger small">
+                                                {{ getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity') }}
+                                            </div>
+                                        </div>
+                                        <div class="col-3 col-md-2">
+                                            <input v-model="ing.unit" class="form-control" placeholder="unité" />
+                                        </div>
+                                        <div class="col-auto pt-1">
+                                            <button @click="phase.ingredients.splice(ingIndex, 1)" class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </li>
                             </ul>
                             <button @click="phase.ingredients.push({id: null, _key: nextTempKey(), label: '', quantity: null, unit: '', position: phase.ingredients.length + 1})"
@@ -497,7 +553,7 @@ createApp({
                         <!-- Étapes -->
                         <section>
                             <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
-                            <ol v-sortable-steps="phase.steps" class="list-group list-group-flush">
+                            <ol v-sortable-steps="{ items: phase.steps, clearErrors }" class="list-group list-group-flush">
                                 <li v-for="(step, stepIndex) in phase.steps" :key="step.id ?? step._key"
                                     class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
                                     <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>

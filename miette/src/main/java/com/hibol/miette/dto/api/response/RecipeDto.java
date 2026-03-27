@@ -1,15 +1,16 @@
 package com.hibol.miette.dto.api.response;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import java.time.LocalDateTime;
 
 public record RecipeDto (
     Long id,
-    @NotBlank String title,
+    @NotBlank(message = "Le titre est obligatoire") String title,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
     List<String> tags,
-    List<PhaseDto> phases,
+    @Valid List<PhaseDto> phases,
     List<AssetDto> assets
 ) {}
