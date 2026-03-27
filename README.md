@@ -23,10 +23,12 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 **Browsing and search**
 - Full-text search across recipe titles, ingredients, steps, and tags (MySQL full-text index)
 - Recipe list with tag badges; search results show match count with a one-click reset
+- Filter recipes that have notes attached
 
 **Recipe display**
 - Recipes with a single phase display ingredients and steps directly, without a phase header
 - Multi-phase recipes (e.g. dough / filling / glaze) display each phase separately with its own ingredients and steps
+- Collapsible notes section below the title, visible to all — shows observation date and content; note count displayed on recipe cards in the list
 
 **Recipe editing (admin)**
 - Inline editor on the recipe page — no separate edit page
@@ -34,6 +36,12 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 - Drag & drop reordering for phases, ingredients, and steps, including on unsaved recipes
 - Tag input with autocomplete on existing tags
 - Unsaved-changes warning if navigating away mid-edit
+- Inline validation: missing title, missing ingredient name or quantity, unnamed phase in a multi-phase recipe
+
+**Notes (admin)**
+- Add timestamped notes to any saved recipe — useful for logging observations, variations, or cooking results
+- Date is pre-filled to the current date and time, editable before saving
+- Notes are read-only while editing the recipe, to keep both workflows separate
 
 **Admin**
 - Create, edit, and delete recipes
@@ -135,7 +143,7 @@ The full-text search index (`recipe_search_index`) aggregatestitle, tags, ingred
 
 ## Recipe editor
 
-The recipe creation and editing UI is a Vue 3 single-page app (`recipe.js`) served within the Thymeleaf template. It handles both creation and edit modes on the same page (`/recette/new` and `/recette/{id}`).
+The recipe creation and editing UI is a Vue 3 single-page app served within the Thymeleaf template, split into ES modules (`recipe.js`, `useNotes.js`, `useValidation.js`). It handles both creation and edit modes on the same page (`/recette/new` and `/recette/{id}`).
 
 - Phases, ingredients, and steps are managed in-memory before a single save call
 - Phases, ingredients, and steps can be reordered by drag & drop at any time, including before the recipe has been saved for the first time
@@ -152,13 +160,15 @@ The recipe data is exposed through a JSON REST API at `/api/recipes`, consumed b
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | `GET` | `/api/recipes` | Public | List all recipes (supports `?q=` full-text search) |
-| `GET` | `/api/recipes/{id}` | Public | Get a single recipe |
+| `GET` | `/api/recipes/{id}` | Public | Get a single recipe (includes assets) |
 | `POST` | `/api/recipes` | Admin | Create a recipe |
 | `PUT` | `/api/recipes/{id}` | Admin | Update a recipe |
 | `DELETE` | `/api/recipes/{id}` | Admin | Delete a recipe |
 | `GET` | `/api/tags` | Public | List all existing tags |
+| `POST` | `/api/recipes/{id}/assets` | Admin | Add a note to a recipe |
+| `DELETE` | `/api/recipes/{id}/assets/{assetId}` | Admin | Delete a note |
 
-Requests are validated with Bean Validation (`@NotBlank` on title). All write endpoints require `ROLE_ADMIN` and CSRF token.
+Requests are validated with Bean Validation (`@NotBlank` on title, `@Positive` on ingredient quantities). Validation errors are returned as structured JSON (`{"errors": {"field": "message"}}`). All write endpoints require `ROLE_ADMIN` and CSRF token.
 
 ---
 
