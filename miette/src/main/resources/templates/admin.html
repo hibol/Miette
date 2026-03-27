@@ -56,6 +56,38 @@
         </div>
     </div>
 
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Changer le mot de passe</h5>
+            <form th:action="@{/admin/change-password}" method="post" class="mt-3" style="max-width: 400px">
+                <div class="mb-3">
+                    <label for="currentPassword" class="form-label">Mot de passe actuel</label>
+                    <input type="password" id="currentPassword" name="currentPassword"
+                           th:classappend="${errorCurrentPassword} ? 'is-invalid'"
+                           class="form-control">
+                    <div th:if="${errorCurrentPassword}" class="invalid-feedback" th:text="${errorCurrentPassword}"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">Nouveau mot de passe</label>
+                    <input type="password" id="newPassword" name="newPassword"
+                           th:classappend="${errorNewPassword} ? 'is-invalid'"
+                           class="form-control">
+                    <div th:if="${errorNewPassword}" class="invalid-feedback" th:text="${errorNewPassword}"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirmer le nouveau mot de passe</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword"
+                           th:classappend="${errorConfirmPassword} ? 'is-invalid'"
+                           class="form-control">
+                    <div th:if="${errorConfirmPassword}" class="invalid-feedback" th:text="${errorConfirmPassword}"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-key"></i> Changer le mot de passe
+                </button>
+            </form>
+        </div>
+    </div>
+
     <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>
