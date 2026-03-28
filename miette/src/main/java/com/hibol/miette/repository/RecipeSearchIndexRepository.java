@@ -11,7 +11,7 @@ import com.hibol.miette.entity.RecipeSearchIndex;
 
 @Repository
 public interface RecipeSearchIndexRepository extends JpaRepository<RecipeSearchIndex, Long> {
-    @Query(value = "SELECT * FROM recipe_search_index WHERE MATCH(search_content) AGAINST(?1 IN BOOLEAN MODE)", nativeQuery = true)
+    @Query(value = "SELECT * FROM recipe_search_index WHERE MATCH(search_content) AGAINST(:query IN BOOLEAN MODE)", nativeQuery = true)
     List<RecipeSearchIndex> search(@Param("query") String query);
 }
 

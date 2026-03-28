@@ -67,18 +67,26 @@ public class RecipeIndexingService {
     }
 
     private void ensureFullTextIndex() {
-        Integer count = jdbcTemplate.queryForObject("""
-            SELECT COUNT(*) FROM information_schema.STATISTICS
+        String indexName = jdbcTemplate.query("""
+            SELECT index_name FROM information_schema.STATISTICS
             WHERE table_schema = DATABASE()
             AND table_name = 'recipe_search_index'
             AND index_type = 'FULLTEXT'
-            """, Integer.class);
+            LIMIT 1
+            """, rs -> rs.next() ? rs.getString("index_name") : null);
 
-        if (count == null || count == 0) {
+        if (indexName != null) {
+            jdbcTemplate.execute("ALTER TABLE recipe_search_index DROP INDEX `" + indexName + "`");
+            log.info("🗑️  FULLTEXT index dropped for recreation");
+        }
+
+        try {
+            jdbcTemplate.execute("ALTER TABLE recipe_search_index ADD FULLTEXT(search_content) WITH PARSER ngram");
+            log.info("✅ FULLTEXT ngram index created");
+        } catch (Exception e) {
+            log.warn("⚠️ ngram parser not available, falling back to standard FULLTEXT index");
             jdbcTemplate.execute("ALTER TABLE recipe_search_index ADD FULLTEXT(search_content)");
-            log.info("✅ FULLTEXT index created");
-        } else {
-            log.info("⏭️  FULLTEXT index already exists, skipping");
+            log.info("✅ FULLTEXT standard index created");
         }
     }
 

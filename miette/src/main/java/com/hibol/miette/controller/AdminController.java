@@ -39,7 +39,7 @@ public class AdminController {
     public String reindex(RedirectAttributes redirectAttributes) {
         indexingService.rebuildIndex();
         redirectAttributes.addFlashAttribute("message", "✅ Index de recherche reconstruit !");
-        return "redirect:/recettes";
+        return "redirect:/admin";
     }
 
     @PostMapping("/admin/ingredients/purge-orphans")

@@ -1,7 +1,7 @@
 import { useNotes } from './useNotes.js';
 import { useValidation } from './useValidation.js';
 
-const { createApp, ref, onMounted, computed } = Vue;
+const { createApp, ref, onMounted, computed, watch } = Vue;
 
 const vSortableSteps = {
     mounted(el, binding) {
@@ -71,6 +71,7 @@ createApp({
         const draft = ref(null);
         const availableTags = ref([]);
         const newTag = ref('');
+        const selectedTagIndex = ref(-1);
         const returnUrl = document.getElementById('app').dataset.returnUrl;
 
         const { notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate } = useNotes(recipe);
@@ -83,6 +84,31 @@ createApp({
                 !draft.value.tags.includes(t)
             );
         });
+
+        watch(filteredTags, () => { selectedTagIndex.value = -1; });
+
+        function handleTagKeydown(e) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedTagIndex.value = Math.min(selectedTagIndex.value + 1, filteredTags.value.length - 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedTagIndex.value = Math.max(selectedTagIndex.value - 1, -1);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedTagIndex.value >= 0) {
+                    const tag = filteredTags.value[selectedTagIndex.value];
+                    if (!draft.value.tags.includes(tag)) draft.value.tags.push(tag);
+                    newTag.value = '';
+                } else if (filteredTags.value.length === 1) {
+                    const tag = filteredTags.value[0];
+                    if (!draft.value.tags.includes(tag)) draft.value.tags.push(tag);
+                    newTag.value = '';
+                } else {
+                    addTag();
+                }
+            }
+        }
 
         window.addEventListener('beforeunload', (e) => {
             if (editMode.value) e.preventDefault();
@@ -224,7 +250,7 @@ createApp({
             returnUrl, availableTags, filteredTags, newTag,
             isSinglePhase, nextTempKey, formatQuantity,
             startEdit, cancelEdit, saveRecipe, deleteRecipe,
-            addTag, addPhase, removePhase,
+            addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
             errors, validateDraft, getError, clearErrors
         };
@@ -282,7 +308,7 @@ createApp({
                     </span>
                     <div class="d-flex gap-1 position-relative">
                         <input v-model="newTag"
-                            @keydown.enter.prevent="addTag"
+                            @keydown="handleTagKeydown"
                             class="form-control form-control-sm"
                             style="width: 120px"
                             placeholder="+ tag..." />
@@ -293,9 +319,9 @@ createApp({
                         <ul v-if="filteredTags.length > 0"
                             class="list-group position-absolute shadow-sm"
                             style="top: 100%; left: 0; z-index: 1000; min-width: 150px">
-                            <li v-for="tag in filteredTags" :key="tag"
-                                @click="draft.tags.push(tag); newTag = ''"
-                                class="list-group-item list-group-item-action py-1 px-2"
+                            <li v-for="(tag, index) in filteredTags" :key="tag"
+                                @mousedown.prevent="draft.tags.push(tag); newTag = ''"
+                                :class="['list-group-item', 'list-group-item-action', 'py-1', 'px-2', { active: index === selectedTagIndex }]"
                                 style="cursor: pointer; font-size: 0.85rem">
                                 {{ tag }}
                             </li>

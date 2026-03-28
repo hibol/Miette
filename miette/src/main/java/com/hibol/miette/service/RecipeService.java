@@ -23,7 +23,7 @@ public class RecipeService {
     }
 
     public List<Recipe> search(String query) {
-        List<Long> recipeIds = searchIndexRepo.search(query + "*").stream()
+        List<Long> recipeIds = searchIndexRepo.search(query).stream()
             .map(RecipeSearchIndex::getRecipeId)
             .toList();
 
