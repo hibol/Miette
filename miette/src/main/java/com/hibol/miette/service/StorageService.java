@@ -28,10 +28,10 @@ public class StorageService {
         String contentType = file.getContentType();
         if (contentType != null && contentType.startsWith("image/")) {
             byte[] original = file.getBytes();
-            byte[] full  = resize(original, contentType, 1920, 0.85);
-            byte[] thumb = resize(original, contentType,  400, 0.80);
-            putBytes(key, full, contentType);
-            putBytes(thumbKey(key), thumb, contentType);
+            byte[] full  = resize(original, 1920, 0.92);
+            byte[] thumb = resize(original,  400, 0.85);
+            putBytes(key, full, "image/webp");
+            putBytes(thumbKey(key), thumb, "image/webp");
         } else {
             putBytes(key, file.getBytes(), contentType);
         }
@@ -49,12 +49,13 @@ public class StorageService {
         return dot >= 0 ? key.substring(0, dot) + "_thumb" + key.substring(dot) : key + "_thumb";
     }
 
-    private byte[] resize(byte[] input, String contentType, int maxSize, double quality) throws IOException {
+    private byte[] resize(byte[] input, int maxSize, double quality) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Thumbnails.of(new java.io.ByteArrayInputStream(input))
                 .size(maxSize, maxSize)
                 .keepAspectRatio(true)
                 .outputQuality(quality)
+                .outputFormat("webp")
                 .useExifOrientation(true)
                 .toOutputStream(out);
         return out.toByteArray();

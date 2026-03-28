@@ -63,8 +63,7 @@ public class AssetService {
         Recipe recipe = recipeRepo.findById(recipeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
 
-        String ext = getExtension(file.getOriginalFilename());
-        String key = "recipe_" + recipeId + "_" + UUID.randomUUID() + "." + ext;
+        String key = "recipe_" + recipeId + "_" + UUID.randomUUID() + ".webp";
 
         LocalDateTime photoDate = extractExifDate(file);
         storageService.upload(file, key);
