@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Liste des recettes')}"></head>
-<body class="container-fluid px-3 px-md-4 mt-3 mt-md-5">
+<body class="container-fluid px-0">
     <div th:replace="~{fragments/header :: site-header}"></div>
     <div th:replace="~{fragments/login-modal :: login-modal}"></div>
-    
+
+    <div class="page-content">
     <!-- Barre de recherche -->
     <div class="search-bar mb-4">
         <form method="GET">
@@ -17,12 +18,21 @@
                     <i class="bi bi-search"></i>
                 </button>
             </div>
-            <div class="form-check mt-2">
-                <input class="form-check-input" type="checkbox" name="withNotes" id="withNotes"
-                    th:checked="${withNotes}" onchange="this.form.submit()">
-                <label class="form-check-label" for="withNotes">
-                    <i class="bi bi-journal-text"></i> Avec notes
-                </label>
+            <div class="d-flex gap-3 mt-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="withNotes" id="withNotes"
+                        th:checked="${withNotes}" onchange="this.form.submit()">
+                    <label class="form-check-label" for="withNotes">
+                        <i class="bi bi-journal-text"></i> Avec notes
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="withPhotos" id="withPhotos"
+                        th:checked="${withPhotos}" onchange="this.form.submit()">
+                    <label class="form-check-label" for="withPhotos">
+                        <i class="bi bi-image"></i> Avec photos
+                    </label>
+                </div>
             </div>
         </form>
     </div>
@@ -71,10 +81,17 @@
                             class="badge bg-secondary me-1"></span>
                         </div>
                     </div>
-                    <div th:if="${!recipe.assets.isEmpty()}" class="card-footer text-muted small py-1">
-                        <i class="bi bi-journal-text"></i>
-                        Notes (<span th:text="${recipe.assets.size()}"></span>)
+                    <div th:with="noteCount=${#lists.size(recipe.assets.?[asset.type.name() == 'NOTE'])}, photoCount=${#lists.size(recipe.assets.?[asset.type.name() == 'PHOTO'])}"
+                         th:if="${noteCount > 0 or photoCount > 0}" class="card-footer text-muted small py-1 d-flex gap-3">
+                        <span th:if="${noteCount > 0}"><i class="bi bi-journal-text"></i> <span th:text="${noteCount}"></span></span>
+                        <span th:if="${photoCount > 0}"><i class="bi bi-image"></i> <span th:text="${photoCount}"></span></span>
                     </div>
+                    <th:block th:with="photoRel=${recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null}">
+                        <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
+                             th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
+                             class="card-img-top" style="object-fit: cover; height: 180px;"
+                             loading="lazy" alt="">
+                    </th:block>
                     <div class="card-body">
                         <!-- UNE SEULE phase → ingrédients/étapes directs -->
                         <div th:with="phase=${recipe.phases.iterator().next()}">
@@ -131,6 +148,7 @@
             </a>
         </div>
     </div>
+    </div><!-- fin page-content -->
     <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

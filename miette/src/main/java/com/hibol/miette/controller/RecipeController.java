@@ -16,12 +16,16 @@ import com.hibol.miette.service.RecipeService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 
 
 @Controller
 @RequiredArgsConstructor
 public class RecipeController {
-    
+
+    @Value("${storage.public-url:}")
+    private String storagePublicUrl;
+
     private final RecipeService recipeService;
 
     @GetMapping("/")
@@ -33,6 +37,7 @@ public class RecipeController {
     public String list(@RequestParam(required = false) String q,
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(required = false) String withNotes,
+                       @RequestParam(required = false) String withPhotos,
                        Model model) {
 
         List<Recipe> recipes = (q != null && !q.trim().isEmpty())
@@ -41,7 +46,16 @@ public class RecipeController {
 
         boolean filterNotes = withNotes != null;
         if (filterNotes) {
-            recipes = recipes.stream().filter(r -> !r.getAssets().isEmpty()).toList();
+            recipes = recipes.stream()
+                    .filter(r -> r.getAssets().stream().anyMatch(a -> a.getAsset().getType() == com.hibol.miette.entity.Asset.AssetType.NOTE))
+                    .toList();
+        }
+
+        boolean filterPhotos = withPhotos != null;
+        if (filterPhotos) {
+            recipes = recipes.stream()
+                    .filter(r -> r.getAssets().stream().anyMatch(a -> a.getAsset().getType() == com.hibol.miette.entity.Asset.AssetType.PHOTO))
+                    .toList();
         }
 
         model.addAttribute("recipes", recipes);
@@ -49,6 +63,8 @@ public class RecipeController {
         model.addAttribute("resultCount", recipes.size());
         model.addAttribute("isSearchMode", q != null && !q.trim().isEmpty());
         model.addAttribute("withNotes", filterNotes);
+        model.addAttribute("withPhotos", filterPhotos);
+        model.addAttribute("storagePublicUrl", storagePublicUrl);
 
         return "liste";
     }

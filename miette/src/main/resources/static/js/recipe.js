@@ -1,4 +1,5 @@
 import { useNotes } from './useNotes.js';
+import { usePhotos } from './usePhotos.js';
 import { useValidation } from './useValidation.js';
 
 const { createApp, ref, onMounted, computed, watch } = Vue;
@@ -75,6 +76,7 @@ createApp({
         const returnUrl = document.getElementById('app').dataset.returnUrl;
 
         const { notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate } = useNotes(recipe);
+        const { photos, uploadingPhoto, currentPhotoIndex, prevPhoto, nextPhoto, handleFileChange } = usePhotos(recipe);
         const { errors, validateDraft, getError, clearErrors } = useValidation(draft);
 
         const filteredTags = computed(() => {
@@ -170,6 +172,8 @@ createApp({
             newTag.value = '';
         }
 
+        const noteAssets = computed(() => recipe.value?.assets?.filter(a => a.type === 'NOTE') ?? []);
+
         const isSinglePhase = computed(() => {
             const data = recipe.value;
             if (!data || !data.phases || data.phases.length === 0) return false;
@@ -248,10 +252,12 @@ createApp({
         return {
             recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft,
             returnUrl, availableTags, filteredTags, newTag,
-            isSinglePhase, nextTempKey, formatQuantity,
+            photos, currentPhotoIndex, prevPhoto, nextPhoto,
+            noteAssets, isSinglePhase, nextTempKey, formatQuantity,
             startEdit, cancelEdit, saveRecipe, deleteRecipe,
             addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
+            uploadingPhoto, handleFileChange,
             errors, validateDraft, getError, clearErrors
         };
     },
@@ -331,11 +337,11 @@ createApp({
             </div>
 
             <!-- Notes -->
-            <div v-if="recipe.id !== null && (recipe.assets && recipe.assets.length > 0 || isAdmin)" class="mb-4">
+            <div v-if="recipe.id !== null && (noteAssets.length > 0 || isAdmin)" class="mb-4">
                 <button @click="notesOpen = !notesOpen"
                     class="btn btn-link text-decoration-none px-0 text-muted d-flex align-items-center gap-2">
                     <i :class="notesOpen ? 'bi bi-chevron-down' : 'bi bi-chevron-right'"></i>
-                    <span>Notes <span v-if="recipe.assets && recipe.assets.length > 0" class="badge bg-secondary">{{ recipe.assets.length }}</span></span>
+                    <span>Notes <span v-if="noteAssets.length > 0" class="badge bg-secondary">{{ noteAssets.length }}</span></span>
                 </button>
 
                 <div v-if="notesOpen" class="mt-2">
@@ -364,11 +370,9 @@ createApp({
                             </div>
                         </div>
                     </div>
-
-                    <!-- Liste des notes -->
-                    <div v-if="recipe.assets && recipe.assets.length > 0">
-                        <div v-for="asset in recipe.assets" :key="asset.id"
-                            class="border-start border-2 ps-3 mb-3 position-relative">
+                    <div v-if="noteAssets.length > 0">
+                        <div v-for="asset in noteAssets" :key="asset.id"
+                            class="border-start border-2 ps-3 mb-3">
                             <div class="d-flex justify-content-between align-items-start">
                                 <small class="text-muted">{{ formatNoteDate(asset.date) }}</small>
                                 <button v-if="isAdmin && !editMode" @click="deleteNote(asset.id)"
@@ -383,58 +387,102 @@ createApp({
                 </div>
             </div>
 
-            <!-- Phases en lecture -->
-            <div v-if="!editMode && isSinglePhase">
-                <section class="mb-5">
-                    <h3><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h3>
-                    <ul class="list-group list-group-flush">
-                        <li v-for="ing in recipe.phases[0].ingredients" :key="ing.id"
-                            class="list-group-item px-0 border-0 py-2">
-                            {{ ing.label }} : {{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}
-                        </li>
-                    </ul>
-                </section>
-                <section>
-                    <h3><i class="bi bi-list-numbered text-info"></i> Étapes</h3>
-                    <ol class="list-group list-group-numbered list-group-flush">
-                        <li v-for="step in recipe.phases[0].steps" :key="step.id"
-                            class="list-group-item px-0 border-0 py-3">{{ step.label }}</li>
-                    </ol>
-                </section>
+            <!-- Photos -->
+            <div v-if="recipe.id !== null && !editMode && (photos.length > 0 || isAdmin)" class="row justify-content-center mb-4">
+                <div class="col-12 col-lg-10">
+                    <div v-if="photos.length > 0" class="card shadow-sm">
+                        <img :src="photos[currentPhotoIndex].url"
+                            class="card-img-top"
+                            style="object-fit: cover; max-height: 420px;">
+                        <div class="card-footer d-flex justify-content-between align-items-center py-2">
+                            <button @click="prevPhoto" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <div class="text-center">
+                                <small class="text-muted d-block">{{ formatNoteDate(photos[currentPhotoIndex].date) }}</small>
+                                <small v-if="photos.length > 1" class="text-muted">{{ currentPhotoIndex + 1 }} / {{ photos.length }}</small>
+                            </div>
+                            <div class="d-flex gap-1 align-items-center">
+                                <button v-if="isAdmin && !editMode" @click="deleteNote(photos[currentPhotoIndex].id)"
+                                    class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                <button @click="nextPhoto" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <label v-if="isAdmin && !editMode"
+                        class="btn btn-outline-secondary btn-sm mt-2" :class="{ disabled: uploadingPhoto }">
+                        <span v-if="uploadingPhoto" class="spinner-border spinner-border-sm me-1"></span>
+                        <i v-else class="bi bi-image"></i> Ajouter une photo
+                        <input type="file" accept="image/*" style="display:none" @change="handleFileChange">
+                    </label>
+                </div>
             </div>
 
+            <!-- Phases en lecture - phase unique -->
+            <div v-if="!editMode && isSinglePhase" class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-12 col-md-4">
+                            <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
+                            <ul class="list-group list-group-flush">
+                                <li v-for="ing in recipe.phases[0].ingredients" :key="ing.id"
+                                    class="list-group-item px-0 border-0 py-2">
+                                    {{ ing.label }} : {{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-12 col-md-8">
+                            <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
+                            <ol class="list-group list-group-numbered list-group-flush">
+                                <li v-for="step in recipe.phases[0].steps" :key="step.id"
+                                    class="list-group-item px-0 border-0 py-3">{{ step.label }}</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phases en lecture - phases multiples -->
             <div v-else-if="!editMode && !isSinglePhase">
-                <div v-for="phase in recipe.phases" :key="phase.id" class="mb-5">
-                    <h3 class="fw-bold text-primary mb-4">{{ phase.label }}</h3>
-                    <section v-if="phase.ingredients.length > 0">
-                        <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
-                        <ul class="list-group list-group-flush">
-                            <li v-for="ing in phase.ingredients" :key="ing.id"
-                                class="list-group-item px-0 border-0 py-2">
-                                {{ ing.label }} : {{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}
-                            </li>
-                        </ul>
-                    </section>
-                    <section v-if="phase.steps.length > 0" class="mt-4">
-                        <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
-                        <ol class="list-group list-group-numbered list-group-flush">
-                            <li v-for="step in phase.steps" :key="step.id"
-                                class="list-group-item px-0 border-0 py-3">{{ step.label }}</li>
-                        </ol>
-                    </section>
+                <div v-for="phase in recipe.phases" :key="phase.id" class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0 fw-bold text-primary">{{ phase.label }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div v-if="phase.ingredients.length > 0" class="col-12 col-md-4">
+                                <h6><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h6>
+                                <ul class="list-group list-group-flush">
+                                    <li v-for="ing in phase.ingredients" :key="ing.id"
+                                        class="list-group-item px-0 border-0 py-2">
+                                        {{ ing.label }} : {{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <div v-if="phase.steps.length > 0" class="col-12 col-md-8">
+                                <h6><i class="bi bi-list-numbered text-info"></i> Étapes</h6>
+                                <ol class="list-group list-group-numbered list-group-flush">
+                                    <li v-for="step in phase.steps" :key="step.id"
+                                        class="list-group-item px-0 border-0 py-3">{{ step.label }}</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Phases en édition -->
             <div v-if="editMode" v-sortable-phases="{ phases: draft.phases, setDragging: (val) => isDraggingPhase = val, clearErrors }">
-                <div v-for="(phase, phaseIndex) in draft.phases" :key="phase.id ?? phase._key" class="mb-5">
+                <div v-for="(phase, phaseIndex) in draft.phases" :key="phase.id ?? phase._key" class="card shadow-sm mb-4">
 
-                    <!-- Label phase (seulement si multiples phases) -->
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <i v-if="draft.phases.length > 1"
-                            class="bi bi-grip-vertical phase-drag-handle text-muted me-2"
-                            style="cursor: grab"></i>
-                        <div v-if="draft.phases.length > 1" class="flex-grow-1">
+                    <!-- Card header : label de phase (multiples phases uniquement) -->
+                    <div v-if="draft.phases.length > 1" class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-grip-vertical phase-drag-handle text-muted" style="cursor: grab"></i>
+                        <div class="flex-grow-1">
                             <input v-model="phase.label"
                                 class="form-control fw-bold text-primary" placeholder="Nom de la phase"
                                 :class="{'is-invalid': getError('phases[' + phaseIndex + '].label')}" />
@@ -442,75 +490,69 @@ createApp({
                                 {{ getError('phases[' + phaseIndex + '].label') }}
                             </div>
                         </div>
-                        <h5 v-else class="mb-0 text-muted">Phase unique</h5>
-                        <button v-if="draft.phases.length > 1"
-                                @click="removePhase(phaseIndex)"
-                                class="btn btn-outline-danger btn-sm ms-2">
+                        <button @click="removePhase(phaseIndex)" class="btn btn-outline-danger btn-sm ms-2">
                             <i class="bi bi-x"></i>
                         </button>
                     </div>
 
-                    <div v-show="!isDraggingPhase" >
-                        <!-- Ingrédients -->
-                        <section class="mb-4">
-                            <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
-                            <ul v-sortable-ingredients="{ items: phase.ingredients, clearErrors }" class="list-group list-group-flush">
-                                <li v-for="(ing, ingIndex) in phase.ingredients" :key="ing.id ?? ing._key"
-                                    class="list-group-item px-0 border-0 py-2">
-                                    <div class="row g-2 align-items-start">
-                                        <div class="col-auto pt-1">
-                                            <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
-                                        </div>
-                                        <div class="col">
-                                            <input v-model="ing.label" class="form-control" placeholder="Ingrédient"
-                                                :class="{'is-invalid': getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label')}" />
-                                            <div v-if="getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label')" class="text-danger small">
-                                                {{ getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label') }}
+                    <div class="card-body" v-show="!isDraggingPhase">
+                        <div class="row g-4">
+                            <!-- Ingrédients -->
+                            <div class="col-12 col-md-4">
+                                <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
+                                <ul v-sortable-ingredients="{ items: phase.ingredients, clearErrors }" class="list-group list-group-flush">
+                                    <li v-for="(ing, ingIndex) in phase.ingredients" :key="ing.id ?? ing._key"
+                                        class="list-group-item px-0 border-0 py-2">
+                                        <div class="d-flex gap-2 align-items-start">
+                                            <i class="bi bi-grip-vertical drag-handle text-muted mt-2" style="cursor: grab; flex-shrink: 0"></i>
+                                            <div class="flex-grow-1">
+                                                <input v-model="ing.label" class="form-control form-control-sm mb-1" placeholder="Ingrédient"
+                                                    :class="{'is-invalid': getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label')}" />
+                                                <div v-if="getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label')" class="text-danger small">
+                                                    {{ getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label') }}
+                                                </div>
+                                                <div class="d-flex gap-1">
+                                                    <input v-model="ing.quantity" type="number" class="form-control form-control-sm" placeholder="Qté"
+                                                        style="width: 70px"
+                                                        :class="{'is-invalid': getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity')}" />
+                                                    <input v-model="ing.unit" class="form-control form-control-sm" placeholder="unité" />
+                                                </div>
+                                                <div v-if="getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity')" class="text-danger small">
+                                                    {{ getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity') }}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-3 col-md-2">
-                                            <input v-model="ing.quantity" type="number" class="form-control"
-                                                :class="{'is-invalid': getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity')}" />
-                                            <div v-if="getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity')" class="text-danger small">
-                                                {{ getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity') }}
-                                            </div>
-                                        </div>
-                                        <div class="col-3 col-md-2">
-                                            <input v-model="ing.unit" class="form-control" placeholder="unité" />
-                                        </div>
-                                        <div class="col-auto pt-1">
-                                            <button @click="phase.ingredients.splice(ingIndex, 1)" class="btn btn-outline-danger btn-sm">
+                                            <button @click="phase.ingredients.splice(ingIndex, 1)" class="btn btn-outline-danger btn-sm mt-1" style="flex-shrink: 0">
                                                 <i class="bi bi-x"></i>
                                             </button>
                                         </div>
-                                    </div>
-                                </li>
-                            </ul>
-                            <button @click="phase.ingredients.push({id: null, _key: nextTempKey(), label: '', quantity: null, unit: '', position: phase.ingredients.length + 1})"
-                                class="btn btn-outline-secondary btn-sm mt-2">
-                                <i class="bi bi-plus"></i> Ajouter un ingrédient
-                            </button>
-                        </section>
+                                    </li>
+                                </ul>
+                                <button @click="phase.ingredients.push({id: null, _key: nextTempKey(), label: '', quantity: null, unit: '', position: phase.ingredients.length + 1})"
+                                    class="btn btn-outline-secondary btn-sm mt-2">
+                                    <i class="bi bi-plus"></i> Ajouter un ingrédient
+                                </button>
+                            </div>
 
-                        <!-- Étapes -->
-                        <section>
-                            <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
-                            <ol v-sortable-steps="{ items: phase.steps, clearErrors }" class="list-group list-group-flush">
-                                <li v-for="(step, stepIndex) in phase.steps" :key="step.id ?? step._key"
-                                    class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
-                                    <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
-                                    <span class="text-muted me-1">{{ stepIndex + 1 }}.</span>
-                                    <input v-model="step.label" class="form-control" />
-                                    <button @click="phase.steps.splice(stepIndex, 1)" class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-x"></i>
-                                    </button>
-                                </li>
-                            </ol>
-                            <button @click="phase.steps.push({id: null, _key: nextTempKey(), label: '', position: phase.steps.length + 1})"
-                                class="btn btn-outline-secondary btn-sm mt-2">
-                                <i class="bi bi-plus"></i> Ajouter une étape
-                            </button>
-                        </section>
+                            <!-- Étapes -->
+                            <div class="col-12 col-md-8">
+                                <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
+                                <ol v-sortable-steps="{ items: phase.steps, clearErrors }" class="list-group list-group-flush">
+                                    <li v-for="(step, stepIndex) in phase.steps" :key="step.id ?? step._key"
+                                        class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
+                                        <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
+                                        <span class="text-muted me-1">{{ stepIndex + 1 }}.</span>
+                                        <input v-model="step.label" class="form-control" />
+                                        <button @click="phase.steps.splice(stepIndex, 1)" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </li>
+                                </ol>
+                                <button @click="phase.steps.push({id: null, _key: nextTempKey(), label: '', position: phase.steps.length + 1})"
+                                    class="btn btn-outline-secondary btn-sm mt-2">
+                                    <i class="bi bi-plus"></i> Ajouter une étape
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!-- Ajouter une phase -->

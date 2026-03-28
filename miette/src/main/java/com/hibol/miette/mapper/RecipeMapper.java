@@ -9,12 +9,16 @@ import com.hibol.miette.entity.Asset;
 import com.hibol.miette.entity.IngredientPhase;
 import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 
 @Component
 public class RecipeMapper {
+
+    @Value("${storage.public-url:}")
+    private String storagePublicUrl;
 
     public RecipeDto toDto(Recipe recipe) {
         return new RecipeDto(
@@ -38,11 +42,19 @@ public class RecipeMapper {
     }
 
     public AssetDto toAssetDto(Asset asset) {
+        String url = null;
+        String thumbUrl = null;
+        if (asset.getPath() != null && !storagePublicUrl.isBlank()) {
+            url = storagePublicUrl + "/" + asset.getPath();
+            thumbUrl = storagePublicUrl + "/" + asset.getThumbPath();
+        }
         return new AssetDto(
             asset.getId(),
             asset.getDate(),
             asset.getDescription(),
-            asset.getType().name()
+            asset.getType().name(),
+            url,
+            thumbUrl
         );
     }
 

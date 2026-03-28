@@ -20,3 +20,37 @@
 .recipe-link .card {
     transition: all 0.2s ease;
 }
+
+.site-header {
+    padding: 0.75rem 1rem;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .site-header {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+.page-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+    .page-content {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .page-content {
+        padding-left: 3rem;
+        padding-right: 3rem;
+    }
+}

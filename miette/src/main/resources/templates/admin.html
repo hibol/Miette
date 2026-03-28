@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Admin')}"></head>
-<body class="container mt-5">
+<body class="container-fluid px-0">
     <div th:replace="~{fragments/header :: site-header}"></div>
     <div th:replace="~{fragments/login-modal :: login-modal}"></div>
 
+    <div class="page-content">
     <h2 class="mb-4"><i class="bi bi-gear"></i> Administration</h2>
 
     <div th:if="${message}" class="alert alert-success alert-dismissible fade show">
@@ -88,6 +89,7 @@
         </div>
     </div>
 
+    </div><!-- fin page-content -->
     <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

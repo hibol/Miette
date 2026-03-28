@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/recipes/{recipeId}/assets")
@@ -24,6 +27,14 @@ public class RecipeAssetApiController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AssetDto> addNote(@PathVariable Long recipeId, @Valid @RequestBody NoteCreateDto dto) {
         Asset asset = assetService.addNote(recipeId, dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(recipeMapper.toAssetDto(asset));
+    }
+
+    @PostMapping("/upload")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AssetDto> uploadPhoto(@PathVariable Long recipeId,
+                                                @RequestParam("file") MultipartFile file) throws IOException {
+        Asset asset = assetService.uploadPhoto(recipeId, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(recipeMapper.toAssetDto(asset));
     }
 

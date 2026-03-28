@@ -13,6 +13,7 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 | Frontend | Bootstrap 5, Bootstrap Icons, Vue 3, SortableJS |
 | Database | MySQL |
 | Security | Spring Security (BCrypt, Remember Me) |
+| Storage | Cloudflare R2 (prod), MinIO (local dev) |
 | Deployment | Railway (Docker) |
 | Build | Maven |
 
@@ -23,7 +24,8 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 **Browsing and search**
 - Full-text search across recipe titles, ingredients, steps, and tags (MySQL full-text index)
 - Recipe list with tag badges; search results show match count with a one-click reset
-- Filter recipes that have notes attached
+- Filter recipes that have notes or photos attached
+- Recipe cards show a thumbnail of the latest photo when available
 
 **Recipe display**
 - Recipes with a single phase display ingredients and steps directly, without a phase header
@@ -42,6 +44,14 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 - Add timestamped notes to any saved recipe — useful for logging observations, variations, or cooking results
 - Date is pre-filled to the current date and time, editable before saving
 - Notes are read-only while editing the recipe, to keep both workflows separate
+
+**Photos (admin)**
+- Upload photos directly on the recipe page
+- Images are automatically resized on upload: full version at 1920px (85% quality) and thumbnail at 400px (80% quality), both stored in object storage
+- EXIF orientation is applied on resize so phone photos always display upright
+- Photo date is extracted from EXIF metadata (`DateTimeOriginal`) and falls back to the current date if absent
+- Photos are browsable via an infinite carousel (previous/next navigation) with the capture date displayed
+- Thumbnails are derived from the full image filename (`*_thumb.ext`) — no extra database column required
 
 **Admin**
 - Create, edit, and delete recipes
@@ -90,6 +100,13 @@ export DATABASE_PORT=3306
 export DATABASE_NAME=miette
 export DATABASE_USER=your_user
 export DATABASE_PASSWORD=your_password
+
+# Optional: object storage (MinIO via Docker for local dev)
+export STORAGE_ENDPOINT=http://localhost:9000
+export STORAGE_BUCKET=miette
+export STORAGE_ACCESS_KEY=minioadmin
+export STORAGE_SECRET_KEY=minioadmin
+export STORAGE_PUBLIC_URL=http://localhost:9000/miette
 ```
 
 Source it before running:
@@ -98,6 +115,18 @@ Source it before running:
 source .env.local
 ./mvnw spring-boot:run
 ```
+
+### Local object storage (MinIO)
+
+A `docker-compose.yml` at the project root starts a MinIO instance with the bucket pre-created and set to public read:
+
+```bash
+docker-compose up -d
+```
+
+MinIO console is available at `http://localhost:9001` (credentials: `minioadmin` / `minioadmin`).
+
+Photo upload works locally without any extra configuration once these variables are set. If `STORAGE_ENDPOINT` is not set, the storage bean is not created and photo upload returns `503`; notes and all other features continue to work normally.
 
 ---
 
@@ -115,6 +144,11 @@ The app and database are both hosted on [Railway](https://railway.app). The app 
 | `DATABASE_USER` | Database user |
 | `DATABASE_PASSWORD` | Database password |
 | `MIETTE_ADMIN_PASSWORD` | Password for the `hibol` admin account (only needed on first startup) |
+| `STORAGE_ENDPOINT` | S3-compatible endpoint (e.g. Cloudflare R2 jurisdiction-specific URL) |
+| `STORAGE_BUCKET` | Bucket name |
+| `STORAGE_ACCESS_KEY` | R2 API token access key ID |
+| `STORAGE_SECRET_KEY` | R2 API token secret |
+| `STORAGE_PUBLIC_URL` | Public base URL for assets (e.g. custom domain `https://assets.chez-miette.xyz`) |
 
 ### Build & Start
 
@@ -166,7 +200,8 @@ The recipe data is exposed through a JSON REST API at `/api/recipes`, consumed b
 | `DELETE` | `/api/recipes/{id}` | Admin | Delete a recipe |
 | `GET` | `/api/tags` | Public | List all existing tags |
 | `POST` | `/api/recipes/{id}/assets` | Admin | Add a note to a recipe |
-| `DELETE` | `/api/recipes/{id}/assets/{assetId}` | Admin | Delete a note |
+| `POST` | `/api/recipes/{id}/assets/upload` | Admin | Upload a photo (multipart/form-data, field `file`) |
+| `DELETE` | `/api/recipes/{id}/assets/{assetId}` | Admin | Delete an asset (note or photo) |
 
 Requests are validated with Bean Validation (`@NotBlank` on title, `@Positive` on ingredient quantities). Validation errors are returned as structured JSON (`{"errors": {"field": "message"}}`). All write endpoints require `ROLE_ADMIN` and CSRF token.
 
