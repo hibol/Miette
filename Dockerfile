@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 COPY miette/.mvn/ .mvn
 COPY miette/mvnw miette/pom.xml ./
