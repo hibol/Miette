@@ -1,0 +1,161 @@
+<div th:fragment="bocal">
+<canvas id="c" style="display:block;width:100%;height:500px;"></canvas>
+<script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    
+    function resize() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    }
+    new ResizeObserver(() => resize()).observe(canvas);
+    
+    const SPEED_X = 0.012;
+    const SPEED_Y = 0.018;
+    const SPEED_Z = 0.007;
+    
+    const s = 1;
+    const vertices = [
+    [ s,  s,  0], [-s,  s,  0], [ s, -s,  0], [-s, -s,  0],
+    [ s,  0,  s], [-s,  0,  s], [ s,  0, -s], [-s,  0, -s],
+    [ 0,  s,  s], [ 0, -s,  s], [ 0,  s, -s], [ 0, -s, -s]
+    ];
+    
+    const edges = [
+    [0,4],[0,6],[0,8],[0,10],
+    [1,5],[1,7],[1,8],[1,10],
+    [2,4],[2,6],[2,9],[2,11],
+    [3,5],[3,7],[3,9],[3,11],
+    [4,8],[4,9],
+    [5,8],[5,9],
+    [6,10],[6,11],
+    [7,10],[7,11]
+    ];
+    
+    let verts = vertices.map(v => [...v]);
+    let timeLast = 0;
+    
+    function rotX(verts, a) {
+        const cos = Math.cos(a), sin = Math.sin(a);
+        for (let v of verts) { const y = v[1]*cos - v[2]*sin; const z = v[1]*sin + v[2]*cos; v[1]=y; v[2]=z; }
+    }
+    function rotY(verts, a) {
+        const cos = Math.cos(a), sin = Math.sin(a);
+        for (let v of verts) { const x = v[0]*cos + v[2]*sin; const z = -v[0]*sin + v[2]*cos; v[0]=x; v[2]=z; }
+    }
+    function rotZ(verts, a) {
+        const cos = Math.cos(a), sin = Math.sin(a);
+        for (let v of verts) { const x = v[0]*cos - v[1]*sin; const y = v[0]*sin + v[1]*cos; v[0]=x; v[1]=y; }
+    }
+    
+    function project(v, cx, cy, scale) {
+        const fov = 4;
+        const z = v[2] + fov;
+        return [(v[0]/z)*scale + cx, (v[1]/z)*scale + cy, z];
+    }
+    
+    function drawJar(cx, cy, jarW, jarH, jarY) {
+        const neckW = jarW * 0.72;
+        const neckH = jarH * 0.06;
+        const shoulderH = jarH * 0.08;
+        const bodyH = jarH * 0.68;
+        const baseH = jarH * 0.06;
+        
+        const top = jarY;
+        const neckBot = top + neckH;
+        const shoulderBot = neckBot + shoulderH;
+        const bodyBot = shoulderBot + bodyH;
+        const baseBot = bodyBot + baseH;
+        
+        ctx.save();
+        ctx.strokeStyle = 'rgba(84, 159, 147, 0.8)';
+        ctx.lineWidth = 1.6;
+        ctx.lineJoin = 'round';
+        
+        // left outline
+        ctx.beginPath();
+        ctx.moveTo(cx - neckW/2, top);
+        ctx.lineTo(cx - neckW/2, neckBot);
+        ctx.bezierCurveTo(
+        cx - neckW/2, neckBot + shoulderH*0.6,
+        cx - jarW/2, shoulderBot - shoulderH*0.2,
+        cx - jarW/2, shoulderBot
+        );
+        ctx.lineTo(cx - jarW/2, bodyBot);
+        ctx.bezierCurveTo(cx - jarW/2, baseBot, cx - jarW*0.42, baseBot, cx, baseBot);
+        ctx.stroke();
+        
+        // right outline
+        ctx.beginPath();
+        ctx.moveTo(cx + neckW/2, top);
+        ctx.lineTo(cx + neckW/2, neckBot);
+        ctx.bezierCurveTo(
+        cx + neckW/2, neckBot + shoulderH*0.6,
+        cx + jarW/2, shoulderBot - shoulderH*0.2,
+        cx + jarW/2, shoulderBot
+        );
+        ctx.lineTo(cx + jarW/2, bodyBot);
+        ctx.bezierCurveTo(cx + jarW/2, baseBot, cx + jarW*0.42, baseBot, cx, baseBot);
+        ctx.stroke();
+        
+        // rim
+        ctx.beginPath();
+        ctx.moveTo(cx - neckW/2 - 3, top);
+        ctx.lineTo(cx + neckW/2 + 3, top);
+        ctx.stroke();
+        
+        // highlight
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(84, 159, 147, 0.33)';
+        ctx.lineWidth = 4;
+        ctx.moveTo(cx - jarW/2 + 6, shoulderBot + jarH*0.05);
+        ctx.lineTo(cx - jarW/2 + 6, bodyBot - jarH*0.08);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+    
+    function loop(timeNow) {
+        const dt = Math.min(timeNow - timeLast, 50);
+        timeLast = timeNow;
+        
+        const w = canvas.width;
+        const h = canvas.height;
+        const cx = w / 2;
+        
+        const jarH = h * 0.75;
+        const jarW = jarH * 0.65;
+        const jarY = (h - jarH) / 2;
+        const cubeCenter = jarY + jarH * 0.47;
+        const scale = Math.min(w, h) * 0.55;
+        
+        ctx.clearRect(0, 0, w, h);
+        
+        const t = dt * 0.001;
+        rotX(verts, SPEED_X * Math.PI * 2 * t);
+        rotY(verts, SPEED_Y * Math.PI * 2 * t);
+        rotZ(verts, SPEED_Z * Math.PI * 2 * t);
+        
+        const projected = verts.map(v => project(v, cx, cubeCenter, scale));
+        
+        for (let edge of edges) {
+            const a = projected[edge[0]];
+            const b = projected[edge[1]];
+            const avgZ = (a[2] + b[2]) / 2;
+            const alpha = Math.min(0.9, Math.max(0.12, 1 - (avgZ - 1) / 6));
+            ctx.beginPath();
+            ctx.moveTo(a[0], a[1]);
+            ctx.lineTo(b[0], b[1]);
+            ctx.strokeStyle = `rgba(84, 159, 147, ${alpha})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        drawJar(cx, cubeCenter, jarW, jarH, jarY);
+        
+        requestAnimationFrame(loop);
+    }
+    
+    requestAnimationFrame(loop);
+</script>
+</div>

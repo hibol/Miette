@@ -39,14 +39,26 @@ export function useGlossaryHighlight(editMode) {
         return { regex, lookup };
     }
 
+    function _hideAllTooltips() {
+        _tooltips.forEach(t => t.hide());
+    }
+
+    function _outsideClickHandler(e) {
+        if (!e.target.closest('.glossary-term')) _hideAllTooltips();
+    }
+
     function applyHighlight() {
         const container = document.getElementById('phases-content');
         if (!container) return;
         const { regex, lookup } = buildGlossary();
         walkNodes(container, regex, lookup);
-        _tooltips = [...document.querySelectorAll('.glossary-term')].map(el =>
-            new bootstrap.Tooltip(el, { trigger: 'hover focus click' })
-        );
+        const hasHover = window.matchMedia('(hover: hover)').matches;
+        _tooltips = [...document.querySelectorAll('.glossary-term')].map(el => {
+            const tt = new bootstrap.Tooltip(el, { trigger: hasHover ? 'hover focus' : 'click' });
+            if (!hasHover) el.addEventListener('click', () => _tooltips.forEach(other => other !== tt && other.hide()));
+            return tt;
+        });
+        if (!hasHover) document.addEventListener('click', _outsideClickHandler);
     }
 
     function walkNodes(node, regex, lookup) {
@@ -75,6 +87,7 @@ export function useGlossaryHighlight(editMode) {
     }
 
     function removeHighlight() {
+        document.removeEventListener('click', _outsideClickHandler);  // no-op si desktop
         _tooltips.forEach(t => t.dispose());
         _tooltips = [];
         document.querySelectorAll('.glossary-term').forEach(span =>
