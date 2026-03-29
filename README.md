@@ -14,6 +14,7 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 | Database | MySQL |
 | Security | Spring Security (BCrypt, Remember Me) |
 | Storage | Cloudflare R2 (prod), MinIO (local dev) |
+| Image processing | Thumbnailator + webp-imageio (WebP conversion) |
 | Deployment | Railway (Docker) |
 | Build | Maven |
 
@@ -47,7 +48,7 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 
 **Photos (admin)**
 - Upload photos directly on the recipe page
-- Images are automatically resized on upload: full version at 1920px (85% quality) and thumbnail at 400px (80% quality), both stored in object storage
+- Images are automatically converted to WebP and resized on upload: full version at 1920px (92% quality) and thumbnail at 400px (85% quality), both stored in object storage
 - EXIF orientation is applied on resize so phone photos always display upright
 - Photo date is extracted from EXIF metadata (`DateTimeOriginal`) and falls back to the current date if absent
 - Photos are browsable via an infinite carousel (previous/next navigation) with the capture date displayed
@@ -112,9 +113,14 @@ export STORAGE_PUBLIC_URL=http://localhost:9000/miette
 Source it before running:
 
 ```bash
-source .env.local
-./mvnw spring-boot:run
+# Standard startup
+./run.sh
+
+# Sync prod → local (DB + images) then start
+./run.sh --sync-prod
 ```
+
+`run.sh` starts MinIO via Docker Compose, optionally imports the Railway database and R2 images, then launches the app. The DB sync patches MySQL → MariaDB incompatibilities on the fly (collation `utf8mb4_0900_ai_ci`, `ngram` parser).
 
 ### Local object storage (MinIO)
 
