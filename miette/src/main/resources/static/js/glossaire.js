@@ -1,7 +1,6 @@
-const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+import { nextTempKey, groupTermsByLetter } from './glossary-utils.js';
 
-let _keyCounter = 0;
-function nextTempKey() { return --_keyCounter; }
+const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
 createApp({
     setup() {
@@ -21,14 +20,7 @@ createApp({
 
         const grouped = computed(() => {
             const source = editMode.value ? draft.value : terms.value;
-            const map = {};
-            for (const term of source) {
-                if (!term.term) continue;
-                const letter = term.term[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
-                if (!map[letter]) map[letter] = [];
-                map[letter].push(term);
-            }
-            return Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
+            return groupTermsByLetter(source);
         });
 
         const letters = computed(() => grouped.value.map(([l]) => l));
@@ -205,6 +197,9 @@ createApp({
             <div class="d-flex justify-content-between align-items-baseline mb-4">
                 <h1>Ça veut dire quoi ?</h1>
                 <div v-if="isAdmin" class="d-flex gap-2">
+                    <a v-if="!editMode" href="/admin" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i><span class="d-none d-md-inline"> Admin</span>
+                    </a>
                     <button v-if="!editMode" @click="startEdit" class="btn btn-success btn-sm">
                         <i class="bi bi-pencil"></i><span class="d-none d-md-inline"> Modifier</span>
                     </button>

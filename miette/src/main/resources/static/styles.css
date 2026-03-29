@@ -4,6 +4,52 @@
     --tan: #d3b99fff;
     --dusty-rose: #c17767ff;
     --coffee-bean: #210203ff;
+
+    /* Bootstrap theme overrides */
+    --bs-primary: #454851;
+    --bs-primary-rgb: 69, 72, 81;
+    --bs-success: #549f93;
+    --bs-success-rgb: 84, 159, 147;
+}
+
+.btn-primary {
+    --bs-btn-bg: #454851;
+    --bs-btn-border-color: #454851;
+    --bs-btn-hover-bg: #363840;
+    --bs-btn-hover-border-color: #363840;
+    --bs-btn-active-bg: #2d2f35;
+    --bs-btn-active-border-color: #2d2f35;
+    --bs-btn-disabled-bg: #454851;
+    --bs-btn-disabled-border-color: #454851;
+}
+
+.btn-success {
+    --bs-btn-bg: #549f93;
+    --bs-btn-border-color: #549f93;
+    --bs-btn-hover-bg: #437f75;
+    --bs-btn-hover-border-color: #437f75;
+    --bs-btn-active-bg: #3a6f66;
+    --bs-btn-active-border-color: #3a6f66;
+    --bs-btn-disabled-bg: #549f93;
+    --bs-btn-disabled-border-color: #549f93;
+}
+
+.alert-success {
+    --bs-alert-color: #1a4a43;
+    --bs-alert-bg: #daf0ed;
+    --bs-alert-border-color: #b0d9d3;
+}
+
+.btn-outline-success {
+    --bs-btn-color: #549f93;
+    --bs-btn-border-color: #549f93;
+    --bs-btn-hover-bg: #549f93;
+    --bs-btn-hover-border-color: #549f93;
+    --bs-btn-active-bg: #437f75;
+    --bs-btn-active-border-color: #437f75;
+    --bs-btn-disabled-color: #549f93;
+    --bs-btn-disabled-border-color: #549f93;
+    --bs-btn-focus-shadow-rgb: 84, 159, 147;
 }
 
 .form-check-input {
@@ -19,6 +65,21 @@
 }
 .recipe-link .card {
     transition: all 0.2s ease;
+}
+
+.glossary-term {
+    border-bottom: 1px dotted var(--verdigris);
+    cursor: help;
+}
+
+.tooltip {
+    --bs-tooltip-bg: var(--verdigris);
+    --bs-tooltip-color: #fff;
+    --bs-tooltip-opacity: 1;
+}
+
+.badge.bg-primary {
+    background-color: var(--dusty-rose) !important;
 }
 
 .alphabet-index {

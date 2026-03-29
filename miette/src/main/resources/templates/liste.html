@@ -85,7 +85,7 @@
                         <div th:if="${!#sets.isEmpty(recipe.tags)}" class="mt-2">
                             <span th:each="tagRel : ${recipe.tags}" 
                             th:text="${tagRel.tag.label}" 
-                            class="badge bg-secondary me-1"></span>
+                            class="badge bg-primary me-1"></span>
                         </div>
                     </div>
                     <div th:with="noteCount=${#lists.size(recipe.assets.?[asset.type.name() == 'NOTE'])}, photoCount=${#lists.size(recipe.assets.?[asset.type.name() == 'PHOTO'])}"
@@ -176,7 +176,7 @@
                         <div th:if="${!#sets.isEmpty(recipe.tags)}" class="mt-1">
                             <span th:each="tagRel : ${recipe.tags}"
                                   th:text="${tagRel.tag.label}"
-                                  class="badge bg-secondary me-1" style="font-size: 0.7rem;"></span>
+                                  class="badge bg-primary me-1" style="font-size: 0.7rem;"></span>
                         </div>
                     </div>
                 </div>

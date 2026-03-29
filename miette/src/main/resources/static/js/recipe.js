@@ -1,6 +1,8 @@
 import { useNotes } from './useNotes.js';
 import { usePhotos } from './usePhotos.js';
 import { useValidation } from './useValidation.js';
+import { nextTempKey } from './glossary-utils.js';
+import { useGlossaryHighlight } from './useGlossaryHighlight.js';
 
 const { createApp, ref, onMounted, computed, watch } = Vue;
 
@@ -59,9 +61,6 @@ const vSortablePhases = {
 createApp({
     directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases },
     setup() {
-        let _keyCounter = 0;
-        function nextTempKey() { return --_keyCounter; }
-
         const recipe = ref(null);
         const loading = ref(true);
         const saving = ref(false);
@@ -174,6 +173,10 @@ createApp({
 
         const noteAssets = computed(() => recipe.value?.assets?.filter(a => a.type === 'NOTE') ?? []);
 
+        // --- Glossaire ---
+        const { glossaryEnabled, glossaryTerms, glossaryGrouped, glossaryLetters,
+                activeModalLetter, toggleGlossary, scrollToInModal } = useGlossaryHighlight(editMode);
+
         const isSinglePhase = computed(() => {
             const data = recipe.value;
             if (!data || !data.phases || data.phases.length === 0) return false;
@@ -258,7 +261,9 @@ createApp({
             addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
             uploadingPhoto, handleFileChange,
-            errors, validateDraft, getError, clearErrors
+            errors, validateDraft, getError, clearErrors,
+            glossaryEnabled, glossaryTerms, glossaryGrouped, glossaryLetters,
+            activeModalLetter, toggleGlossary, scrollToInModal
         };
     },
 
@@ -280,6 +285,16 @@ createApp({
                     </button>
                 </div>
                 <div class="col d-flex gap-2 justify-content-end">
+                    <button v-if="glossaryEnabled && !editMode && recipe.id !== null"
+                        class="btn btn-outline-secondary btn-sm"
+                        data-bs-toggle="modal" data-bs-target="#glossaryModal">
+                        <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
+                    </button>
+                    <button v-if="!editMode && recipe.id !== null" @click="toggleGlossary"
+                        :class="['btn', 'btn-sm', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
+                        title="Surligner les termes techniques">
+                        <i class="bi bi-question-circle"></i>
+                    </button>
                     <button v-if="!editMode && isAdmin" @click="startEdit" class="btn btn-success">
                         <i class="bi bi-pencil"></i>
                         <span class="d-none d-md-inline"> Modifier</span>
@@ -422,7 +437,10 @@ createApp({
                 </div>
             </div>
 
-            <!-- Phases en lecture - phase unique -->
+            <!-- Phases en lecture -->
+            <div id="phases-content">
+
+            <!-- Phase unique -->
             <div v-if="!editMode && isSinglePhase" class="card shadow-sm mb-4">
                 <div class="card-body">
                     <div class="row g-4">
@@ -446,7 +464,7 @@ createApp({
                 </div>
             </div>
 
-            <!-- Phases en lecture - phases multiples -->
+            <!-- Phases multiples -->
             <div v-else-if="!editMode && !isSinglePhase">
                 <div v-for="phase in recipe.phases" :key="phase.id" class="card shadow-sm mb-4">
                     <div class="card-header">
@@ -474,6 +492,8 @@ createApp({
                     </div>
                 </div>
             </div>
+
+            </div><!-- fin phases-content -->
 
             <!-- Phases en édition -->
             <div v-if="editMode" v-sortable-phases="{ phases: draft.phases, setDragging: (val) => isDraggingPhase = val, clearErrors }">
@@ -560,6 +580,48 @@ createApp({
                     <i class="bi bi-plus"></i> Ajouter une phase
                 </button>
             </div>
+
+        <!-- Modal glossaire -->
+        <div class="modal fade" id="glossaryModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-book me-2"></i>Ça veut dire quoi ?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body d-flex gap-3 position-relative">
+                        <!-- Index alphabétique vertical -->
+                        <div class="d-none d-md-flex flex-column align-items-center gap-1 flex-shrink-0 pt-1" style="position: sticky; top: 0; align-self: flex-start;">
+                            <span v-for="letter in glossaryLetters" :key="letter"
+                                  @click="scrollToInModal(letter)"
+                                  :class="['alphabet-letter', { active: letter === activeModalLetter }]">{{ letter }}</span>
+                        </div>
+                        <!-- Contenu -->
+                        <div class="flex-grow-1">
+                            <!-- Index horizontal mobile -->
+                            <div class="d-flex flex-wrap gap-1 mb-4 d-md-none">
+                                <span v-for="letter in glossaryLetters" :key="letter"
+                                      @click="scrollToInModal(letter)"
+                                      :class="['alphabet-letter-mobile', { active: letter === activeModalLetter }]">{{ letter }}</span>
+                            </div>
+                            <!-- Termes groupés -->
+                            <div v-for="[letter, group] in glossaryGrouped" :key="letter">
+                                <h6 class="modal-letter text-muted pb-1 border-bottom mb-3"
+                                    :data-letter="letter">{{ letter }}</h6>
+                                <div v-for="term in group" :key="term.id" class="mb-4">
+                                    <div class="d-flex align-items-baseline gap-2 mb-1 flex-wrap">
+                                        <span class="fw-bold">{{ term.term }}</span>
+                                        <span v-for="alias in term.aliases" :key="alias.id"
+                                              class="badge bg-light text-muted border small fw-normal">{{ alias.alias }}</span>
+                                    </div>
+                                    <p class="mb-0 small">{{ term.definition }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         </div>
     `
