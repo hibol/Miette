@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ça veut dire quoi ?')}"></head>
+<body class="container-fluid px-0">
+    <div th:replace="~{fragments/header :: site-header}"></div>
+    <div th:replace="~{fragments/login-modal :: login-modal}"></div>
+
+    <div class="page-content">
+        <div id="app"
+             th:data-is-admin="${#authorization.expression('hasRole(''ADMIN'')')}">
+            <p>Chargement...</p>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: site-footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+    <script type="module" src="/js/glossaire.js"></script>
+</body>
+</html>

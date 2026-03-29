@@ -10,10 +10,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.hibol.miette.dto.YamlGlossaryEntry;
+import com.hibol.miette.dto.YamlGlossaryRoot;
 import com.hibol.miette.dto.YamlIngredient;
 import com.hibol.miette.dto.YamlPhase;
 import com.hibol.miette.dto.YamlRecipe;
 import com.hibol.miette.dto.YamlRoot;
+import com.hibol.miette.entity.GlossaryAlias;
+import com.hibol.miette.entity.GlossaryTerm;
 import com.hibol.miette.entity.Ingredient;
 import com.hibol.miette.entity.IngredientPhase;
 import com.hibol.miette.entity.Phase;
@@ -22,6 +26,7 @@ import com.hibol.miette.entity.RecipeTag;
 import com.hibol.miette.entity.Step;
 import com.hibol.miette.entity.Tag;
 import com.hibol.miette.entity.User;
+import com.hibol.miette.repository.GlossaryTermRepository;
 import com.hibol.miette.repository.IngredientRepository;
 import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.TagRepository;
@@ -44,6 +49,7 @@ public class DataSeeder {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RecipeIndexingService indexingService;
+    private final GlossaryTermRepository glossaryTermRepo;
 
     @Value("${miette.admin.password:}")
     private String adminPassword;
@@ -55,6 +61,7 @@ public class DataSeeder {
     public CommandLineRunner seed() {
         return args -> {
             seedRecipes();
+            seedGlossary();
             seedAdmin();
         };
     }
@@ -78,6 +85,36 @@ public class DataSeeder {
 
         indexingService.rebuildIndex();
         log.info("✅ {} recipes seeded", recipeRepo.count());
+    }
+
+    @Transactional
+    public void seedGlossary() throws Exception {
+        if (glossaryTermRepo.count() > 0) {
+            log.info("⏭️  Glossary already seeded, skipping");
+            return;
+        }
+
+        log.info("📖 Seeding glossary from YAML...");
+        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+        InputStream yamlStream = new ClassPathResource("glossary.yaml").getInputStream();
+        YamlGlossaryRoot root = yamlMapper.readValue(yamlStream, YamlGlossaryRoot.class);
+
+        for (YamlGlossaryEntry entry : root.getGlossary()) {
+            GlossaryTerm term = new GlossaryTerm();
+            term.setTerm(entry.getTerm().trim());
+            term.setDefinition(entry.getDefinition().trim());
+            if (entry.getAliases() != null) {
+                for (String a : entry.getAliases()) {
+                    if (a == null || a.isBlank()) continue;
+                    GlossaryAlias alias = new GlossaryAlias();
+                    alias.setTerm(term);
+                    alias.setAlias(a.trim());
+                    term.getAliases().add(alias);
+                }
+            }
+            glossaryTermRepo.save(term);
+        }
+        log.info("✅ {} glossary terms seeded", glossaryTermRepo.count());
     }
 
     public void seedAdmin() {

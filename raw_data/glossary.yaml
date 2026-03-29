@@ -1,0 +1,234 @@
+glossary:
+
+  # --- Fermentation & levain ---
+
+  - term: levain
+    definition: Culture fermentée de farine et d'eau contenant des bactéries lactiques et des levures sauvages, utilisée comme agent de fermentation naturel à la place de la levure industrielle. Doit être nourri régulièrement pour rester actif.
+    aliases: []
+
+  - term: poolish
+    definition: Pré-fermentation liquide composée de quantités égales de farine et d'eau, ensemencée avec une petite quantité de levure ou de levain. Améliore les arômes et la conservation du pain.
+    aliases: []
+
+  - term: fermentation
+    definition: Processus biologique au cours duquel les micro-organismes du levain transforment les sucres de la farine en gaz carbonique et en acides organiques, faisant lever la pâte et développant ses arômes.
+    aliases: []
+
+  - term: acidité
+    definition: Caractéristique développée par les bactéries lactiques du levain pendant la fermentation. Une pâte plus acide donne un pain au goût plus prononcé, une conservation prolongée et une mie plus alvéolée.
+    aliases: []
+
+  # --- Étapes de fabrication ---
+
+  - term: autolyse
+    definition: Mélange préliminaire de farine et d'eau uniquement, laissé au repos 20 à 60 minutes avant d'ajouter le levain et le sel. Favorise le développement du gluten, facilite le pétrissage et améliore l'extensibilité de la pâte.
+    aliases: []
+
+  - term: pétrissage
+    definition: Action de travailler la pâte pour développer le réseau de gluten, donner de la structure et de l'élasticité. Peut être réalisé à la main ou au robot. Pour les pains au levain, un pétrissage doux est souvent privilégié.
+    aliases: 
+      - pétrir
+
+  - term: pointage
+    definition: Première phase de fermentation, en masse, qui suit le pétrissage. La pâte repose et développe ses arômes. Sa durée varie selon la température et la force du levain.
+    aliases:
+      - fermentation en masse
+      - première pousse
+
+  - term: rabat
+    definition: Technique consistant à replier la pâte sur elle-même pendant le pointage pour renforcer le réseau de gluten, redistribuer les gaz et apporter de la force sans pétrissage intensif.
+    aliases:
+      - rabats
+      - pliage
+      - stretch and fold
+      
+  - term: rabats en spirale
+    definition: Technique de pliage réalisée pendant le pointage. On soulève la pâte par le centre à deux mains, on la laisse s'étirer sous son propre poids, puis on la dépose en la repliant en dessous, en tournant le récipient d'un quart de tour à chaque fois. Renforce le réseau de gluten tout en préservant les bulles de fermentation. Plus douce que le pétrissage classique.
+    aliases:
+      - coil folds
+      - rabats en escargot
+
+  - term: façonnage
+    definition: Action de donner sa forme finale au pâton après le pointage. Le façonnage crée une tension en surface qui aide le pain à garder sa forme pendant la cuisson.
+    aliases: []
+
+  - term: boulage
+    definition: Première étape du façonnage consistant à ramener les bords de la pâte vers le centre pour former une boule et créer une légère tension. Peut précéder un façonnage plus précis.
+    aliases: []
+
+  - term: apprêt
+    definition: Seconde phase de fermentation après le façonnage. Le pâton repose et lève une dernière fois avant la cuisson. Peut se faire à température ambiante ou au réfrigérateur (apprêt retardé).
+    aliases:
+      - seconde pousse
+      - deuxième pousse
+
+  - term: apprêt retardé
+    definition: Apprêt réalisé au réfrigérateur pendant plusieurs heures, voire toute une nuit. Le froid ralentit la fermentation, développe des arômes plus complexes et facilite la gestion du temps de boulange.
+    aliases:
+      - pousse lente
+      - pousse au froid
+
+  - term: grigne
+    definition: Incision réalisée à la lame sur la surface du pâton juste avant l'enfournement. Permet à la vapeur de s'échapper de façon contrôlée, favorise le développement du pain et crée le motif caractéristique de la croûte.
+    aliases:
+      - gtignage
+      - grigner
+      - scarification
+      - incision
+
+  - term: dégazage
+    definition: Expulsion des gaz de fermentation accumulés dans la pâte. Un dégazage excessif pendant le façonnage détruit les alvéoles formées et donne une mie moins aérée.
+    aliases:
+      - dégazer
+
+  # --- Texture & structure ---
+
+  - term: gluten
+    definition: Réseau de protéines qui se forme lors du mélange de farine et d'eau. Donne à la pâte son élasticité et sa capacité à retenir les gaz de fermentation, déterminant ainsi la structure de la mie.
+    aliases: []
+
+  - term: alvéole
+    definition: "Bulle d'air emprisonnée dans le réseau de gluten lors de la fermentation. La taille et la régularité des alvéoles déterminent la texture de la mie : fine et serrée ou ouverte et irrégulière."
+    aliases:
+      - alvéolage
+      - alvéolé
+
+  - term: hydratation
+    definition: Rapport entre le poids d'eau et le poids de farine dans une recette, exprimé en pourcentage. Une pâte à haute hydratation (75% et plus) est plus collante mais donne généralement une mie plus ouverte.
+    aliases:
+      - taux d'hydratation
+
+  - term: mie
+    definition: Intérieur du pain, par opposition à la croûte. Sa texture (serrée, ouverte, élastique, humide) dépend de la farine, de l'hydratation, de la fermentation et de la cuisson.
+    aliases: []
+
+  - term: pâton
+    definition: Portion de pâte façonnée, prête à être mise en apprêt puis enfournée.
+    aliases: []
+
+  - term: extensibilité
+    definition: Capacité de la pâte à s'étirer sans se déchirer. Une bonne extensibilité facilite le façonnage et permet au pain de se développer en cuisson.
+    aliases: []
+
+  - term: élasticité
+    definition: Tendance de la pâte à revenir à sa forme initiale après avoir été étirée. Une pâte trop élastique résiste au façonnage et doit reposer avant d'être travaillée.
+    aliases: []
+
+  # --- Farines ---
+
+  - term: farine blanche
+    definition: Farine de blé fortement raffinée, dont le son et le germe ont été retirés. Pauvre en fibres et en minéraux, elle est très panifiable et donne une mie légère.
+    aliases:
+      - T45
+      - T55
+      - farine de type 45
+      - farine de type 55
+
+  - term: farine bise
+    definition: Farine de blé partiellement complète, dont une partie du son a été conservée. Plus riche en minéraux que la farine blanche, elle donne un pain au goût légèrement plus prononcé.
+    aliases:
+      - T80
+      - farine semi-complète
+
+  - term: farine complète
+    definition: Farine moulue à partir du grain entier, son et germe inclus. Riche en fibres, en minéraux et en arômes. Absorbe plus d'eau et donne un pain plus dense.
+    aliases:
+      - T110
+      - T130
+      - T150
+
+  - term: farine de seigle
+    definition: Farine issue du seigle, grain rustique à la saveur prononcée. Riche en pentosanes qui lui confèrent une texture collante et une fermentation rapide. Donne des pains denses aux arômes complexes.
+    aliases: []
+
+  - term: farine d'épeautre
+    definition: Farine issue de l'épeautre, ancêtre du blé moderne. Plus riche en protéines et en minéraux que le blé. Son gluten est plus fragile, ce qui demande un pétrissage doux. Donne un goût légèrement noisette.
+    aliases:
+      - épeautre clair
+      - épeautre complet
+
+  - term: farine Manitoba
+    definition: Farine de blé à très haute teneur en protéines (13-15%), originaire du Manitoba au Canada. Très forte en gluten, elle est utilisée pour les pâtes enrichies (brioche, panettone) ou pour renforcer d'autres farines.
+    aliases:
+      - farine forte
+      - farine de force
+
+  - term: farine mi-blanche
+    definition: Farine intermédiaire entre la farine blanche et la farine bise. Conserve une partie des éléments nutritifs du grain tout en restant très panifiable.
+    aliases:
+      - T65
+
+  # --- Cuisson ---
+
+  - term: vapeur
+    definition: Humidité injectée dans le four en début de cuisson. Retarde la formation de la croûte et permet au pain de se développer pleinement. Essentielle pour obtenir une belle croûte croustillante.
+    aliases:
+      - buée
+      - coup de buée
+
+  - term: temperature à cœur
+    definition: Température mesurée au centre du pain à l'aide d'un thermomètre. Permet de vérifier la cuisson sans couper le pain. Un pain de mie est cuit à environ 88-92°C, un pain croustillant à 92-96°C.
+    aliases:
+      - température interne
+
+  - term: enfournement
+    definition: Action de placer le pâton dans le four. Pour les pains croustillants, un enfournement rapide sur une surface chaude (pierre, plaque préchauffée) est recommandé.
+    aliases: []
+
+  - term: croûte
+    definition: Enveloppe extérieure du pain, formée par la chaleur du four. Sa texture (fine, épaisse, croustillante, molle) dépend de la température, de la vapeur et du type de farine.
+    aliases: []
+
+  - term: caramélisation
+    definition: Réaction chimique qui se produit en surface du pain pendant la cuisson, donnant la couleur dorée à brune de la croûte et des arômes de noisette et de caramel.
+    aliases:
+      - réaction de Maillard
+      
+  - term: effet ressort
+    definition: Développement soudain du pain dans les premières minutes de cuisson, sous l'effet de la chaleur qui dilate les gaz emprisonnés dans la pâte. Un bon effet ressort indique une fermentation bien menée et un pâton correctement grigné. Il s'arrête dès que la croûte se fixe.
+    aliases:
+      - oven spring
+      - poussée au four
+
+  # --- Matériel ---
+
+  - term: banneton
+    definition: Panier en osier ou en rotin dans lequel le pâton repose pendant l'apprêt. Donne sa forme au pain et crée le motif en spirale caractéristique des pains au levain.
+    aliases:
+      - couche
+      - corbeille de fermentation
+
+  - term: lame
+    definition: Outil tranchant utilisé pour grigner le pâton avant l'enfournement. Peut être une lame de rasoir, un couteau très aiguisé ou une lame spécifique à boulangerie.
+    aliases:
+      - lame de boulanger
+      - cutter
+
+  - term: pierre à pain
+    definition: Surface de cuisson en pierre ou en céramique réfractaire placée dans le four. Accumule la chaleur et la restitue rapidement au pâton enfourné, favorisant une belle sole croustillante.
+    aliases:
+      - pierre réfractaire
+      - sole
+
+  - term: cocotte
+    definition: Ustensile de cuisson en fonte avec couvercle, utilisé pour cuire le pain. Le couvercle retient la vapeur naturelle du pâton en début de cuisson, remplaçant l'injection de vapeur d'un four professionnel.
+    aliases:
+      - dutch oven
+
+  - term: écumoire
+    definition: Ustensile de cuisine perforé utilisé pour plonger et retirer les pâtons du bain alcalin, notamment pour les pains de Sils ou les bretzels.
+    aliases: []
+
+  # --- Formes ---
+
+  - term: boule
+    definition: Forme ronde donnée au pâton lors du façonnage. Simple à réaliser, elle convient à la plupart des pains au levain.
+    aliases: []
+
+  - term: bâtard
+    definition: Forme ovale allongée, intermédiaire entre la boule et la baguette. Facile à façonner et polyvalente.
+    aliases: []
+
+  - term: baguette
+    definition: Pain long et fin, emblématique de la boulangerie française. Sa forme allongée demande un façonnage précis et une cuisson avec beaucoup de vapeur.
+    aliases: []
