@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<footer th:fragment="site-footer" class="site-footer mt-5">
+    <div class="row align-items-center g-3">
+        <div class="col-12 col-md-3 order-1 order-md-1 text-center text-md-start">
+            <a th:href="@{/a-propos}" class="text-decoration-none text-muted small">Chez Miette ?</a>
+        </div>
+        <div class="col-12 col-md-6 order-2 order-md-2 text-center">
+            <small class="text-muted d-block">© 2026 Ludivine Ammon (hibol)</small>
+            <small class="text-muted">Photos personnelles · Recettes générées par IA, testées et adaptées dans ma cuisine</small>
+        </div>
+        <div class="col-12 col-md-3 order-3 order-md-3 text-center text-md-end">
+            <a href="https://github.com/hibol/Miette" target="_blank" rel="noopener"
+               class="text-decoration-none text-muted small">
+                <i class="bi bi-github me-1"></i>Spring Boot · Vue.js · MySQL · Cloudflare R2
+            </a>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

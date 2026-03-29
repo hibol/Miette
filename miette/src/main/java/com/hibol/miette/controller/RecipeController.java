@@ -88,6 +88,11 @@ public class RecipeController {
         return "recette";
     }
 
+    @GetMapping("/a-propos")
+    public String apropos() {
+        return "a-propos";
+    }
+
     @GetMapping("/recette/new")
     public String newRecipe(Model model) {
         model.addAttribute("recipeId", null);

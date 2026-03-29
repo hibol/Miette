@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chez Miette ?')}"></head>
+<body class="container-fluid px-0">
+    <div th:replace="~{fragments/header :: site-header}"></div>
+    <div th:replace="~{fragments/login-modal :: login-modal}"></div>
+
+    <div class="page-content">
+        <div class="row justify-content-center" style="margin-top: 8vh; margin-bottom: 8vh;">
+            <div class="col-12 col-lg-4" style="line-height: 1.9;">
+                <p class="mb-4">La rencontre entre des micro-organismes dans un bocal,<br>des idées en mouvement,<br>des machines qui répondent.</p>
+                <p class="mb-4">Une exploration de l'art ancestral de la fermentation<br>et de l'ingénierie informatique récente.</p>
+                <p class="mb-4">Une des plantes qui a germé<br>à partir de toutes les graines<br>plantées en moi par des personnes chères.</p>
+                <p class="fs-3 fst-italic mt-5">Chez Miette, c'est du levain que je nourris, des structures que j'ajuste.</p>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: site-footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -44,18 +44,25 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     
-    <!-- Résultats ou "Tout" + bouton reset -->
+    <!-- Résultats ou "Tout" + toggle vue -->
     <div th:if="${isSearchMode}" class="alert alert-info d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-search"></i> 
-            <span th:text="'Trouvé ' + ${resultCount} + ' recette(s)'"></span>
-        </span>
-        <a href="/recettes" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-grid-3x3-gap"></i> Voir toutes les recettes
-        </a>
+        <span><i class="bi bi-search"></i> <span th:text="'Trouvé ' + ${resultCount} + ' recette(s)'"></span></span>
+        <div class="d-flex align-items-center gap-2">
+            <div class="btn-group btn-group-sm" id="viewToggle">
+                <button type="button" class="btn btn-outline-primary active" id="btnGrid" title="Grille"><i class="bi bi-grid"></i></button>
+                <button type="button" class="btn btn-outline-primary" id="btnList" title="Liste"><i class="bi bi-list-ul"></i></button>
+            </div>
+            <a href="/recettes" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-grid-3x3-gap"></i> Voir toutes les recettes
+            </a>
+        </div>
     </div>
-    <div th:unless="${isSearchMode}" class="alert alert-success">
-        <i class="bi bi-list-ul"></i> Toutes les recettes (
-        <span th:text="${resultCount}"></span>)
+    <div th:unless="${isSearchMode}" class="alert alert-success d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-ul"></i> Toutes les recettes (<span th:text="${resultCount}"></span>)</span>
+        <div class="btn-group btn-group-sm" id="viewToggle">
+            <button type="button" class="btn btn-outline-success active" id="btnGrid" title="Grille"><i class="bi bi-grid"></i></button>
+            <button type="button" class="btn btn-outline-success" id="btnList" title="Liste"><i class="bi bi-list-ul"></i></button>
+        </div>
     </div>
 
     <!-- Bouton "Nouvelle recette" (si admin) -->
@@ -69,8 +76,8 @@
         <p class="alert alert-info">Aucune recette</p>
     </div>
     
-    <div th:unless="${recipes.isEmpty()}" class="row g-3">
-        <div th:each="recipe : ${recipes}" class="col-12 col-md-6 col-lg-4">
+    <div th:unless="${recipes.isEmpty()}" id="recipeGrid" class="row g-3">
+        <div th:each="recipe : ${recipes}" class="col-12 col-md-6 col-lg-4 recipe-grid-item">
             <a th:href="@{/recette/{id}(id=${recipe.id})}" class="text-decoration-none recipe-link">
                 <div class="card h-100">
                     <div class="card-header">
@@ -148,7 +155,63 @@
             </a>
         </div>
     </div>
+    <!-- Vue liste (cachée par défaut) -->
+    <div th:unless="${recipes.isEmpty()}" id="recipeList" class="d-none">
+        <a th:each="recipe : ${recipes}"
+           th:href="@{/recette/{id}(id=${recipe.id})}"
+           class="text-decoration-none d-block recipe-list-item">
+            <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                <div class="d-flex align-items-center gap-3">
+                    <th:block th:with="photoRel=${recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null}">
+                        <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
+                             th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
+                             style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px;"
+                             loading="lazy" alt="">
+                        <div th:unless="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
+                             style="width: 48px; height: 48px; border-radius: 6px; background: var(--tan); opacity: 0.3; flex-shrink: 0;">
+                        </div>
+                    </th:block>
+                    <div>
+                        <span class="fw-semibold text-dark" th:text="${recipe.title}"></span>
+                        <div th:if="${!#sets.isEmpty(recipe.tags)}" class="mt-1">
+                            <span th:each="tagRel : ${recipe.tags}"
+                                  th:text="${tagRel.tag.label}"
+                                  class="badge bg-secondary me-1" style="font-size: 0.7rem;"></span>
+                        </div>
+                    </div>
+                </div>
+                <div th:with="noteCount=${#lists.size(recipe.assets.?[asset.type.name() == 'NOTE'])}, photoCount=${#lists.size(recipe.assets.?[asset.type.name() == 'PHOTO'])}"
+                     class="d-flex gap-3 text-muted small flex-shrink-0 ms-3">
+                    <span th:if="${noteCount > 0}"><i class="bi bi-journal-text"></i> <span th:text="${noteCount}"></span></span>
+                    <span th:if="${photoCount > 0}"><i class="bi bi-image"></i> <span th:text="${photoCount}"></span></span>
+                </div>
+            </div>
+        </a>
+    </div>
+
     </div><!-- fin page-content -->
+    <div th:replace="~{fragments/footer :: site-footer}"></div>
     <div th:replace="~{fragments/layout :: scripts}"></div>
+    <script>
+        const STORAGE_KEY = 'miette-view';
+        const btnGrid = document.getElementById('btnGrid');
+        const btnList = document.getElementById('btnList');
+        const grid = document.getElementById('recipeGrid');
+        const list = document.getElementById('recipeList');
+
+        function setView(mode, save) {
+            const isGrid = mode === 'grid';
+            grid.classList.toggle('d-none', !isGrid);
+            list.classList.toggle('d-none', isGrid);
+            btnGrid.classList.toggle('active', isGrid);
+            btnList.classList.toggle('active', !isGrid);
+            if (save) localStorage.setItem(STORAGE_KEY, mode);
+        }
+
+        btnGrid.addEventListener('click', () => setView('grid', true));
+        btnList.addEventListener('click', () => setView('list', true));
+
+        setView(localStorage.getItem(STORAGE_KEY) || 'grid', false);
+    </script>
 </body>
 </html>

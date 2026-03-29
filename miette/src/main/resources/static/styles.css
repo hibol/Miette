@@ -21,6 +21,24 @@
     transition: all 0.2s ease;
 }
 
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body > .page-content {
+    flex: 1;
+}
+
+.site-footer {
+    padding: 1.5rem 1rem;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+    background: white;
+    text-align: center;
+}
+
 .site-header {
     padding: 0.75rem 1rem;
     background: white;
