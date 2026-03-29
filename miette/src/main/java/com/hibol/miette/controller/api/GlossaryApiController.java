@@ -14,29 +14,28 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/glossary")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class GlossaryApiController {
 
     private final GlossaryService glossaryService;
 
     @GetMapping
+    @PreAuthorize("permitAll()")
     public List<GlossaryTermDto> list() {
         return glossaryService.findAll();
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GlossaryTermDto> create(@Valid @RequestBody GlossaryTermCreateDto dto) {
         return ResponseEntity.ok(glossaryService.create(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GlossaryTermDto> update(@PathVariable Long id, @Valid @RequestBody GlossaryTermCreateDto dto) {
         return ResponseEntity.ok(glossaryService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         glossaryService.delete(id);
         return ResponseEntity.noContent().build();

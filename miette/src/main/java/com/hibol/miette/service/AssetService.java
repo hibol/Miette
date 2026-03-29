@@ -34,6 +34,7 @@ public class AssetService {
     private final RecipeAssetRepository recipeAssetRepo;
     private final RecipeRepository recipeRepo;
 
+    // Optional: not created if STORAGE_ENDPOINT is not set (see StorageConfig)
     @Autowired(required = false)
     private StorageService storageService;
 

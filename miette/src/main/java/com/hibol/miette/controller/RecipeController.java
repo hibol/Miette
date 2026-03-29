@@ -45,18 +45,10 @@ public class RecipeController {
                 : recipeService.findAllWithDetails();
 
         boolean filterNotes = withNotes != null;
-        if (filterNotes) {
-            recipes = recipes.stream()
-                    .filter(r -> r.getAssets().stream().anyMatch(a -> a.getAsset().getType() == com.hibol.miette.entity.Asset.AssetType.NOTE))
-                    .toList();
-        }
+        if (filterNotes) recipes = recipeService.filterByAssetType(recipes, com.hibol.miette.entity.Asset.AssetType.NOTE);
 
         boolean filterPhotos = withPhotos != null;
-        if (filterPhotos) {
-            recipes = recipes.stream()
-                    .filter(r -> r.getAssets().stream().anyMatch(a -> a.getAsset().getType() == com.hibol.miette.entity.Asset.AssetType.PHOTO))
-                    .toList();
-        }
+        if (filterPhotos) recipes = recipeService.filterByAssetType(recipes, com.hibol.miette.entity.Asset.AssetType.PHOTO);
 
         model.addAttribute("recipes", recipes);
         model.addAttribute("query", q);

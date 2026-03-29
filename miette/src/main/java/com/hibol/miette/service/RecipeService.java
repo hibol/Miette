@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import com.hibol.miette.entity.Asset;
 import com.hibol.miette.entity.Recipe;
 import com.hibol.miette.entity.RecipeSearchIndex;
 import com.hibol.miette.repository.RecipeRepository;
@@ -34,5 +35,11 @@ public class RecipeService {
 
     public Optional<Recipe> findByIdWithDetails(Long id) {
         return recipeRepo.findByIdWithDetails(id);
+    }
+
+    public List<Recipe> filterByAssetType(List<Recipe> recipes, Asset.AssetType type) {
+        return recipes.stream()
+                .filter(r -> r.getAssets().stream().anyMatch(a -> a.getAsset().getType() == type))
+                .toList();
     }
 }
