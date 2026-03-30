@@ -158,6 +158,11 @@ createApp({
             editMode.value = false;
         }
 
+        function capitalize(str) {
+            if (!str) return str;
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
         function formatQuantity(quantity) {
             if (quantity === null || quantity === undefined) return '';
             return quantity % 1 === 0 ? quantity.toFixed(0) : quantity.toFixed(1);
@@ -256,7 +261,7 @@ createApp({
             recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft,
             returnUrl, availableTags, filteredTags, newTag,
             photos, currentPhotoIndex, prevPhoto, nextPhoto,
-            noteAssets, isSinglePhase, nextTempKey, formatQuantity,
+            noteAssets, isSinglePhase, nextTempKey, formatQuantity, capitalize,
             startEdit, cancelEdit, saveRecipe, deleteRecipe,
             addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
@@ -285,16 +290,6 @@ createApp({
                     </button>
                 </div>
                 <div class="col d-flex gap-2 justify-content-end">
-                    <button v-if="glossaryEnabled && !editMode && recipe.id !== null"
-                        class="btn btn-outline-secondary btn-sm"
-                        data-bs-toggle="modal" data-bs-target="#glossaryModal">
-                        <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
-                    </button>
-                    <button v-if="!editMode && recipe.id !== null" @click="toggleGlossary"
-                        :class="['btn', 'btn-sm', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
-                        title="Surligner les termes techniques">
-                        <i class="bi bi-question-circle"></i>
-                    </button>
                     <button v-if="!editMode && isAdmin" @click="startEdit" class="btn btn-success">
                         <i class="bi bi-pencil"></i>
                         <span class="d-none d-md-inline"> Modifier</span>
@@ -449,7 +444,7 @@ createApp({
                             <ul class="list-group list-group-flush">
                                 <li v-for="ing in recipe.phases[0].ingredients" :key="ing.id"
                                     class="list-group-item px-0 border-0 py-2">
-                                    {{ ing.label }} : {{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}
+                                    {{ capitalize(ing.label) }} : {{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}
                                 </li>
                             </ul>
                         </div>
@@ -462,11 +457,22 @@ createApp({
                         </div>
                     </div>
                 </div>
+                <div class="card-footer py-2 d-flex justify-content-end gap-2 bg-transparent border-top">
+                    <button v-if="glossaryEnabled" class="btn btn-outline-secondary btn-sm"
+                        data-bs-toggle="modal" data-bs-target="#glossaryModal">
+                        <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
+                    </button>
+                    <button @click="toggleGlossary"
+                        :class="['btn', 'btn-sm', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
+                        title="Surligner les termes techniques">
+                        <i class="bi bi-question-circle"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Phases multiples -->
             <div v-else-if="!editMode && !isSinglePhase">
-                <div v-for="phase in recipe.phases" :key="phase.id" class="card shadow-sm mb-4">
+                <div v-for="(phase, phaseIndex) in recipe.phases" :key="phase.id" class="card shadow-sm mb-4">
                     <div class="card-header">
                         <h5 class="mb-0 fw-bold text-primary">{{ phase.label }}</h5>
                     </div>
@@ -477,7 +483,7 @@ createApp({
                                 <ul class="list-group list-group-flush">
                                     <li v-for="ing in phase.ingredients" :key="ing.id"
                                         class="list-group-item px-0 border-0 py-2">
-                                        {{ ing.label }} : {{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}
+                                        {{ capitalize(ing.label) }} : {{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}
                                     </li>
                                 </ul>
                             </div>
@@ -489,6 +495,17 @@ createApp({
                                 </ol>
                             </div>
                         </div>
+                    </div>
+                    <div v-if="phaseIndex === 0" class="card-footer py-2 d-flex justify-content-end gap-2 bg-transparent border-top">
+                        <button v-if="glossaryEnabled" class="btn btn-outline-secondary btn-sm"
+                            data-bs-toggle="modal" data-bs-target="#glossaryModal">
+                            <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
+                        </button>
+                        <button @click="toggleGlossary"
+                            :class="['btn', 'btn-sm', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
+                            title="Surligner les termes techniques">
+                            <i class="bi bi-question-circle"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -589,7 +606,15 @@ createApp({
                         <h5 class="modal-title"><i class="bi bi-book me-2"></i>Ça veut dire quoi ?</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body d-flex gap-3 position-relative">
+                    <div class="modal-body pt-0">
+                        <!-- Index horizontal mobile (direct child = sticky fonctionne sur tout le scroll) -->
+                        <div class="d-flex flex-wrap gap-1 mb-3 d-md-none alphabet-mobile-bar">
+                            <span v-for="letter in glossaryLetters" :key="letter"
+                                  @click="scrollToInModal(letter)"
+                                  :class="['alphabet-letter-mobile', { active: letter === activeModalLetter }]">{{ letter }}</span>
+                        </div>
+                        <!-- Layout desktop : barre verticale + contenu -->
+                        <div class="d-flex gap-3">
                         <!-- Index alphabétique vertical -->
                         <div class="d-none d-md-flex flex-column align-items-center gap-1 flex-shrink-0 pt-1" style="position: sticky; top: 0; align-self: flex-start;">
                             <span v-for="letter in glossaryLetters" :key="letter"
@@ -598,12 +623,6 @@ createApp({
                         </div>
                         <!-- Contenu -->
                         <div class="flex-grow-1">
-                            <!-- Index horizontal mobile -->
-                            <div class="d-flex flex-wrap gap-1 mb-4 d-md-none">
-                                <span v-for="letter in glossaryLetters" :key="letter"
-                                      @click="scrollToInModal(letter)"
-                                      :class="['alphabet-letter-mobile', { active: letter === activeModalLetter }]">{{ letter }}</span>
-                            </div>
                             <!-- Termes groupés -->
                             <div v-for="[letter, group] in glossaryGrouped" :key="letter">
                                 <h6 class="modal-letter text-muted pb-1 border-bottom mb-3"
@@ -618,7 +637,8 @@ createApp({
                                 </div>
                             </div>
                         </div>
-                    </div>
+                        </div><!-- fin d-flex gap-3 -->
+                    </div><!-- fin modal-body -->
                 </div>
             </div>
         </div>

@@ -216,7 +216,7 @@ createApp({
             </div>
 
             <!-- Index horizontal mobile -->
-            <div class="d-flex flex-wrap gap-2 mb-4 d-md-none">
+            <div class="d-flex flex-wrap gap-2 mb-3 d-md-none alphabet-mobile-bar">
                 <span v-for="letter in letters" :key="letter"
                       @click="scrollTo(letter)"
                       :class="['alphabet-letter-mobile', { active: letter === activeLetter }]">

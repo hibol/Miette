@@ -118,6 +118,15 @@
     color: white;
 }
 
+.alphabet-mobile-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: white;
+    padding-top: 1rem;
+    padding-bottom: 0.4rem;
+}
+
 .alphabet-letter-mobile {
     font-size: 0.75rem;
     font-weight: 500;
