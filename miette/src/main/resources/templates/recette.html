@@ -5,13 +5,13 @@
     <div th:replace="~{fragments/header :: site-header}"></div>
     <div th:replace="~{fragments/login-modal :: login-modal}"></div>
 
+    <div th:replace="~{fragments/cubo-preloader :: cubo-preloader}"></div>
     <div class="page-content">
     <div id="app"
         th:data-recipe-id="${recipeId != null ? recipeId : ''}"
         th:data-return-url="${returnUrl}"
         th:data-edit-mode="${editMode}"
         th:data-is-admin="${#authorization.expression('hasRole(''ADMIN'')')}">
-        <p>Chargement...</p>
     </div>
 
     </div><!-- fin page-content -->

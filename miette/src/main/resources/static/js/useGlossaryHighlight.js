@@ -4,6 +4,7 @@ import { groupTermsByLetter } from './glossary-utils.js';
 export function useGlossaryHighlight(editMode) {
     const glossaryEnabled = ref(false);
     const glossaryTerms = ref([]);
+    const glossaryLoading = ref(false);
     const activeModalLetter = ref(null);
     let _tooltips = [];
     let _modalObserver = null;
@@ -15,8 +16,13 @@ export function useGlossaryHighlight(editMode) {
 
     async function toggleGlossary() {
         if (!glossaryEnabled.value && glossaryTerms.value.length === 0) {
-            const res = await fetch('/api/glossary');
-            if (res.ok) glossaryTerms.value = await res.json();
+            glossaryLoading.value = true;
+            try {
+                const res = await fetch('/api/glossary');
+                if (res.ok) glossaryTerms.value = await res.json();
+            } finally {
+                glossaryLoading.value = false;
+            }
         }
         glossaryEnabled.value = !glossaryEnabled.value;
         await nextTick();
@@ -125,7 +131,7 @@ export function useGlossaryHighlight(editMode) {
     });
 
     return {
-        glossaryEnabled, glossaryTerms, glossaryGrouped, glossaryLetters,
+        glossaryEnabled, glossaryTerms, glossaryLoading, glossaryGrouped, glossaryLetters,
         activeModalLetter, toggleGlossary, scrollToInModal
     };
 }

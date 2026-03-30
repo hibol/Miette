@@ -3,6 +3,7 @@ import { usePhotos } from './usePhotos.js';
 import { useValidation } from './useValidation.js';
 import { nextTempKey } from './glossary-utils.js';
 import { useGlossaryHighlight } from './useGlossaryHighlight.js';
+import { vCuboSpinner } from './cubo.js';
 
 const { createApp, ref, onMounted, computed, watch } = Vue;
 
@@ -59,7 +60,7 @@ const vSortablePhases = {
 };
 
 createApp({
-    directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases },
+    directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases, cuboSpinner: vCuboSpinner },
     setup() {
         const recipe = ref(null);
         const loading = ref(true);
@@ -138,6 +139,7 @@ createApp({
             } catch (e) {
                 error.value = e.message;
             } finally {
+                window._stopCuboPreloader?.();
                 loading.value = false;
             }
         });
@@ -179,7 +181,7 @@ createApp({
         const noteAssets = computed(() => recipe.value?.assets?.filter(a => a.type === 'NOTE') ?? []);
 
         // --- Glossaire ---
-        const { glossaryEnabled, glossaryTerms, glossaryGrouped, glossaryLetters,
+        const { glossaryEnabled, glossaryTerms, glossaryLoading, glossaryGrouped, glossaryLetters,
                 activeModalLetter, toggleGlossary, scrollToInModal } = useGlossaryHighlight(editMode);
 
         const isSinglePhase = computed(() => {
@@ -267,13 +269,13 @@ createApp({
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
             uploadingPhoto, handleFileChange,
             errors, validateDraft, getError, clearErrors,
-            glossaryEnabled, glossaryTerms, glossaryGrouped, glossaryLetters,
+            glossaryEnabled, glossaryTerms, glossaryLoading, glossaryGrouped, glossaryLetters,
             activeModalLetter, toggleGlossary, scrollToInModal
         };
     },
 
     template: `
-        <div v-if="loading">Chargement...</div>
+        <div v-if="loading"></div>
         <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
         <div v-else>
 
@@ -299,7 +301,7 @@ createApp({
                         <span class="d-none d-md-inline"> Supprimer</span>
                     </button>
                     <button v-if="editMode" @click="saveRecipe" :disabled="saving" class="btn btn-primary">
-                        <span v-if="saving" class="spinner-border spinner-border-sm me-1"></span>
+                        <span v-if="saving" v-cubo-spinner class="me-1"></span>
                         <i v-else class="bi bi-floppy"></i>
                         <span class="d-none d-md-inline">{{ saving ? ' Enregistrement...' : ' Enregistrer' }}</span>
                     </button>
@@ -373,7 +375,7 @@ createApp({
                             </div>
                             <div class="d-flex gap-2">
                                 <button @click="addNote" :disabled="savingNote" class="btn btn-primary btn-sm">
-                                    <span v-if="savingNote" class="spinner-border spinner-border-sm me-1"></span>
+                                    <span v-if="savingNote" v-cubo-spinner class="me-1"></span>
                                     Enregistrer
                                 </button>
                                 <button @click="showNoteForm = false" class="btn btn-outline-secondary btn-sm">Annuler</button>
@@ -425,7 +427,7 @@ createApp({
                     </div>
                     <label v-if="isAdmin && !editMode"
                         class="btn btn-outline-secondary btn-sm mt-2" :class="{ disabled: uploadingPhoto }">
-                        <span v-if="uploadingPhoto" class="spinner-border spinner-border-sm me-1"></span>
+                        <span v-if="uploadingPhoto" v-cubo-spinner class="me-1"></span>
                         <i v-else class="bi bi-image"></i> Ajouter une photo
                         <input type="file" accept="image/*" style="display:none" @change="handleFileChange">
                     </label>
@@ -462,10 +464,11 @@ createApp({
                         data-bs-toggle="modal" data-bs-target="#glossaryModal">
                         <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
                     </button>
-                    <button @click="toggleGlossary"
+                    <button @click="toggleGlossary" :disabled="glossaryLoading"
                         :class="['btn', 'btn-sm', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
                         title="Surligner les termes techniques">
-                        <i class="bi bi-question-circle"></i>
+                        <span v-if="glossaryLoading" v-cubo-spinner></span>
+                        <i v-else class="bi bi-question-circle"></i>
                     </button>
                 </div>
             </div>

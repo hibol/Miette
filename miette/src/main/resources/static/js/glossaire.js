@@ -1,8 +1,10 @@
 import { nextTempKey, groupTermsByLetter } from './glossary-utils.js';
+import { vCuboSpinner } from './cubo.js';
 
 const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
 createApp({
+    directives: { cuboSpinner: vCuboSpinner },
     setup() {
         const terms = ref([]);
         const loading = ref(true);
@@ -34,6 +36,7 @@ createApp({
             } catch (e) {
                 error.value = e.message;
             } finally {
+                window._stopCuboPreloader?.();
                 loading.value = false;
             }
             await nextTick();
@@ -180,7 +183,7 @@ createApp({
     },
 
     template: `
-        <div v-if="loading">Chargement...</div>
+        <div v-if="loading"></div>
         <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
         <div v-else class="position-relative">
 
@@ -205,7 +208,7 @@ createApp({
                     </button>
                     <template v-else>
                         <button @click="saveAll" :disabled="saving" class="btn btn-primary btn-sm">
-                            <span v-if="saving" class="spinner-border spinner-border-sm me-1"></span>
+                            <span v-if="saving" v-cubo-spinner class="me-1"></span>
                             <i v-else class="bi bi-floppy"></i><span class="d-none d-md-inline">{{ saving ? ' Enregistrement...' : ' Enregistrer' }}</span>
                         </button>
                         <button @click="cancelEdit" class="btn btn-outline-secondary btn-sm">
