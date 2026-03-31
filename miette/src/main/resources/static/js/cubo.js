@@ -8,12 +8,16 @@ function resolveColor(color) {
 export function cuboLoading(el, { color = '--verdigris', size = 64, lineWidth = size < 32 ? 1.2 : size / 40 } = {}) {
     const resolved = resolveColor(color);
 
+    const dpr = window.devicePixelRatio || 1;
     const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
     canvas.style.display = 'block';
     el.appendChild(canvas);
     const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
 
     // 2.5× faster than the bocal animation
     const SPEED_X = 0.03, SPEED_Y = 0.045, SPEED_Z = 0.018;

@@ -8,11 +8,14 @@
     if (col.length === 9 && col[0] === '#') col = col.slice(0, 7);
     var lineWidth = size < 300 ? 2 : 4;  // 2px mobile, 4px desktop
 
+    var dpr = window.devicePixelRatio || 1;
     var canvas = document.createElement('canvas');
-    canvas.width = canvas.height = size;
+    canvas.width = canvas.height = size * dpr;
+    canvas.style.width = canvas.style.height = size + 'px';
     canvas.style.display = 'block';
     el.appendChild(canvas);
     var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
 
     var s = 1;
     var V = [[s,s,0],[-s,s,0],[s,-s,0],[-s,-s,0],[s,0,s],[-s,0,s],[s,0,-s],[-s,0,-s],[0,s,s],[0,-s,s],[0,s,-s],[0,-s,-s]];

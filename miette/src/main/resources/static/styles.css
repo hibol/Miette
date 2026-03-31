@@ -10,7 +10,18 @@
     --bs-primary-rgb: 69, 72, 81;
     --bs-success: #549f93;
     --bs-success-rgb: 84, 159, 147;
+    --bs-font-sans-serif: 'Klee One', sans-serif;
+    --bs-body-font-family: 'Klee One', serif;
 }
+
+body { font-family: 'Klee One', serif; }
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 { font-family: 'Klee One', sans-serif; }
+
+.btn, .badge, .nav-link, .navbar-brand, .dropdown-item,
+.form-label, .form-control, .form-select, .form-text,
+.input-group-text, .modal-title { font-family: 'Klee One', sans-serif; }
 
 .btn-primary {
     --bs-btn-bg: #454851;
@@ -75,6 +86,14 @@
 .glossary-term {
     border-bottom: 1px dotted var(--verdigris);
     cursor: help;
+}
+
+@media (hover: none) {
+    .btn-glossary-toggle.btn-outline-secondary:hover {
+        color: var(--bs-btn-color);
+        background-color: transparent;
+        border-color: var(--bs-btn-border-color);
+    }
 }
 
 .tooltip {

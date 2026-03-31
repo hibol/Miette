@@ -465,7 +465,7 @@ createApp({
                         <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
                     </button>
                     <button @click="toggleGlossary" :disabled="glossaryLoading"
-                        :class="['btn', 'btn-sm', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
+                        :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
                         title="Surligner les termes techniques">
                         <span v-if="glossaryLoading" v-cubo-spinner></span>
                         <i v-else class="bi bi-question-circle"></i>
@@ -505,7 +505,7 @@ createApp({
                             <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
                         </button>
                         <button @click="toggleGlossary"
-                            :class="['btn', 'btn-sm', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
+                            :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
                             title="Surligner les termes techniques">
                             <i class="bi bi-question-circle"></i>
                         </button>
