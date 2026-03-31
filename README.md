@@ -10,7 +10,7 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 |---|---|
 | Backend | Java 17, Spring Boot 3.5 |
 | Templating | Thymeleaf + Spring Security extras |
-| Frontend | Bootstrap 5, Bootstrap Icons, Vue 3, SortableJS |
+| Frontend | Bootstrap 5, Bootstrap Icons, Vue 3, SortableJS, Klee One (Google Fonts) |
 | Database | MySQL |
 | Security | Spring Security (BCrypt, Remember Me) |
 | Storage | Cloudflare R2 (prod), MinIO (local dev) |
@@ -54,6 +54,17 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 - Photos are browsable via an infinite carousel (previous/next navigation) with the capture date displayed
 - Thumbnails are derived from the full image filename (`*_thumb.ext`) — no extra database column required
 
+**On-demand glossary**
+- Dedicated glossary page (`/glossaire`) listing culinary terms alphabetically, with a sticky letter index (sidebar on desktop, scrollable bar on mobile)
+- On any recipe page, a "?" button highlights all recognized terms and aliases inline; tooltips show the definition on hover (desktop) or tap (mobile)
+- Terms are fetched lazily on first activation and cached for the session; the button shows a cuboctahedron spinner while loading
+- Admins can add, edit, and delete terms and their aliases directly from the glossary page
+
+**Visual identity**
+- A rotating cuboctahedron (wireframe, 12 vertices, 24 edges) serves as the app's loading indicator: full-page before Vue mounts, inline spinner on async buttons
+- The bocal (jar) variant on the `/a-propos` page frames the shape as an illustration rather than a loader
+- Animation runs via Canvas 2D with perspective projection and depth-based edge weight; DPR-aware for retina screens
+
 **Admin**
 - Create, edit, and delete recipes
 - Maintenance page: rebuild the full-text search index, view and delete orphan ingredients (ingredients no longer used in any recipe)
@@ -79,6 +90,8 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 | `asset` | Media file with date, path, and description |
 | `recipe_rel_asset` | Many-to-many between recipe and asset |
 | `recipe_search_index` | Full-text search index aggregating recipe content |
+| `glossary_term` | Culinary term with definition |
+| `glossary_alias` | Alternative names for a glossary term |
 | `users` | User accounts with BCrypt password and role (ADMIN / USER) |
 
 ---
@@ -208,6 +221,10 @@ The recipe data is exposed through a JSON REST API at `/api/recipes`, consumed b
 | `POST` | `/api/recipes/{id}/assets` | Admin | Add a note to a recipe |
 | `POST` | `/api/recipes/{id}/assets/upload` | Admin | Upload a photo (multipart/form-data, field `file`) |
 | `DELETE` | `/api/recipes/{id}/assets/{assetId}` | Admin | Delete an asset (note or photo) |
+| `GET` | `/api/glossary` | Public | List all glossary terms with their aliases |
+| `POST` | `/api/glossary` | Admin | Create a glossary term |
+| `PUT` | `/api/glossary/{id}` | Admin | Update a glossary term and its aliases |
+| `DELETE` | `/api/glossary/{id}` | Admin | Delete a glossary term and all its aliases |
 
 Requests are validated with Bean Validation (`@NotBlank` on title, `@Positive` on ingredient quantities). Validation errors are returned as structured JSON (`{"errors": {"field": "message"}}`). All write endpoints require `ROLE_ADMIN` and CSRF token.
 
