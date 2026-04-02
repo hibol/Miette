@@ -442,7 +442,7 @@ createApp({
                 <div class="card-body">
                     <div class="row g-4">
                         <div class="col-12 col-md-4">
-                            <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
+                            <h5><i class="bi text-warning"></i> Ingrédients</h5>
                             <ul class="list-group list-group-flush">
                                 <li v-for="ing in recipe.phases[0].ingredients" :key="ing.id"
                                     class="list-group-item px-0 border-0 py-2">
