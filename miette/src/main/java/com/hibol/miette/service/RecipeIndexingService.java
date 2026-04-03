@@ -80,6 +80,12 @@ public class RecipeIndexingService {
             log.info("🗑️  FULLTEXT index dropped for recreation");
         }
 
+        Integer ngramTokenSize = jdbcTemplate.queryForObject(
+            "SELECT @@ngram_token_size", Integer.class);
+        Integer minTokenSize = jdbcTemplate.queryForObject(
+            "SELECT @@innodb_ft_min_token_size", Integer.class);
+        log.info("🔍 MySQL FT config: ngram_token_size={}, innodb_ft_min_token_size={}", ngramTokenSize, minTokenSize);
+
         try {
             jdbcTemplate.execute("ALTER TABLE recipe_search_index ADD FULLTEXT(search_content) WITH PARSER ngram");
             log.info("✅ FULLTEXT ngram index created");
