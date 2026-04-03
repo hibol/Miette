@@ -9,12 +9,17 @@ import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
 import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.TagRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -48,6 +53,21 @@ class RecipeWriteServiceTest {
     @Mock RecipeIndexingService indexingService;
 
     @InjectMocks RecipeWriteService service;
+
+    @Mock Authentication authentication;
+    @Mock SecurityContext securityContext;
+
+    @BeforeEach
+    void setupSecurityContext() {
+        org.mockito.Mockito.lenient().when(authentication.getName()).thenReturn("test-user");
+        org.mockito.Mockito.lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     // ─────────────────────────────────────────────
     //  Méthodes utilitaires pour éviter la répétition
@@ -98,7 +118,7 @@ class RecipeWriteServiceTest {
         mockSave();
         mockIngredientService();
 
-        RecipeDto dto = new RecipeDto(1L, "Tarte aux pommes", null, null,
+        RecipeDto dto = new RecipeDto(1L, "Tarte aux pommes", null, null, null, null,
             List.of(),
             List.of(
                 new PhaseDto(null, "Pâte", 1,
@@ -131,7 +151,7 @@ class RecipeWriteServiceTest {
         mockSave();
         mockIngredientService();
 
-        RecipeDto dto = new RecipeDto(1L, "Quiche", null, null,
+        RecipeDto dto = new RecipeDto(1L, "Quiche", null, null, null, null,
             List.of(),
             List.of(
                 new PhaseDto(null, "", 1,
@@ -165,7 +185,7 @@ class RecipeWriteServiceTest {
         mockSave();
         mockIngredientService();
 
-        RecipeDto dto = new RecipeDto(1L, "Quiche", null, null,
+        RecipeDto dto = new RecipeDto(1L, "Quiche", null, null, null, null,
             List.of(),
             List.of(
                 new PhaseDto(null, "", 1,
@@ -198,7 +218,7 @@ class RecipeWriteServiceTest {
         when(recipeRepo.findById(1L)).thenReturn(Optional.of(recetteExistante(1L)));
         mockSave();
 
-        RecipeDto dto = new RecipeDto(1L, "Pain", null, null,
+        RecipeDto dto = new RecipeDto(1L, "Pain", null, null, null, null,
             List.of(),
             List.of(
                 new PhaseDto(null, "", 1,
@@ -231,7 +251,7 @@ class RecipeWriteServiceTest {
         when(recipeRepo.findById(1L)).thenReturn(Optional.of(recetteExistante(1L)));
         mockSave();
 
-        RecipeDto dto = new RecipeDto(1L, "Pain", null, null,
+        RecipeDto dto = new RecipeDto(1L, "Pain", null, null, null, null,
             List.of(),
             List.of(
                 new PhaseDto(null, "", 1,
@@ -264,7 +284,7 @@ class RecipeWriteServiceTest {
         when(recipeRepo.findById(1L)).thenReturn(Optional.of(recetteExistante(1L)));
         mockSave();
 
-        RecipeDto dto = new RecipeDto(1L, "Titre modifié", null, null, List.of(), List.of(), null);
+        RecipeDto dto = new RecipeDto(1L, "Titre modifié", null, null, null, null, List.of(), List.of(), null);
 
         // WHEN
         service.update(1L, dto);
@@ -281,7 +301,7 @@ class RecipeWriteServiceTest {
         // GIVEN
         when(recipeRepo.findById(99L)).thenReturn(Optional.empty());
 
-        RecipeDto dto = new RecipeDto(99L, "X", null, null, List.of(), List.of(), null);
+        RecipeDto dto = new RecipeDto(99L, "X", null, null, null, null, List.of(), List.of(), null);
 
         // WHEN / THEN — on vérifie que le service lève bien une exception
         assertThatThrownBy(() -> service.update(99L, dto))
@@ -297,7 +317,7 @@ class RecipeWriteServiceTest {
         // GIVEN
         mockSave();
 
-        RecipeDto dto = new RecipeDto(null, "Nouvelle recette", null, null,
+        RecipeDto dto = new RecipeDto(null, "Nouvelle recette", null, null, null, null,
             List.of(),
             List.of(
                 new PhaseDto(null, "Phase principale", 1, List.of(), List.of()),
@@ -322,7 +342,7 @@ class RecipeWriteServiceTest {
         mockSave();
         mockIngredientService();
 
-        RecipeDto dto = new RecipeDto(null, "Soupe de carottes", null, null,
+        RecipeDto dto = new RecipeDto(null, "Soupe de carottes", null, null, null, null,
             List.of(),
             List.of(
                 new PhaseDto(null, "", 1,
@@ -352,7 +372,7 @@ class RecipeWriteServiceTest {
         // GIVEN
         mockSave();
 
-        RecipeDto dto = new RecipeDto(null, "Test", null, null, List.of(), List.of(), null);
+        RecipeDto dto = new RecipeDto(null, "Test", null, null, null, null, List.of(), List.of(), null);
 
         // WHEN
         service.create(dto);

@@ -83,7 +83,7 @@ public class RecipeController {
 
     @GetMapping("/recette/{id}")
     public String detail(@PathVariable Long id, @RequestParam(required = false) String edit, HttpServletRequest request, Model model) {
-        Recipe recipe = recipeService.findByIdWithDetails(id)
+        recipeService.findByIdWithDetails(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
 
         String referer = request.getHeader("Referer");

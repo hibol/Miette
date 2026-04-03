@@ -111,10 +111,4 @@ public class AssetService {
         } catch (Exception ignored) {}
         return null;
     }
-
-    private String getExtension(String filename) {
-        if (filename == null) return "jpg";
-        int dot = filename.lastIndexOf('.');
-        return dot >= 0 ? filename.substring(dot + 1).toLowerCase() : "jpg";
-    }
 }
