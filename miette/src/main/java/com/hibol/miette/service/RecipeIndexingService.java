@@ -1,7 +1,7 @@
 package com.hibol.miette.service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.EntityManagerFactory;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.search.mapper.orm.Search;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -9,11 +9,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class RecipeIndexingService {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManagerFactory entityManagerFactory;
 
     @EventListener(ApplicationReadyEvent.class)
     public void indexOnStartup() {
@@ -23,7 +23,8 @@ public class RecipeIndexingService {
     public void rebuildIndex() {
         log.info("🔍 Rebuilding search index...");
         try {
-            Search.session(entityManager)
+            Search.mapping(entityManagerFactory)
+                  .scope(Object.class)
                   .massIndexer()
                   .startAndWait();
             log.info("✅ Search index rebuilt");
