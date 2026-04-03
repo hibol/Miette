@@ -139,6 +139,8 @@ public class DataSeeder {
     private Recipe buildRecipe(YamlRecipe yamlRecipe) {
         Recipe recipe = new Recipe();
         recipe.setTitle(yamlRecipe.getTitle());
+        recipe.setCreatedAt(java.time.LocalDateTime.now());
+        recipe.setCreatedBy("hibol");
 
         // Tags
         if (yamlRecipe.getTags() != null) {
