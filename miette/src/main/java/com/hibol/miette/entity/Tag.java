@@ -12,7 +12,7 @@ public class Tag {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @FullTextField
+    @FullTextField(analyzer = "ngram_index", searchAnalyzer = "ngram_search")
     @Column(nullable = false, unique = true)
     private String label;
 }

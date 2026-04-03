@@ -11,7 +11,7 @@ public class Ingredient {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @FullTextField
+    @FullTextField(analyzer = "ngram_index", searchAnalyzer = "ngram_search")
     @Column(nullable = false)
     private String label;
     

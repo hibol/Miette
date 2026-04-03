@@ -14,7 +14,7 @@ public class Step {
     @Column(nullable = false)
     private Integer position;
     
-    @FullTextField
+    @FullTextField(analyzer = "ngram_index", searchAnalyzer = "ngram_search")
     @Column(nullable = false, columnDefinition = "TEXT")
     private String label;
 

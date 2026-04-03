@@ -21,7 +21,7 @@ public class Recipe {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @FullTextField
+    @FullTextField(analyzer = "ngram_index", searchAnalyzer = "ngram_search")
     @Column(nullable = false)
     private String title;
 
