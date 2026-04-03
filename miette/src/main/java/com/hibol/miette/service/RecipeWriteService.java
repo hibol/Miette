@@ -3,6 +3,7 @@ package com.hibol.miette.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -41,8 +42,9 @@ public class RecipeWriteService {
         // Titre
         recipe.setTitle(dto.title());
 
-        // Updated at
+        // Updated at / by
         recipe.setUpdatedAt(LocalDateTime.now());
+        recipe.setUpdatedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Tags — clear et recrée
         recipe.getTags().clear();
@@ -91,6 +93,7 @@ public class RecipeWriteService {
         Recipe recipe = new Recipe();
         recipe.setTitle(dto.title());
         recipe.setCreatedAt(LocalDateTime.now());
+        recipe.setCreatedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Tags
         for (String tagLabel : dto.tags()) {

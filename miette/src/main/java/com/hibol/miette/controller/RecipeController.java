@@ -1,6 +1,11 @@
 package com.hibol.miette.controller;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -40,9 +45,9 @@ public class RecipeController {
                        @RequestParam(required = false) String withPhotos,
                        Model model) {
 
-        List<Recipe> recipes = (q != null && !q.trim().isEmpty())
+        List<Recipe> recipes = new ArrayList<>((q != null && !q.trim().isEmpty())
                 ? recipeService.search(q.trim())
-                : recipeService.findAllWithDetails();
+                : recipeService.findAllWithDetails());
 
         boolean filterNotes = withNotes != null;
         if (filterNotes) recipes = recipeService.filterByAssetType(recipes, com.hibol.miette.entity.Asset.AssetType.NOTE);
@@ -50,7 +55,11 @@ public class RecipeController {
         boolean filterPhotos = withPhotos != null;
         if (filterPhotos) recipes = recipeService.filterByAssetType(recipes, com.hibol.miette.entity.Asset.AssetType.PHOTO);
 
+        Map<Long, LocalDateTime> activityDates = recipes.stream()
+                .collect(Collectors.toMap(Recipe::getId, this::latestActivity));
+
         model.addAttribute("recipes", recipes);
+        model.addAttribute("activityDates", activityDates);
         model.addAttribute("query", q);
         model.addAttribute("resultCount", recipes.size());
         model.addAttribute("isSearchMode", q != null && !q.trim().isEmpty());
@@ -59,6 +68,17 @@ public class RecipeController {
         model.addAttribute("storagePublicUrl", storagePublicUrl);
 
         return "liste";
+    }
+
+    private LocalDateTime latestActivity(Recipe recipe) {
+        LocalDateTime base = recipe.getUpdatedAt() != null ? recipe.getUpdatedAt()
+            : (recipe.getCreatedAt() != null ? recipe.getCreatedAt() : LocalDateTime.MIN);
+        return recipe.getAssets().stream()
+            .map(ra -> ra.getAsset().getDate())
+            .filter(d -> d != null)
+            .max(Comparator.naturalOrder())
+            .map(d -> d.isAfter(base) ? d : base)
+            .orElse(base);
     }
 
     @GetMapping("/recette/{id}")

@@ -25,7 +25,9 @@ public class RecipeMapper {
             recipe.getId(),
             recipe.getTitle(),
             recipe.getCreatedAt(),
+            recipe.getCreatedBy(),
             recipe.getUpdatedAt(),
+            recipe.getUpdatedBy(),
             recipe.getTags().stream()
                 .map(rt -> rt.getTag().getLabel())
                 .sorted()

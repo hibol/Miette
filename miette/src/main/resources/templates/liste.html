@@ -45,23 +45,35 @@
     </div>
     
     <!-- Résultats ou "Tout" + toggle vue -->
-    <div th:if="${isSearchMode}" class="alert alert-info d-flex justify-content-between align-items-center">
+    <div th:if="${isSearchMode}" class="alert alert-success d-flex justify-content-between align-items-center">
         <span><i class="bi bi-search"></i> <span th:text="'Trouvé ' + ${resultCount} + ' recette(s)'"></span></span>
         <div class="d-flex align-items-center gap-2">
-            <div class="btn-group btn-group-sm" id="viewToggle">
-                <button type="button" class="btn btn-outline-primary active" id="btnGrid" title="Grille"><i class="bi bi-grid"></i></button>
-                <button type="button" class="btn btn-outline-primary" id="btnList" title="Liste"><i class="bi bi-list-ul"></i></button>
+            <div class="btn-group btn-group-sm sort-toggle" role="group">
+                <button type="button" class="btn btn-outline-success" data-sort="alpha" title="Alphabétique"><i class="bi bi-sort-alpha-down"></i></button>
+                <button type="button" class="btn btn-outline-success" data-sort="created" title="Plus récemment créées"><i class="bi bi-calendar-plus"></i></button>
+                <button type="button" class="btn btn-outline-success" data-sort="activity" title="Activité récente"><i class="bi bi-clock-history"></i></button>
             </div>
-            <a href="/recettes" class="btn btn-outline-primary btn-sm">
+            <div class="btn-group btn-group-sm" id="viewToggle">
+                <button type="button" class="btn btn-outline-success active" id="btnGrid" title="Grille"><i class="bi bi-grid"></i></button>
+                <button type="button" class="btn btn-outline-success" id="btnList" title="Liste"><i class="bi bi-list-ul"></i></button>
+            </div>
+            <a href="/recettes" class="btn btn-outline-success btn-sm">
                 <i class="bi bi-grid-3x3-gap"></i> Voir toutes les recettes
             </a>
         </div>
     </div>
     <div th:unless="${isSearchMode}" class="alert alert-success d-flex justify-content-between align-items-center">
         <span><i class="bi bi-list-ul"></i> Toutes les recettes (<span th:text="${resultCount}"></span>)</span>
-        <div class="btn-group btn-group-sm" id="viewToggle">
-            <button type="button" class="btn btn-outline-success active" id="btnGrid" title="Grille"><i class="bi bi-grid"></i></button>
-            <button type="button" class="btn btn-outline-success" id="btnList" title="Liste"><i class="bi bi-list-ul"></i></button>
+        <div class="d-flex align-items-center gap-2">
+            <div class="btn-group btn-group-sm sort-toggle" role="group">
+                <button type="button" class="btn btn-outline-success" data-sort="alpha" title="Alphabétique"><i class="bi bi-sort-alpha-down"></i></button>
+                <button type="button" class="btn btn-outline-success" data-sort="created" title="Plus récemment créées"><i class="bi bi-calendar-plus"></i></button>
+                <button type="button" class="btn btn-outline-success" data-sort="activity" title="Activité récente"><i class="bi bi-clock-history"></i></button>
+            </div>
+            <div class="btn-group btn-group-sm" id="viewToggle">
+                <button type="button" class="btn btn-outline-success active" id="btnGrid" title="Grille"><i class="bi bi-grid"></i></button>
+                <button type="button" class="btn btn-outline-success" id="btnList" title="Liste"><i class="bi bi-list-ul"></i></button>
+            </div>
         </div>
     </div>
 
@@ -73,11 +85,12 @@
     </div>
     
     <div th:if="${recipes.isEmpty()}">
-        <p class="alert alert-info">Aucune recette</p>
+        <p class="alert alert-success">Aucune recette</p>
     </div>
     
     <div th:unless="${recipes.isEmpty()}" id="recipeGrid" class="row g-3">
-        <div th:each="recipe : ${recipes}" class="col-12 col-md-6 col-lg-4 recipe-grid-item">
+        <div th:each="recipe : ${recipes}" class="col-12 col-md-6 col-lg-4 recipe-grid-item"
+             th:attr="data-title=${recipe.title},data-created-at=${recipe.createdAt},data-activity-at=${activityDates[recipe.id]}">
             <a th:href="@{/recette/{id}(id=${recipe.id})}" class="text-decoration-none recipe-link">
                 <div class="card h-100">
                     <div class="card-header">
@@ -103,7 +116,7 @@
                         <!-- UNE SEULE phase → ingrédients/étapes directs -->
                         <div th:with="phase=${recipe.phases.iterator().next()}">
                             <!-- Ingrédients -->
-                            <h6><i class="bi bi-egg-fried"></i> Ingrédients</h6>
+                            <h6>Ingrédients</h6>
                             <ul class="list-unstyled small">
                                 <li th:each="ingRel : ${recipe.phases[0].ingredientPhases}" 
                                 th:text="${ingRel.ingredient.label} + ' : ' + 
@@ -159,7 +172,8 @@
     <div th:unless="${recipes.isEmpty()}" id="recipeList" class="d-none">
         <a th:each="recipe : ${recipes}"
            th:href="@{/recette/{id}(id=${recipe.id})}"
-           class="text-decoration-none d-block recipe-list-item">
+           class="text-decoration-none d-block recipe-list-item"
+           th:attr="data-title=${recipe.title},data-created-at=${recipe.createdAt},data-activity-at=${activityDates[recipe.id]}">
             <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
                 <div class="d-flex align-items-center gap-3">
                     <th:block th:with="photoRel=${recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null}">
@@ -212,6 +226,31 @@
         btnList.addEventListener('click', () => setView('list', true));
 
         setView(localStorage.getItem(STORAGE_KEY) || 'grid', false);
+
+        // Tri
+        const SORT_KEY = 'miette-recipe-sort';
+
+        function applySort(type, save) {
+            if (save) localStorage.setItem(SORT_KEY, type);
+            document.querySelectorAll('.sort-toggle .btn').forEach(btn =>
+                btn.classList.toggle('active', btn.dataset.sort === type));
+            ['recipeGrid', 'recipeList'].forEach(id => {
+                const container = document.getElementById(id);
+                if (!container) return;
+                [...container.children]
+                    .sort((a, b) => {
+                        if (type === 'created') return new Date(b.dataset.createdAt) - new Date(a.dataset.createdAt);
+                        if (type === 'activity') return new Date(b.dataset.activityAt) - new Date(a.dataset.activityAt);
+                        return (a.dataset.title || '').localeCompare(b.dataset.title || '', 'fr', { sensitivity: 'base' });
+                    })
+                    .forEach(el => container.appendChild(el));
+            });
+        }
+
+        document.querySelectorAll('.sort-toggle .btn').forEach(btn =>
+            btn.addEventListener('click', () => applySort(btn.dataset.sort, true)));
+
+        applySort(localStorage.getItem(SORT_KEY) || 'alpha', false);
     </script>
 </body>
 </html>

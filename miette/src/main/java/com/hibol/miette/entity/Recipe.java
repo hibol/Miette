@@ -23,8 +23,14 @@ public class Recipe {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false, updatable = false)
+    private String createdBy;
+
     @Column(nullable = true)
     private LocalDateTime updatedAt;
+
+    @Column(nullable = true)
+    private String updatedBy;
     
     // Relations
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)

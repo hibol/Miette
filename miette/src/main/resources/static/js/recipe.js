@@ -7,6 +7,19 @@ import { vCuboSpinner } from './cubo.js';
 
 const { createApp, ref, onMounted, computed, watch } = Vue;
 
+const vAutoResize = {
+    mounted(el) {
+        el.style.overflow = 'hidden';
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+        el._autoResize = () => { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; };
+        el.addEventListener('input', el._autoResize);
+    },
+    unmounted(el) {
+        el.removeEventListener('input', el._autoResize);
+    }
+};
+
 const vSortableSteps = {
     mounted(el, binding) {
         Sortable.create(el, {
@@ -60,7 +73,7 @@ const vSortablePhases = {
 };
 
 createApp({
-    directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases, cuboSpinner: vCuboSpinner },
+    directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases, cuboSpinner: vCuboSpinner, autoResize: vAutoResize },
     setup() {
         const recipe = ref(null);
         const loading = ref(true);
@@ -165,6 +178,11 @@ createApp({
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
 
+        function formatDate(isoString) {
+            if (!isoString) return '';
+            return new Date(isoString).toLocaleDateString('fr-FR', { dateStyle: 'medium' });
+        }
+
         function formatQuantity(quantity) {
             if (quantity === null || quantity === undefined) return '';
             return quantity % 1 === 0 ? quantity.toFixed(0) : quantity.toFixed(1);
@@ -263,7 +281,7 @@ createApp({
             recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft,
             returnUrl, availableTags, filteredTags, newTag,
             photos, currentPhotoIndex, prevPhoto, nextPhoto,
-            noteAssets, isSinglePhase, nextTempKey, formatQuantity, capitalize,
+            noteAssets, isSinglePhase, nextTempKey, formatQuantity, capitalize, formatDate,
             startEdit, cancelEdit, saveRecipe, deleteRecipe,
             addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
@@ -459,17 +477,23 @@ createApp({
                         </div>
                     </div>
                 </div>
-                <div class="card-footer py-2 d-flex justify-content-end gap-2 bg-transparent border-top">
-                    <button v-if="glossaryEnabled" class="btn btn-outline-secondary btn-sm"
-                        data-bs-toggle="modal" data-bs-target="#glossaryModal">
-                        <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
-                    </button>
-                    <button @click="toggleGlossary" :disabled="glossaryLoading"
-                        :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
-                        title="Surligner les termes techniques">
-                        <span v-if="glossaryLoading" v-cubo-spinner></span>
-                        <i v-else class="bi bi-question-circle"></i>
-                    </button>
+                <div class="card-footer py-2 d-flex justify-content-between align-items-center bg-transparent border-top">
+                    <div class="text-muted lh-sm" style="font-size: 0.7rem;">
+                        <div>Créé le {{ formatDate(recipe.createdAt) }}<span v-if="recipe.createdBy"> par {{ recipe.createdBy }}</span></div>
+                        <div v-if="recipe.updatedAt">Modifié le {{ formatDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button v-if="glossaryEnabled" class="btn btn-outline-secondary btn-sm"
+                            data-bs-toggle="modal" data-bs-target="#glossaryModal">
+                            <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
+                        </button>
+                        <button @click="toggleGlossary" :disabled="glossaryLoading"
+                            :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
+                            title="Surligner les termes techniques">
+                            <span v-if="glossaryLoading" v-cubo-spinner></span>
+                            <i v-else class="bi bi-question-circle"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -499,16 +523,22 @@ createApp({
                             </div>
                         </div>
                     </div>
-                    <div v-if="phaseIndex === 0" class="card-footer py-2 d-flex justify-content-end gap-2 bg-transparent border-top">
-                        <button v-if="glossaryEnabled" class="btn btn-outline-secondary btn-sm"
-                            data-bs-toggle="modal" data-bs-target="#glossaryModal">
-                            <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
-                        </button>
-                        <button @click="toggleGlossary"
-                            :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
-                            title="Surligner les termes techniques">
-                            <i class="bi bi-question-circle"></i>
-                        </button>
+                    <div v-if="phaseIndex === 0" class="card-footer py-2 d-flex justify-content-between align-items-center bg-transparent border-top">
+                        <div class="text-muted lh-sm" style="font-size: 0.7rem;">
+                            <div>Créé le {{ formatNoteDate(recipe.createdAt) }}<span v-if="recipe.createdBy"> par {{ recipe.createdBy }}</span></div>
+                            <div v-if="recipe.updatedAt">Modifié le {{ formatNoteDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button v-if="glossaryEnabled" class="btn btn-outline-secondary btn-sm"
+                                data-bs-toggle="modal" data-bs-target="#glossaryModal">
+                                <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
+                            </button>
+                            <button @click="toggleGlossary"
+                                :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
+                                title="Surligner les termes techniques">
+                                <i class="bi bi-question-circle"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -581,7 +611,7 @@ createApp({
                                         class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
                                         <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
                                         <span class="text-muted me-1">{{ stepIndex + 1 }}.</span>
-                                        <input v-model="step.label" class="form-control" />
+                                        <textarea v-model="step.label" v-auto-resize class="form-control" rows="1" style="resize: none;"></textarea>
                                         <button @click="phase.steps.splice(stepIndex, 1)" class="btn btn-outline-danger btn-sm">
                                             <i class="bi bi-x"></i>
                                         </button>

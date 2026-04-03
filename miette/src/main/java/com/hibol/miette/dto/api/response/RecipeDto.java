@@ -9,7 +9,9 @@ public record RecipeDto (
     Long id,
     @NotBlank(message = "Le titre est obligatoire") String title,
     LocalDateTime createdAt,
+    String createdBy,
     LocalDateTime updatedAt,
+    String updatedBy,
     List<String> tags,
     @Valid List<PhaseDto> phases,
     List<AssetDto> assets
