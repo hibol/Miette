@@ -6,7 +6,7 @@ if [ "$1" = "--sync-prod" ]; then
 
     echo "[1/2] DB : dump Hetzner → import local..."
     ssh $PROD_HETZNER_USER@$PROD_HETZNER_HOST \
-        "docker exec miette-db-1 mysqldump -u miette -p$PROD_DB_PASSWORD miette" \
+        "docker exec miette-db-1 mysqldump --no-tablespaces -u miette -p$PROD_DB_PASSWORD miette" \
         | sed 's/utf8mb4_0900_ai_ci/utf8mb4_unicode_ci/g' \
         | sed 's/utf8mb4_0900_bin/utf8mb4_bin/g' \
         > /tmp/miette_prod.sql
