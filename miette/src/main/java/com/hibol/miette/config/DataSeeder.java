@@ -31,8 +31,6 @@ import com.hibol.miette.repository.IngredientRepository;
 import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.TagRepository;
 import com.hibol.miette.repository.UserRepository;
-import com.hibol.miette.service.RecipeIndexingService;
-
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +46,6 @@ public class DataSeeder {
     private final IngredientRepository ingredientRepo;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RecipeIndexingService indexingService;
     private final GlossaryTermRepository glossaryTermRepo;
 
     @Value("${miette.admin.password:}")
@@ -83,7 +80,6 @@ public class DataSeeder {
             recipeRepo.save(recipe);
         }
 
-        indexingService.rebuildIndex();
         log.info("✅ {} recipes seeded", recipeRepo.count());
     }
 

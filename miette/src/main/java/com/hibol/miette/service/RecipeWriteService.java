@@ -23,6 +23,7 @@ import com.hibol.miette.repository.AssetRepository;
 import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.TagRepository;
 
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -31,7 +32,6 @@ public class RecipeWriteService {
     private final RecipeRepository recipeRepo;
     private final TagRepository tagRepo;
     private final IngredientService ingredientService;
-    private final RecipeIndexingService indexingService;
     private final AssetRepository assetRepo;
 
     @Transactional
@@ -67,7 +67,6 @@ public class RecipeWriteService {
         }
 
         Recipe saved = recipeRepo.save(recipe);
-        indexingService.indexRecipe(saved.getId());
         log.info("✅ Recipe {} updated", saved.getId());
         return saved;
     }
@@ -84,7 +83,6 @@ public class RecipeWriteService {
         recipeRepo.delete(recipe); // supprime aussi les RecipeAsset via orphanRemoval
         assetRepo.deleteAllById(assetIds);
 
-        indexingService.removeFromIndex(id);
         log.info("✅ Recipe {} deleted", id);
     }
 
@@ -114,7 +112,6 @@ public class RecipeWriteService {
         }
 
         Recipe saved = recipeRepo.save(recipe);
-        indexingService.indexRecipe(saved.getId());
         log.info("✅ Recipe {} created", saved.getId());
         return saved;
     }

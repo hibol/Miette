@@ -4,6 +4,7 @@ import java.util.Set;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 
 @Data
 @Entity
@@ -22,10 +23,12 @@ public class Phase {
     @JoinColumn(name = "recipeId", nullable = false)
     private Recipe recipe;
 
+    @IndexedEmbedded
     @OneToMany(mappedBy = "phase", cascade = CascadeType.ALL)
     @OrderBy("position ASC")
     private Set<IngredientPhase> ingredientPhases = new java.util.HashSet<>();
-    
+
+    @IndexedEmbedded
     @OneToMany(mappedBy = "phase", cascade = CascadeType.ALL)
     @OrderBy("position ASC")
     private Set<Step> steps = new java.util.HashSet<>();

@@ -2,14 +2,16 @@ package com.hibol.miette.service;
 
 import java.util.List;
 import java.util.Optional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.hibernate.search.mapper.orm.Search;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import com.hibol.miette.entity.Asset;
 import com.hibol.miette.entity.Recipe;
-import com.hibol.miette.entity.RecipeSearchIndex;
 import com.hibol.miette.repository.RecipeRepository;
-import com.hibol.miette.repository.RecipeSearchIndexRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -17,20 +19,24 @@ import com.hibol.miette.repository.RecipeSearchIndexRepository;
 public class RecipeService {
 
     private final RecipeRepository recipeRepo;
-    private final RecipeSearchIndexRepository searchIndexRepo;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public List<Recipe> findAllWithDetails() {
         return recipeRepo.findAllWithDetails();
     }
 
     public List<Recipe> search(String query) {
-        List<Long> recipeIds = searchIndexRepo.search(query).stream()
-            .map(RecipeSearchIndex::getRecipeId)
-            .toList();
-
-        if (recipeIds.isEmpty()) return List.of();
-
-        return recipeRepo.findAllWithDetailsByIds(recipeIds);
+        return Search.session(entityManager)
+            .search(Recipe.class)
+            .where(f -> f.simpleQueryString()
+                .fields("title",
+                        "tags.tag.label",
+                        "phases.steps.label",
+                        "phases.ingredientPhases.ingredient.label")
+                .matching(query))
+            .fetchAllHits();
     }
 
     public Optional<Recipe> findByIdWithDetails(Long id) {

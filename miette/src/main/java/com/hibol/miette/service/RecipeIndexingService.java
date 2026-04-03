@@ -1,126 +1,35 @@
 package com.hibol.miette.service;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.jdbc.core.JdbcTemplate;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.search.mapper.orm.Search;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import com.hibol.miette.dto.RecipeIndexDto;
-import com.hibol.miette.entity.Recipe;
-import com.hibol.miette.entity.Step;
-import com.hibol.miette.entity.RecipeSearchIndex;
-import com.hibol.miette.repository.RecipeRepository;
-import com.hibol.miette.repository.RecipeSearchIndexRepository;
-
-import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class RecipeIndexingService {
 
-    private final RecipeRepository recipeRepo;
-    private final RecipeSearchIndexRepository searchIndexRepo;
-    private final JdbcTemplate jdbcTemplate;
+    @PersistenceContext
+    private EntityManager entityManager;
 
-    @Transactional(readOnly = true)
-    public List<RecipeIndexDto> getAllForIndexing() {
-        return recipeRepo.findAll().stream()
-            .map(this::buildIndexDto)
-            .toList();
+    @EventListener(ApplicationReadyEvent.class)
+    public void indexOnStartup() {
+        rebuildIndex();
     }
 
-    @Transactional
     public void rebuildIndex() {
         log.info("🔍 Rebuilding search index...");
-        searchIndexRepo.deleteAll();
-
-        recipeRepo.findAll().forEach(recipe -> {
-            RecipeSearchIndex index = new RecipeSearchIndex();
-            index.setRecipeId(recipe.getId());
-            index.setSearchContent(buildSearchContent(buildIndexDto(recipe)));
-            searchIndexRepo.save(index);
-        });
-
-        ensureFullTextIndex();
-        log.info("✅ Search index rebuilt ({} recipes)", searchIndexRepo.count());
-    }
-
-    @Transactional
-    public void indexRecipe(Long recipeId) {
-        recipeRepo.findById(recipeId).ifPresent(recipe -> {
-            RecipeSearchIndex index = searchIndexRepo.findById(recipeId)
-                .orElse(new RecipeSearchIndex());
-            index.setRecipeId(recipeId);
-            index.setSearchContent(buildSearchContent(buildIndexDto(recipe)));
-            searchIndexRepo.save(index);
-        });
-    }
-
-    @Transactional
-    public void removeFromIndex(Long recipeId) {
-        searchIndexRepo.deleteById(recipeId);
-    }
-
-    private void ensureFullTextIndex() {
-        String indexName = jdbcTemplate.query("""
-            SELECT index_name FROM information_schema.STATISTICS
-            WHERE table_schema = DATABASE()
-            AND table_name = 'recipe_search_index'
-            AND index_type = 'FULLTEXT'
-            LIMIT 1
-            """, rs -> rs.next() ? rs.getString("index_name") : null);
-
-        if (indexName != null) {
-            jdbcTemplate.execute("ALTER TABLE recipe_search_index DROP INDEX `" + indexName + "`");
-            log.info("🗑️  FULLTEXT index dropped for recreation");
-        }
-
-        Integer ngramTokenSize = jdbcTemplate.queryForObject(
-            "SELECT @@ngram_token_size", Integer.class);
-        Integer minTokenSize = jdbcTemplate.queryForObject(
-            "SELECT @@innodb_ft_min_token_size", Integer.class);
-        log.info("🔍 MySQL FT config: ngram_token_size={}, innodb_ft_min_token_size={}", ngramTokenSize, minTokenSize);
-
         try {
-            jdbcTemplate.execute("ALTER TABLE recipe_search_index ADD FULLTEXT(search_content) WITH PARSER ngram");
-            log.info("✅ FULLTEXT ngram index created");
-        } catch (Exception e) {
-            log.warn("⚠️ ngram parser not available, falling back to standard FULLTEXT index");
-            jdbcTemplate.execute("ALTER TABLE recipe_search_index ADD FULLTEXT(search_content)");
-            log.info("✅ FULLTEXT standard index created");
+            Search.session(entityManager)
+                  .massIndexer()
+                  .startAndWait();
+            log.info("✅ Search index rebuilt");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("⚠️ Search index rebuild interrupted", e);
         }
-    }
-
-    private String buildSearchContent(RecipeIndexDto dto) {
-        return String.join(" ",
-            dto.title(),
-            String.join(" ", dto.tags()),
-            String.join(" ", dto.ingredients()),
-            String.join(" ", dto.steps())
-        );
-    }
-
-    private RecipeIndexDto buildIndexDto(Recipe recipe) {
-        Set<String> tags = recipe.getTags().stream()
-            .map(rt -> rt.getTag().getLabel())
-            .collect(Collectors.toSet());
-
-        Set<String> ingredients = recipe.getPhases().stream()
-            .flatMap(p -> p.getIngredientPhases().stream())
-            .map(ip -> ip.getIngredient().getLabel())
-            .collect(Collectors.toSet());
-
-        Set<String> steps = recipe.getPhases().stream()
-            .flatMap(p -> p.getSteps().stream())
-            .map(Step::getLabel)
-            .collect(Collectors.toSet());
-
-        return new RecipeIndexDto(recipe.getId(), recipe.getTitle(), tags, ingredients, steps);
     }
 }
-

@@ -2,6 +2,7 @@ package com.hibol.miette.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 
 @Data
 @Entity
@@ -14,6 +15,7 @@ public class RecipeTag {
     @JoinColumn(name = "recipeId", nullable = false)
     private Recipe recipe;
 
+    @IndexedEmbedded
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tagId", nullable = false)
     private Tag tag;

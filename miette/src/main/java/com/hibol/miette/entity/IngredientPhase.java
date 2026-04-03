@@ -2,6 +2,7 @@ package com.hibol.miette.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 
 @Data
 @Entity
@@ -10,6 +11,7 @@ public class IngredientPhase {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @IndexedEmbedded
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ingredientId", nullable = false)
     private Ingredient ingredient;

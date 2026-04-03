@@ -2,6 +2,7 @@ package com.hibol.miette.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
 @Data
 @Entity
@@ -13,6 +14,7 @@ public class Step {
     @Column(nullable = false)
     private Integer position;
     
+    @FullTextField
     @Column(nullable = false, columnDefinition = "TEXT")
     private String label;
 

@@ -4,14 +4,11 @@ docker compose up -d
 if [ "$1" = "--sync-prod" ]; then
     echo "--- Sync prod → local ---"
 
-    echo "[1/2] DB : dump Railway → import local..."
-    mysqldump \
-        -h $PROD_DATABASE_HOST -P $PROD_DATABASE_PORT \
-        -u $PROD_DATABASE_USER -p$PROD_DATABASE_PASSWORD \
-        $PROD_DATABASE_NAME \
+    echo "[1/2] DB : dump Hetzner → import local..."
+    ssh $PROD_HETZNER_USER@$PROD_HETZNER_HOST \
+        "docker exec miette-db-1 mysqldump -u miette -p$PROD_DB_PASSWORD miette" \
         | sed 's/utf8mb4_0900_ai_ci/utf8mb4_unicode_ci/g' \
         | sed 's/utf8mb4_0900_bin/utf8mb4_bin/g' \
-        | sed 's/ \/\*!50100 WITH PARSER `ngram` \*\///g' \
         > /tmp/miette_prod.sql
     mysql \
         -h $DATABASE_HOST -P $DATABASE_PORT \

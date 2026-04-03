@@ -12,10 +12,12 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 | Templating | Thymeleaf + Spring Security extras |
 | Frontend | Bootstrap 5, Bootstrap Icons, Vue 3, SortableJS, Klee One (Google Fonts) |
 | Database | MySQL |
+| Search | Hibernate Search 7 + Lucene (embedded) |
 | Security | Spring Security (BCrypt, Remember Me) |
 | Storage | Cloudflare R2 (prod), MinIO (local dev) |
 | Image processing | Thumbnailator + webp-imageio (WebP conversion) |
-| Deployment | Railway (Docker) |
+| Deployment | Hetzner VPS (Docker Compose + Caddy) |
+| CI/CD | GitHub Actions → GHCR → SSH deploy |
 | Build | Maven |
 
 ---
@@ -23,7 +25,7 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 ## Features
 
 **Browsing and search**
-- Full-text search across recipe titles, ingredients, steps, and tags (MySQL full-text index)
+- Full-text search across recipe titles, ingredients, steps, and tags (Hibernate Search + Lucene)
 - Recipe list with tag badges; search results show match count with a one-click reset
 - Filter recipes that have notes or photos attached
 - Recipe cards show a thumbnail of the latest photo when available
@@ -80,7 +82,7 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 
 | Table | Description |
 |---|---|
-| `recipe` | Core recipe with title |
+| `recipe` | Core recipe with title, creation and modification metadata |
 | `phase` | Named preparation phase, ordered by position, linked to a recipe |
 | `step` | Individual step within a phase, ordered by position |
 | `ingredient` | Ingredient with label and optional unit |
@@ -89,10 +91,11 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 | `recipe_rel_tag` | Many-to-many between recipe and tag |
 | `asset` | Media file with date, path, and description |
 | `recipe_rel_asset` | Many-to-many between recipe and asset |
-| `recipe_search_index` | Full-text search index aggregating recipe content |
 | `glossary_term` | Culinary term with definition |
 | `glossary_alias` | Alternative names for a glossary term |
 | `users` | User accounts with BCrypt password and role (ADMIN / USER) |
+
+The Lucene search index is maintained separately on disk by Hibernate Search and rebuilt automatically at startup.
 
 ---
 
@@ -133,7 +136,7 @@ Source it before running:
 ./run.sh --sync-prod
 ```
 
-`run.sh` starts MinIO via Docker Compose, optionally imports the Railway database and R2 images, then launches the app. The DB sync patches MySQL → MariaDB incompatibilities on the fly (collation `utf8mb4_0900_ai_ci`, `ngram` parser).
+`run.sh` starts MinIO via Docker Compose, optionally imports the production database and R2 images, then launches the app. The DB sync patches MySQL collation incompatibilities on the fly.
 
 ### Local object storage (MinIO)
 
@@ -149,34 +152,58 @@ Photo upload works locally without any extra configuration once these variables 
 
 ---
 
-## Deployment (Railway)
+## Deployment
 
-The app and database are both hosted on [Railway](https://railway.app). The app is containerized via a `Dockerfile` at the project root using `eclipse-temurin:17-jdk-alpine`.
+The app runs on a Hetzner VPS (CX22) managed with Docker Compose. Caddy handles HTTPS automatically via Let's Encrypt.
 
-### Required environment variables in Railway
+### Infrastructure
+
+```
+Hetzner VPS (CX22)
+├── app          Spring Boot container
+├── db           MySQL 8 container (persistent volume)
+└── caddy        Reverse proxy + automatic HTTPS
+
+Cloudflare R2    Object storage for photos and notes (no egress fees)
+```
+
+### CI/CD
+
+Every push to `main` triggers a GitHub Actions workflow that:
+1. Builds the Docker image (multi-stage: Maven build → JRE runtime)
+2. Pushes it to GitHub Container Registry (`ghcr.io`)
+3. SSHs into the VPS and runs `docker compose pull && docker compose up -d`
+
+### Required environment variables
+
+Set in `~/miette/.env` on the server:
 
 | Variable | Description |
 |---|---|
-| `DATABASE_HOST` | MySQL host provided by Railway |
-| `DATABASE_PORT` | MySQL port (default: 3306) |
+| `DATABASE_HOST` | `db` (Docker Compose service name) |
+| `DATABASE_PORT` | `3306` |
 | `DATABASE_NAME` | Database name |
 | `DATABASE_USER` | Database user |
-| `DATABASE_PASSWORD` | Database password |
+| `DB_PASSWORD` | Database password (shared by app and MySQL container) |
+| `DB_ROOT_PASSWORD` | MySQL root password |
 | `MIETTE_ADMIN_PASSWORD` | Password for the `hibol` admin account (only needed on first startup) |
-| `STORAGE_ENDPOINT` | S3-compatible endpoint (e.g. Cloudflare R2 jurisdiction-specific URL) |
+| `STORAGE_ENDPOINT` | S3-compatible endpoint (Cloudflare R2 jurisdiction-specific URL) |
 | `STORAGE_BUCKET` | Bucket name |
 | `STORAGE_ACCESS_KEY` | R2 API token access key ID |
 | `STORAGE_SECRET_KEY` | R2 API token secret |
-| `STORAGE_PUBLIC_URL` | Public base URL for assets (e.g. custom domain `https://assets.chez-miette.xyz`) |
+| `STORAGE_PUBLIC_URL` | Public base URL for assets |
 
-### Build & Start
+---
 
-Handled automatically by the Dockerfile:
+## Search
 
-```dockerfile
-RUN ./mvnw clean package -DskipTests
-CMD ["./mvnw", "spring-boot:run"]
-```
+Full-text search is powered by **Hibernate Search 7** with an embedded **Lucene** backend — no external search service required.
+
+Indexed fields on `Recipe`: title, tags, ingredient labels, and step labels. The index is rebuilt automatically at startup via the Lucene MassIndexer and kept in sync by Hibernate Search's JPA listeners (any save or delete is automatically reflected in the index).
+
+The admin maintenance page includes a manual "rebuild index" button for edge cases.
+
+The Lucene index is stored in `/tmp/lucene-index` and rebuilt at each startup — acceptable given the small dataset size. For larger datasets, mounting a persistent volume and switching to `create-or-validate` schema strategy would preserve the index across restarts.
 
 ---
 
@@ -189,8 +216,6 @@ The admin user is also created on first startup if the `MIETTE_ADMIN_PASSWORD` e
 | Variable | Description |
 |---|---|
 | `MIETTE_ADMIN_PASSWORD` | Password for the `hibol` admin account |
-
-The full-text search index (`recipe_search_index`) aggregatestitle, tags, ingredients, and steps into a single searchable column.
 
 ---
 
