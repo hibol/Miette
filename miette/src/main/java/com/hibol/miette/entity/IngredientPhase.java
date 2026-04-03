@@ -2,7 +2,9 @@ package com.hibol.miette.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 
 @Data
 @Entity
@@ -12,6 +14,7 @@ public class IngredientPhase {
     private Long id;
 
     @IndexedEmbedded
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ingredientId", nullable = false)
     private Ingredient ingredient;
