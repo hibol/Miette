@@ -88,6 +88,17 @@ h1, h2, h3, h4, h5, h6,
     cursor: help;
 }
 
+.btn-verdigris {
+    --bs-btn-color: var(--verdigris);
+    --bs-btn-border-color: var(--verdigris);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--verdigris);
+    --bs-btn-hover-border-color: var(--verdigris);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--verdigris);
+    --bs-btn-active-border-color: var(--verdigris);
+}
+
 @media (hover: none) {
     .btn-glossary-toggle.btn-outline-secondary:hover {
         color: var(--bs-btn-color);
