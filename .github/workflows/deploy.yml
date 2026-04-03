@@ -31,14 +31,16 @@ jobs:
           tags: ghcr.io/${{ github.repository_owner }}/miette:latest
 
       - name: Deploy on server
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.HETZNER_HOST }}
-          username: ${{ secrets.HETZNER_USER }}
-          key: ${{ secrets.HETZNER_SSH_KEY }}
-          port: 22
-          script: |
-            cd ~/miette
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
+        env:
+          SSH_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+        run: |
+          echo "$SSH_KEY" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+          ssh -i /tmp/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -6 \
+            "$USER@$HOST" \
+            "cd ~/miette && docker compose pull && docker compose up -d && docker image prune -f"
+          rm /tmp/deploy_key
