@@ -7,6 +7,15 @@ import { vCuboSpinner } from './cubo.js';
 
 const { createApp, ref, onMounted, computed, watch } = Vue;
 
+const vTooltip = {
+    mounted(el) {
+        el._tooltip = new bootstrap.Tooltip(el, { trigger: 'hover' });
+    },
+    unmounted(el) {
+        el._tooltip?.dispose();
+    }
+};
+
 const vAutoResize = {
     mounted(el) {
         el.style.overflow = 'hidden';
@@ -73,7 +82,7 @@ const vSortablePhases = {
 };
 
 createApp({
-    directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases, cuboSpinner: vCuboSpinner, autoResize: vAutoResize },
+    directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases, cuboSpinner: vCuboSpinner, autoResize: vAutoResize, tooltip: vTooltip },
     setup() {
         const recipe = ref(null);
         const loading = ref(true);
@@ -183,6 +192,39 @@ createApp({
             return new Date(isoString).toLocaleDateString('fr-FR', { dateStyle: 'medium' });
         }
 
+        const copied = ref(false);
+
+        function copyToClipboard() {
+            if (!recipe.value) return;
+            const lines = [];
+            lines.push(recipe.value.title);
+            lines.push('');
+            recipe.value.phases.forEach(phase => {
+                if (recipe.value.phases.length > 1) {
+                    lines.push(`— ${phase.label} —`);
+                    lines.push('');
+                }
+                if (phase.ingredients.length > 0) {
+                    lines.push('Ingrédients :');
+                    phase.ingredients.forEach(ing => {
+                        const qty = ing.quantity ? `${formatQuantity(ing.quantity)} ${ing.unit || ''}`.trim() + ' ' : '';
+                        lines.push(`  • ${qty}${capitalize(ing.label)}`);
+                    });
+                    lines.push('');
+                }
+                if (phase.steps.length > 0) {
+                    lines.push('Étapes :');
+                    phase.steps.forEach((step, i) => lines.push(`  ${i + 1}. ${step.label}`));
+                    lines.push('');
+                }
+            });
+            lines.push(`Consulter la recette : https://chez-miette.xyz/recette/${recipe.value.id}`);
+            navigator.clipboard.writeText(lines.join('\n')).then(() => {
+                copied.value = true;
+                setTimeout(() => copied.value = false, 2000);
+            });
+        }
+
         function formatQuantity(quantity) {
             if (quantity === null || quantity === undefined) return '';
             return quantity % 1 === 0 ? quantity.toFixed(0) : quantity.toFixed(1);
@@ -288,7 +330,8 @@ createApp({
             uploadingPhoto, handleFileChange,
             errors, validateDraft, getError, clearErrors,
             glossaryEnabled, glossaryTerms, glossaryLoading, glossaryGrouped, glossaryLetters,
-            activeModalLetter, toggleGlossary, scrollToInModal
+            activeModalLetter, toggleGlossary, scrollToInModal,
+            copied, copyToClipboard
         };
     },
 
@@ -483,13 +526,15 @@ createApp({
                         <div v-if="recipe.updatedAt">Modifié le {{ formatDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></div>
                     </div>
                     <div class="d-flex gap-2">
-                        <button v-if="glossaryEnabled" class="btn btn-outline-secondary btn-sm"
+                        <button @click="copyToClipboard" v-tooltip data-bs-title="Copier la recette" class="btn btn-outline-secondary btn-sm">
+                            <i :class="copied ? 'bi bi-check2' : 'bi bi-clipboard'"></i>
+                        </button>
+                        <button v-if="glossaryEnabled" v-tooltip data-bs-title="Voir le glossaire" class="btn btn-outline-secondary btn-sm"
                             data-bs-toggle="modal" data-bs-target="#glossaryModal">
                             <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
                         </button>
-                        <button @click="toggleGlossary" :disabled="glossaryLoading"
-                            :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
-                            title="Surligner les termes techniques">
+                        <button @click="toggleGlossary" :disabled="glossaryLoading" v-tooltip data-bs-title="Surligner les termes techniques"
+                            :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']">
                             <span v-if="glossaryLoading" v-cubo-spinner></span>
                             <i v-else class="bi bi-question-circle"></i>
                         </button>
@@ -506,7 +551,7 @@ createApp({
                     <div class="card-body">
                         <div class="row g-4">
                             <div v-if="phase.ingredients.length > 0" class="col-12 col-md-4">
-                                <h6><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h6>
+                                <h6>Ingrédients</h6>
                                 <ul class="list-group list-group-flush">
                                     <li v-for="ing in phase.ingredients" :key="ing.id"
                                         class="list-group-item px-0 border-0 py-2">
@@ -523,19 +568,21 @@ createApp({
                             </div>
                         </div>
                     </div>
-                    <div v-if="phaseIndex === 0" class="card-footer py-2 d-flex justify-content-between align-items-center bg-transparent border-top">
+                    <div v-if="phaseIndex === recipe.phases.length - 1" class="card-footer py-2 d-flex justify-content-between align-items-center bg-transparent border-top">
                         <div class="text-muted lh-sm" style="font-size: 0.7rem;">
                             <div>Créé le {{ formatNoteDate(recipe.createdAt) }}<span v-if="recipe.createdBy"> par {{ recipe.createdBy }}</span></div>
                             <div v-if="recipe.updatedAt">Modifié le {{ formatNoteDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></div>
                         </div>
                         <div class="d-flex gap-2">
-                            <button v-if="glossaryEnabled" class="btn btn-outline-secondary btn-sm"
+                            <button @click="copyToClipboard" v-tooltip data-bs-title="Copier la recette" class="btn btn-outline-secondary btn-sm">
+                                <i :class="copied ? 'bi bi-check2' : 'bi bi-clipboard'"></i>
+                            </button>
+                            <button v-if="glossaryEnabled" v-tooltip data-bs-title="Voir le glossaire" class="btn btn-outline-secondary btn-sm"
                                 data-bs-toggle="modal" data-bs-target="#glossaryModal">
                                 <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
                             </button>
-                            <button @click="toggleGlossary"
-                                :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']"
-                                title="Surligner les termes techniques">
+                            <button @click="toggleGlossary" v-tooltip data-bs-title="Surligner les termes techniques"
+                                :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']">
                                 <i class="bi bi-question-circle"></i>
                             </button>
                         </div>
@@ -569,7 +616,7 @@ createApp({
                         <div class="row g-4">
                             <!-- Ingrédients -->
                             <div class="col-12 col-md-4">
-                                <h5><i class="bi bi-egg-fried text-warning"></i> Ingrédients</h5>
+                                <h5>Ingrédients</h5>
                                 <ul v-sortable-ingredients="{ items: phase.ingredients, clearErrors }" class="list-group list-group-flush">
                                     <li v-for="(ing, ingIndex) in phase.ingredients" :key="ing.id ?? ing._key"
                                         class="list-group-item px-0 border-0 py-2">
