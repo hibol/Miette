@@ -14,6 +14,7 @@ import com.hibol.miette.entity.User;
 import com.hibol.miette.repository.UserRepository;
 import com.hibol.miette.service.IngredientService;
 import com.hibol.miette.service.RecipeIndexingService;
+import com.hibol.miette.service.UmamiService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +29,12 @@ public class AdminController {
     private final IngredientService ingredientService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UmamiService umamiService;
 
     @GetMapping("/admin")
     public String admin(Model model) {
         model.addAttribute("orphanIngredients", ingredientService.findOrphans());
+        model.addAttribute("umamiData", umamiService.fetchStats());
         return "admin";
     }
 
