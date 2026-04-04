@@ -12,7 +12,7 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 | Templating | Thymeleaf + Spring Security extras |
 | Frontend | Bootstrap 5, Bootstrap Icons, Vue 3, SortableJS, Klee One (Google Fonts) |
 | Database | MySQL |
-| Search | Hibernate Search 7 + Lucene (embedded) |
+| Search | Hibernate Search 7 + Lucene (embedded, ngram analyzer) |
 | Security | Spring Security (BCrypt, Remember Me) |
 | Storage | Cloudflare R2 (prod), MinIO (local dev) |
 | Image processing | Thumbnailator + webp-imageio (WebP conversion) |
@@ -25,7 +25,7 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 ## Features
 
 **Browsing and search**
-- Full-text search across recipe titles, ingredients, steps, and tags (Hibernate Search + Lucene)
+- Full-text substring search across recipe titles, ingredients, steps, and tags (Hibernate Search + Lucene ngram)
 - Recipe list with tag badges; search results show match count with a one-click reset
 - Filter recipes that have notes or photos attached
 - Recipe cards show a thumbnail of the latest photo when available
@@ -46,7 +46,6 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 **Notes (admin)**
 - Add timestamped notes to any saved recipe — useful for logging observations, variations, or cooking results
 - Date is pre-filled to the current date and time, editable before saving
-- Notes are read-only while editing the recipe, to keep both workflows separate
 
 **Photos (admin)**
 - Upload photos directly on the recipe page
@@ -54,27 +53,20 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 - EXIF orientation is applied on resize so phone photos always display upright
 - Photo date is extracted from EXIF metadata (`DateTimeOriginal`) and falls back to the current date if absent
 - Photos are browsable via an infinite carousel (previous/next navigation) with the capture date displayed
-- Thumbnails are derived from the full image filename (`*_thumb.ext`) — no extra database column required
 
 **On-demand glossary**
 - Dedicated glossary page (`/glossaire`) listing culinary terms alphabetically, with a sticky letter index (sidebar on desktop, scrollable bar on mobile)
 - On any recipe page, a "?" button highlights all recognized terms and aliases inline; tooltips show the definition on hover (desktop) or tap (mobile)
-- Terms are fetched lazily on first activation and cached for the session; the button shows a cuboctahedron spinner while loading
+- Terms are fetched lazily on first activation and cached for the session
 - Admins can add, edit, and delete terms and their aliases directly from the glossary page
 
 **Visual identity**
 - A rotating cuboctahedron (wireframe, 12 vertices, 24 edges) serves as the app's loading indicator: full-page before Vue mounts, inline spinner on async buttons
-- The bocal (jar) variant on the `/a-propos` page frames the shape as an illustration rather than a loader
 - Animation runs via Canvas 2D with perspective projection and depth-based edge weight; DPR-aware for retina screens
 
 **Admin**
 - Create, edit, and delete recipes
-- Maintenance page: rebuild the full-text search index, view and delete orphan ingredients (ingredients no longer used in any recipe)
-
-**Authentication**
-- Login via modal — no redirect away from the current page
-- Logout returns to the current page
-- Remember Me (24 hours)
+- Maintenance page: rebuild the search index, view and delete orphan ingredients
 
 ---
 
@@ -94,8 +86,6 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 | `glossary_term` | Culinary term with definition |
 | `glossary_alias` | Alternative names for a glossary term |
 | `users` | User accounts with BCrypt password and role (ADMIN / USER) |
-
-The Lucene search index is maintained separately on disk by Hibernate Search and rebuilt automatically at startup.
 
 ---
 
@@ -126,8 +116,6 @@ export STORAGE_SECRET_KEY=minioadmin
 export STORAGE_PUBLIC_URL=http://localhost:9000/miette
 ```
 
-Source it before running:
-
 ```bash
 # Standard startup
 ./run.sh
@@ -136,27 +124,13 @@ Source it before running:
 ./run.sh --sync-prod
 ```
 
-`run.sh` starts MinIO via Docker Compose, optionally imports the production database and R2 images, then launches the app. The DB sync patches MySQL collation incompatibilities on the fly.
-
-### Local object storage (MinIO)
-
-A `docker-compose.yml` at the project root starts a MinIO instance with the bucket pre-created and set to public read:
-
-```bash
-docker-compose up -d
-```
-
-MinIO console is available at `http://localhost:9001` (credentials: `minioadmin` / `minioadmin`).
-
-Photo upload works locally without any extra configuration once these variables are set. If `STORAGE_ENDPOINT` is not set, the storage bean is not created and photo upload returns `503`; notes and all other features continue to work normally.
+`run.sh` starts MinIO via Docker Compose, optionally imports the production database and R2 images, then launches the app.
 
 ---
 
 ## Deployment
 
 The app runs on a Hetzner VPS (CX22) managed with Docker Compose. Caddy handles HTTPS automatically via Let's Encrypt.
-
-### Infrastructure
 
 ```
 Hetzner VPS (CX22)
@@ -167,16 +141,9 @@ Hetzner VPS (CX22)
 Cloudflare R2    Object storage for photos and notes (no egress fees)
 ```
 
-### CI/CD
+Every push to `main` triggers a GitHub Actions workflow that builds the Docker image, pushes it to GHCR, and deploys via SSH.
 
-Every push to `main` triggers a GitHub Actions workflow that:
-1. Builds the Docker image (multi-stage: Maven build → JRE runtime)
-2. Pushes it to GitHub Container Registry (`ghcr.io`)
-3. SSHs into the VPS and runs `docker compose pull && docker compose up -d`
-
-### Required environment variables
-
-Set in `~/miette/.env` on the server:
+### Environment variables (server `~/miette/.env`)
 
 | Variable | Description |
 |---|---|
@@ -195,45 +162,7 @@ Set in `~/miette/.env` on the server:
 
 ---
 
-## Search
-
-Full-text search is powered by **Hibernate Search 7** with an embedded **Lucene** backend — no external search service required.
-
-Indexed fields on `Recipe`: title, tags, ingredient labels, and step labels. The index is rebuilt automatically at startup via the Lucene MassIndexer and kept in sync by Hibernate Search's JPA listeners (any save or delete is automatically reflected in the index).
-
-The admin maintenance page includes a manual "rebuild index" button for edge cases.
-
-The Lucene index is stored in `/tmp/lucene-index` and rebuilt at each startup — acceptable given the small dataset size. For larger datasets, mounting a persistent volume and switching to `create-or-validate` schema strategy would preserve the index across restarts.
-
----
-
-## Data Seeding
-
-On first startup, if the database is empty, recipes are automatically seeded from `src/main/resources/recipes.yaml`. The YAML format supports both simple recipes (flat ingredients/steps) and multi-phase recipes.
-
-The admin user is also created on first startup if the `MIETTE_ADMIN_PASSWORD` environment variable is set. If not set, the user is skipped and can be created later by setting the variable and restarting.
-
-| Variable | Description |
-|---|---|
-| `MIETTE_ADMIN_PASSWORD` | Password for the `hibol` admin account |
-
----
-
-## Recipe editor
-
-The recipe creation and editing UI is a Vue 3 single-page app served within the Thymeleaf template, split into ES modules (`recipe.js`, `useNotes.js`, `useValidation.js`). It handles both creation and edit modes on the same page (`/recette/new` and `/recette/{id}`).
-
-- Phases, ingredients, and steps are managed in-memory before a single save call
-- Phases, ingredients, and steps can be reordered by drag & drop at any time, including before the recipe has been saved for the first time
-- A recipe can have a single phase (displayed without a phase title) or multiple named phases
-- A phase without ingredients is valid (useful for variant phases that share ingredients with the main phase)
-- Blank ingredient and step labels are silently dropped on save; a missing title blocks the save with an explicit error
-
----
-
 ## REST API
-
-The recipe data is exposed through a JSON REST API at `/api/recipes`, consumed by the Vue editor and available for external use.
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
@@ -251,29 +180,13 @@ The recipe data is exposed through a JSON REST API at `/api/recipes`, consumed b
 | `PUT` | `/api/glossary/{id}` | Admin | Update a glossary term and its aliases |
 | `DELETE` | `/api/glossary/{id}` | Admin | Delete a glossary term and all its aliases |
 
-Requests are validated with Bean Validation (`@NotBlank` on title, `@Positive` on ingredient quantities). Validation errors are returned as structured JSON (`{"errors": {"field": "message"}}`). All write endpoints require `ROLE_ADMIN` and CSRF token.
-
----
-
-## Testing
-
-Unit tests cover `RecipeWriteService` and `IngredientService` using JUnit 5 + Mockito (no database required).
-
-```bash
-./mvnw test
-```
-
-Key scenarios covered:
-- Two phases saved correctly, including a phase with no ingredients
-- Blank ingredient and step labels are filtered before persistence
-- `IngredientService.findOrCreate`: creation, reuse without save, unit update
+All write endpoints require `ROLE_ADMIN` and CSRF token. Validation errors are returned as `{"errors": {"field": "message"}}`.
 
 ---
 
 ## Security
 
-- Authentication via Spring Security with BCrypt password hashing
+- Spring Security with BCrypt password hashing
 - Role-based access: `ROLE_ADMIN` required for all write operations and `/admin/**` routes
 - Remember Me token valid for 24 hours
 - CSRF protection enabled (token passed via meta tags for AJAX calls)
-- Login handled via modal (no page navigation), logout returns user to current page

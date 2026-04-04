@@ -36,7 +36,7 @@ public class RecipeService {
                         "phases.steps.label",
                         "phases.ingredientPhases.ingredient.label")
                 .matching(query))
-            .fetchAllHits();
+            .fetchHits(500);
     }
 
     public Optional<Recipe> findByIdWithDetails(Long id) {

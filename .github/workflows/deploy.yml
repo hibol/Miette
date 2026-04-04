@@ -38,8 +38,9 @@ jobs:
         run: |
           echo "$SSH_KEY" > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
+          mkdir -p ~/.ssh
+          echo "138.199.213.152 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKBXbebnHdxjWfJyhV+FD4y6fnK+NuZMBixItCOJDTb4" >> ~/.ssh/known_hosts
           ssh -i /tmp/deploy_key \
-            -o StrictHostKeyChecking=no \
             "$USER@$HOST" \
             "cd ~/miette && docker compose pull && docker compose up -d && docker image prune -f"
           rm /tmp/deploy_key

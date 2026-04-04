@@ -7,6 +7,7 @@ import org.hibernate.search.mapper.orm.Search;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import com.hibol.miette.entity.Recipe;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class RecipeIndexingService {
         log.info("🔍 Rebuilding search index...");
         try {
             Search.mapping(entityManagerFactory)
-                  .scope(Object.class)
+                  .scope(Recipe.class)
                   .massIndexer()
                   .startAndWait();
             log.info("✅ Search index rebuilt");

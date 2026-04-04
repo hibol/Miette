@@ -44,7 +44,8 @@ public class RecipeWriteService {
 
         // Updated at / by
         recipe.setUpdatedAt(LocalDateTime.now());
-        recipe.setUpdatedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) recipe.setUpdatedBy(auth.getName());
 
         // Tags — clear et recrée
         recipe.getTags().clear();
@@ -91,7 +92,8 @@ public class RecipeWriteService {
         Recipe recipe = new Recipe();
         recipe.setTitle(dto.title());
         recipe.setCreatedAt(LocalDateTime.now());
-        recipe.setCreatedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) recipe.setCreatedBy(auth.getName());
 
         // Tags
         for (String tagLabel : dto.tags()) {
