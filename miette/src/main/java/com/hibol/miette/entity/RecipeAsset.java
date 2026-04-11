@@ -20,4 +20,7 @@ public class RecipeAsset {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assetId", nullable = false)
     private Asset asset;
+
+    @Column(nullable = false)
+    private boolean cover = false;
 }

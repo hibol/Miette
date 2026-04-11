@@ -164,7 +164,7 @@ createApp({
         const returnUrl = document.getElementById('app').dataset.returnUrl;
 
         const { notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate } = useNotes(recipe);
-        const { photos, uploadingPhoto, currentPhotoIndex, prevPhoto, nextPhoto, handleFileChange } = usePhotos(recipe);
+        const { photos, uploadingPhoto, currentPhotoIndex, prevPhoto, nextPhoto, handleFileChange, setCover } = usePhotos(recipe);
         const { errors, validateDraft, getError, clearErrors } = useValidation(draft);
 
         const filteredTags = computed(() => {
@@ -396,7 +396,7 @@ createApp({
             startEdit, cancelEdit, saveRecipe, deleteRecipe,
             addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
-            uploadingPhoto, handleFileChange,
+            uploadingPhoto, handleFileChange, setCover,
             errors, validateDraft, getError, clearErrors,
             glossaryEnabled, glossaryTerms, glossaryLoading, glossaryGrouped, glossaryLetters,
             activeModalLetter, toggleGlossary, scrollToInModal,
@@ -571,6 +571,13 @@ createApp({
                                 <small v-if="photos.length > 1" class="text-muted">{{ currentPhotoIndex + 1 }} / {{ photos.length }}</small>
                             </div>
                             <div class="d-flex gap-1 align-items-center">
+                                <button v-if="isAdmin && !editMode" @click="setCover(photos[currentPhotoIndex].id)"
+                                    class="btn btn-sm"
+                                    :class="photos[currentPhotoIndex].cover ? 'btn-warning' : 'btn-outline-secondary'"
+                                    v-tooltip :title="photos[currentPhotoIndex].cover ? 'Photo de couverture' : 'Définir comme couverture'">
+                                    <i class="bi bi-bookmark-check-fill" v-if="photos[currentPhotoIndex].cover"></i>
+                                    <i class="bi bi-bookmark" v-else></i>
+                                </button>
                                 <button v-if="isAdmin && !editMode" @click="deleteNote(photos[currentPhotoIndex].id)"
                                     class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>

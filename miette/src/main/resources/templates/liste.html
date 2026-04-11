@@ -97,7 +97,7 @@
                         <span th:if="${noteCount > 0}"><i class="bi bi-journal-text"></i> <span th:text="${noteCount}"></span></span>
                         <span th:if="${photoCount > 0}"><i class="bi bi-image"></i> <span th:text="${photoCount}"></span></span>
                     </div>
-                    <th:block th:with="photoRel=${recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null}">
+                    <th:block th:with="photoRel=${recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'][0] : (recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null)}">
                         <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
                              th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
                              class="card-img-top" style="object-fit: cover; height: 180px;"
@@ -167,7 +167,7 @@
            th:attr="data-title=${recipe.title},data-created-at=${recipe.createdAt},data-activity-at=${activityDates[recipe.id]}">
             <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
                 <div class="d-flex align-items-center gap-3">
-                    <th:block th:with="photoRel=${recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null}">
+                    <th:block th:with="photoRel=${recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'][0] : (recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null)}">
                         <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
                              th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
                              style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px;"

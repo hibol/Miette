@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface RecipeAssetRepository extends JpaRepository<RecipeAsset, Long> {
     Optional<RecipeAsset> findByRecipeIdAndAssetId(Long recipeId, Long assetId);
+    java.util.List<RecipeAsset> findByRecipeId(Long recipeId);
 }

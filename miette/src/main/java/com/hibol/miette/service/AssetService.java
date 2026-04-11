@@ -83,6 +83,14 @@ public class AssetService {
     }
 
     @Transactional
+    public void setCover(Long recipeId, Long assetId) {
+        recipeAssetRepo.findByRecipeId(recipeId).forEach(ra -> {
+            ra.setCover(ra.getAsset().getId().equals(assetId));
+            recipeAssetRepo.save(ra);
+        });
+    }
+
+    @Transactional
     public void deleteAsset(Long recipeId, Long assetId) {
         RecipeAsset link = recipeAssetRepo.findByRecipeIdAndAssetId(recipeId, assetId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asset introuvable"));

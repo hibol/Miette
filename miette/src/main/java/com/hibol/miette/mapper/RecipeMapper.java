@@ -9,6 +9,7 @@ import com.hibol.miette.entity.Asset;
 import com.hibol.miette.entity.IngredientPhase;
 import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
+import com.hibol.miette.entity.RecipeAsset;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -38,8 +39,27 @@ public class RecipeMapper {
                 .toList(),
             recipe.getAssets().stream()
                 .sorted(Comparator.comparing(ra -> ra.getAsset().getDate(), Comparator.reverseOrder()))
-                .map(ra -> toAssetDto(ra.getAsset()))
+                .map(this::toAssetDto)
                 .toList()
+        );
+    }
+
+    public AssetDto toAssetDto(RecipeAsset ra) {
+        Asset asset = ra.getAsset();
+        String url = null;
+        String thumbUrl = null;
+        if (asset.getPath() != null && !storagePublicUrl.isBlank()) {
+            url = storagePublicUrl + "/" + asset.getPath();
+            thumbUrl = storagePublicUrl + "/" + asset.getThumbPath();
+        }
+        return new AssetDto(
+            asset.getId(),
+            asset.getDate(),
+            asset.getDescription(),
+            asset.getType().name(),
+            url,
+            thumbUrl,
+            ra.isCover()
         );
     }
 
@@ -56,7 +76,8 @@ public class RecipeMapper {
             asset.getDescription(),
             asset.getType().name(),
             url,
-            thumbUrl
+            thumbUrl,
+            false
         );
     }
 

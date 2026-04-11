@@ -38,6 +38,13 @@ public class RecipeAssetApiController {
         return ResponseEntity.status(HttpStatus.CREATED).body(recipeMapper.toAssetDto(asset));
     }
 
+    @PatchMapping("/{assetId}/cover")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> setCover(@PathVariable Long recipeId, @PathVariable Long assetId) {
+        assetService.setCover(recipeId, assetId);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{assetId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long recipeId, @PathVariable Long assetId) {
