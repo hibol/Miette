@@ -573,7 +573,7 @@ createApp({
                             <div class="d-flex gap-1 align-items-center">
                                 <button v-if="isAdmin && !editMode" @click="setCover(photos[currentPhotoIndex].id)"
                                     class="btn btn-sm"
-                                    :class="photos[currentPhotoIndex].cover ? 'btn-warning' : 'btn-outline-secondary'"
+                                    :class="photos[currentPhotoIndex].cover ? 'btn-verdigris' : 'btn-outline-verdigris'"
                                     v-tooltip :title="photos[currentPhotoIndex].cover ? 'Photo de couverture' : 'Définir comme couverture'">
                                     <i class="bi bi-bookmark-check-fill" v-if="photos[currentPhotoIndex].cover"></i>
                                     <i class="bi bi-bookmark" v-else></i>
