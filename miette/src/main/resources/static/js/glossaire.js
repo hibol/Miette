@@ -1,4 +1,5 @@
-import { nextTempKey, groupTermsByLetter } from './glossary-utils.js';
+import { nextTempKey } from './utils.js';
+import { groupTermsByLetter } from './glossary-utils.js';
 import { vCuboSpinner } from './cubo.js';
 
 const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;

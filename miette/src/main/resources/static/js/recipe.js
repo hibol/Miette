@@ -1,9 +1,9 @@
 import { useNotes } from './useNotes.js';
 import { usePhotos } from './usePhotos.js';
 import { useValidation } from './useValidation.js';
-import { nextTempKey } from './glossary-utils.js';
 import { useGlossaryHighlight } from './useGlossaryHighlight.js';
 import { vCuboSpinner } from './cubo.js';
+import { nextTempKey, capitalize, formatDate, formatQuantity } from './utils.js';
 
 const { createApp, ref, onMounted, computed, watch } = Vue;
 
@@ -80,6 +80,72 @@ const vSortablePhases = {
         });
     }
 };
+
+function parseIngredientLine(line) {
+    // handles: "200 g farine" | "380–400 g Eau" | "2 œufs" | "1.5 kg beurre" | "sel"
+    const m = line.match(/^(\d+(?:[.,]\d+)?)(?:[–\-]\d+(?:[.,]\d+)?)?\s*([a-zA-ZÀ-ÿ°%]+)?\s+(.+)$/);
+    if (m) {
+        return {
+            id: null, _key: nextTempKey(),
+            label: capitalize(m[3].trim()),
+            quantity: parseFloat(m[1].replace(',', '.')),
+            unit: m[2]?.trim() || '',
+            position: 0
+        };
+    }
+    return { id: null, _key: nextTempKey(), label: capitalize(line.trim()), quantity: null, unit: '', position: 0 };
+}
+
+function parseRecipeText(text) {
+    const lines = text.split('\n');
+    let i = 0;
+
+    while (i < lines.length && !lines[i].trim()) i++;
+    const title = lines[i++]?.trim() || '';
+
+    const phases = [];
+    let currentPhase = null;
+    let section = null; // 'ingredients' | 'steps'
+
+    function flushPhase() {
+        if (currentPhase) {
+            currentPhase.ingredients.forEach((ing, idx) => ing.position = idx + 1);
+            currentPhase.steps.forEach((s, idx) => s.position = idx + 1);
+            phases.push(currentPhase);
+        }
+    }
+
+    function newPhase(label) {
+        flushPhase();
+        currentPhase = { id: null, _key: nextTempKey(), label, position: phases.length + 1, ingredients: [], steps: [] };
+        section = null;
+    }
+
+    newPhase('');
+
+    for (; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        if (!trimmed) continue;
+
+        const phaseMatch = trimmed.match(/^—\s*(.+?)\s*—$/);
+        if (phaseMatch) { newPhase(phaseMatch[1]); continue; }
+
+        if (trimmed === 'Ingrédients :') { section = 'ingredients'; continue; }
+        if (trimmed === 'Étapes :') { section = 'steps'; continue; }
+        if (trimmed.startsWith('Consulter la recette :')) { section = null; continue; }
+
+        if (section === 'ingredients' && trimmed.startsWith('•')) {
+            currentPhase.ingredients.push(parseIngredientLine(trimmed.replace(/^•\s*/, '')));
+        } else if (section === 'steps') {
+            const stepText = trimmed.replace(/^\d+\s*[-\.]\s*/, '');
+            if (stepText) currentPhase.steps.push({ id: null, _key: nextTempKey(), label: stepText, position: 0 });
+        }
+    }
+    flushPhase();
+
+    if (phases.length === 0) return null;
+    return { id: null, title, tags: [], assets: [], phases };
+}
 
 createApp({
     directives: { sortableSteps: vSortableSteps, sortableIngredients: vSortableIngredients, sortablePhases: vSortablePhases, cuboSpinner: vCuboSpinner, autoResize: vAutoResize, tooltip: vTooltip },
@@ -182,14 +248,21 @@ createApp({
             editMode.value = false;
         }
 
-        function capitalize(str) {
-            if (!str) return str;
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
+        const pasteModalOpen = ref(false);
+        const pasteText = ref('');
+        const pasteError = ref('');
 
-        function formatDate(isoString) {
-            if (!isoString) return '';
-            return new Date(isoString).toLocaleDateString('fr-FR', { dateStyle: 'medium' });
+        function applyPasteText() {
+            pasteError.value = '';
+            const parsed = parseRecipeText(pasteText.value);
+            if (!parsed || !parsed.title) {
+                pasteError.value = 'Impossible de lire ce texte. Vérifiez le format.';
+                return;
+            }
+            recipe.value = parsed;
+            startEdit();
+            pasteModalOpen.value = false;
+            pasteText.value = '';
         }
 
         const copied = ref(false);
@@ -225,10 +298,6 @@ createApp({
             });
         }
 
-        function formatQuantity(quantity) {
-            if (quantity === null || quantity === undefined) return '';
-            return quantity % 1 === 0 ? quantity.toFixed(0) : quantity.toFixed(1);
-        }
 
         function addTag() {
             const tag = newTag.value.trim();
@@ -331,7 +400,8 @@ createApp({
             errors, validateDraft, getError, clearErrors,
             glossaryEnabled, glossaryTerms, glossaryLoading, glossaryGrouped, glossaryLetters,
             activeModalLetter, toggleGlossary, scrollToInModal,
-            copied, copyToClipboard
+            copied, copyToClipboard,
+            pasteModalOpen, pasteText, pasteError, applyPasteText
         };
     },
 
@@ -361,11 +431,36 @@ createApp({
                         <i class="bi bi-trash"></i>
                         <span class="d-none d-md-inline"> Supprimer</span>
                     </button>
+                    <button v-if="editMode && !recipe.id" @click="pasteModalOpen = true" class="btn btn-outline-secondary">
+                        <i class="bi bi-clipboard"></i>
+                        <span class="d-none d-md-inline"> Coller depuis texte</span>
+                    </button>
                     <button v-if="editMode" @click="saveRecipe" :disabled="saving" class="btn btn-primary">
                         <span v-if="saving" v-cubo-spinner class="me-1"></span>
                         <i v-else class="bi bi-floppy"></i>
                         <span class="d-none d-md-inline">{{ saving ? ' Enregistrement...' : ' Enregistrer' }}</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- Modal coller depuis texte -->
+            <div v-if="pasteModalOpen" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)" @click.self="pasteModalOpen = false">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="bi bi-clipboard"></i> Coller une recette</h5>
+                            <button type="button" class="btn-close" @click="pasteModalOpen = false"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted small mb-2">Collez une recette au format exporté depuis ce site (copie presse-papier).</p>
+                            <textarea v-model="pasteText" class="form-control font-monospace" rows="14" placeholder="Tarte aux pommes&#10;&#10;Ingrédients :&#10;  • 200 g farine&#10;&#10;Étapes :&#10;  1. Mélanger..."></textarea>
+                            <div v-if="pasteError" class="text-danger small mt-2">{{ pasteError }}</div>
+                        </div>
+                        <div class="modal-footer">
+                            <button @click="pasteModalOpen = false" class="btn btn-outline-secondary">Annuler</button>
+                            <button @click="applyPasteText" class="btn btn-primary"><i class="bi bi-check-lg"></i> Importer</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 

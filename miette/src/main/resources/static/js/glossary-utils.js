@@ -1,6 +1,3 @@
-let _keyCounter = 0;
-export function nextTempKey() { return --_keyCounter; }
-
 export function groupTermsByLetter(terms) {
     const map = {};
     for (const term of terms) {
