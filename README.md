@@ -1,6 +1,6 @@
 # Miette — Recipe Manager
 
-A personal Spring Boot web application for managing and browsing recipes, with full-text search, tag filtering, and a secure admin interface.
+A personal Spring Boot web application for managing and browsing sourdough recipes, with full-text search, tag filtering, and a secure admin interface.
 
 ---
 
@@ -26,13 +26,12 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 
 **Browsing and search**
 - Full-text substring search across recipe titles, ingredients, steps, and tags (Hibernate Search + Lucene ngram)
+- Exact phrase search by wrapping terms in double quotes (e.g. `"mie filante"`)
 - Recipe list with tag badges; search results show match count with a one-click reset
 - Filter recipes that have notes or photos attached
 - Recipe cards show a thumbnail of the latest photo when available
 
 **Recipe display**
-- Recipes with a single phase display ingredients and steps directly, without a phase header
-- Multi-phase recipes (e.g. dough / filling / glaze) display each phase separately with its own ingredients and steps
 - Collapsible notes section below the title, visible to all — shows observation date and content; note count displayed on recipe cards in the list
 
 **Recipe editing (admin)**
@@ -40,39 +39,39 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 - Add, rename, reorder, and remove phases, ingredients, and steps
 - Drag & drop reordering for phases, ingredients, and steps, including on unsaved recipes
 - Tag input with autocomplete on existing tags
-- Unsaved-changes warning if navigating away mid-edit
-- Inline validation: missing title, missing ingredient name or quantity, unnamed phase in a multi-phase recipe
+- Inline validation
 
 **Notes (admin)**
 - Add timestamped notes to any saved recipe — useful for logging observations, variations, or cooking results
-- Date is pre-filled to the current date and time, editable before saving
 
 **Photos (admin)**
 - Upload photos directly on the recipe page
-- Images are automatically converted to WebP and resized on upload: full version at 1920px (92% quality) and thumbnail at 400px (85% quality), both stored in object storage
-- EXIF orientation is applied on resize so phone photos always display upright
-- Photo date is extracted from EXIF metadata (`DateTimeOriginal`) and falls back to the current date if absent
-- Photos are browsable via an infinite carousel (previous/next navigation) with the capture date displayed
+- Images are automatically converted to WebP and resized on upload (full + thumbnail), stored in object storage
+- Photos are browsable via a carousel (previous/next navigation) with the capture date displayed
 
 **On-demand glossary**
 - Dedicated glossary page (`/glossaire`) listing culinary terms alphabetically, with a sticky letter index (sidebar on desktop, scrollable bar on mobile)
 - On any recipe page, a "?" button highlights all recognized terms and aliases inline; tooltips show the definition on hover (desktop) or tap (mobile)
-- Terms are fetched lazily on first activation and cached for the session
 - Admins can add, edit, and delete terms and their aliases directly from the glossary page
+
+**Sharing**
+- Open Graph meta tags on all pages
 
 **Visual identity**
 - A rotating cuboctahedron (wireframe, 12 vertices, 24 edges) serves as the app's loading indicator: full-page before Vue mounts, inline spinner on async buttons
-- Animation runs via Canvas 2D with perspective projection and depth-based edge weight; DPR-aware for retina screens
+- Animation runs via Canvas 2D with perspective projection and depth-based edge weight
 
 **Recipe characteristics**
-- Hydration rate calculated from water, milk, and levain (counted at 100% hydration); displayed with depth indicators; annotated when fat or eggs are present
+- Hydration rate calculated from water, flour, and sourdough (counted at 100% hydration)
 - "Ajouts" indicator flags any ingredient outside the configurable standard list (farine, eau, sel, levain, levure, lait)
-- Gluten strength score computed as a quantity-weighted average of ingredient `gluten_strength` values (0–1); displayed as fort / moyen / faible (thresholds 0.75 / 0.5) when at least one flour ingredient has a value set
+- Gluten strength score computed as a quantity-weighted average of ingredient `gluten_strength` values (0–1)
 
 **Admin**
 - Create, edit, and delete recipes
 - Maintenance page: rebuild the search index, set gluten strength values per flour ingredient, view and delete orphan ingredients
 - Generic key/value settings table (`app_setting`) editable from the admin page — currently used for the standard ingredient keywords list
+- Umami audience stats (last 7 days: page views, unique visitors, top pages) with a toggle to exclude the current browser from tracking
+- Password change form
 
 ---
 
@@ -181,7 +180,9 @@ Every push to `main` triggers a GitHub Actions workflow that builds the Docker i
 | `GET` | `/api/tags` | Public | List all existing tags |
 | `POST` | `/api/recipes/{id}/assets` | Admin | Add a note to a recipe |
 | `POST` | `/api/recipes/{id}/assets/upload` | Admin | Upload a photo (multipart/form-data, field `file`) |
+| `PATCH` | `/api/recipes/{id}/assets/{assetId}/cover` | Admin | Set an asset as the recipe's cover photo |
 | `DELETE` | `/api/recipes/{id}/assets/{assetId}` | Admin | Delete an asset (note or photo) |
+| `GET` | `/api/settings/{key}` | Public | Get a setting value by key |
 | `GET` | `/api/glossary` | Public | List all glossary terms with their aliases |
 | `POST` | `/api/glossary` | Admin | Create a glossary term |
 | `PUT` | `/api/glossary/{id}` | Admin | Update a glossary term and its aliases |
