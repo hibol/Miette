@@ -209,7 +209,7 @@ createApp({
                     </button>
                     <template v-else>
                         <button @click="saveAll" :disabled="saving" class="btn btn-primary btn-sm">
-                            <span v-if="saving" v-cubo-spinner class="me-1"></span>
+                            <span v-if="saving" v-cubo-spinner="{ color: '#fff' }" class="me-1"></span>
                             <i v-else class="bi bi-floppy"></i><span class="d-none d-md-inline">{{ saving ? ' Enregistrement...' : ' Enregistrer' }}</span>
                         </button>
                         <button @click="cancelEdit" class="btn btn-outline-secondary btn-sm">

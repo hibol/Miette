@@ -464,7 +464,7 @@ createApp({
                         <span class="d-none d-md-inline"> Coller depuis texte</span>
                     </button>
                     <button v-if="editMode" @click="saveRecipe" :disabled="saving" class="btn btn-primary">
-                        <span v-if="saving" v-cubo-spinner class="me-1"></span>
+                        <span v-if="saving" v-cubo-spinner="{ color: '#fff' }" class="me-1"></span>
                         <i v-else class="bi bi-floppy"></i>
                         <span class="d-none d-md-inline">{{ saving ? ' Enregistrement...' : ' Enregistrer' }}</span>
                     </button>
@@ -557,7 +557,7 @@ createApp({
                             </div>
                             <div class="d-flex gap-2">
                                 <button @click="addNote" :disabled="savingNote" class="btn btn-primary btn-sm">
-                                    <span v-if="savingNote" v-cubo-spinner class="me-1"></span>
+                                    <span v-if="savingNote" v-cubo-spinner="{ color: '#fff' }" class="me-1"></span>
                                     Enregistrer
                                 </button>
                                 <button @click="showNoteForm = false" class="btn btn-outline-secondary btn-sm">Annuler</button>
@@ -643,7 +643,7 @@ createApp({
                     <label v-if="isAdmin && !editMode"
                         class="btn btn-outline-secondary btn-sm mt-2" :class="{ disabled: uploadingPhoto }">
                         <span v-if="uploadingPhoto" v-cubo-spinner class="me-1"></span>
-                        <i v-else class="bi bi-image"></i> Ajouter une photo
+                        <i v-else class="bi bi-image"></i> {{ uploadingPhoto ? 'Envoi en cours...' : 'Ajouter une photo' }}
                         <input type="file" accept="image/*" style="display:none" @change="handleFileChange">
                     </label>
                 </div>

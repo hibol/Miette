@@ -109,30 +109,18 @@
             <p class="text-muted small mb-3">Valeur de 0 (pas de gluten) à 1 (gluten très fort). Laisser vide si inconnu.</p>
 
             <form th:action="@{/admin/ingredients/gluten}" method="post">
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-3">
-                        <thead>
-                            <tr>
-                                <th>Ingrédient</th>
-                                <th class="text-muted small fw-normal">Unité</th>
-                                <th style="width: 110px">Force (0–1)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="ing : ${allIngredients}">
-                                <td th:text="${ing.label}"></td>
-                                <td class="text-muted small" th:text="${ing.unit}"></td>
-                                <td>
-                                    <input type="number"
-                                           th:name="'g__' + ${ing.id}"
-                                           th:value="${ing.glutenStrength}"
-                                           class="form-control form-control-sm gluten-input"
-                                           step="0.05" min="0" max="1"
-                                           placeholder="—">
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="gluten-list mb-3">
+                    <div th:each="ing : ${allIngredients}"
+                         class="d-flex align-items-center justify-content-between gap-3 py-1 border-bottom">
+                        <span class="text-truncate small" th:text="${ing.label}"></span>
+                        <input type="number"
+                               th:name="'g__' + ${ing.id}"
+                               th:value="${ing.glutenStrength}"
+                               class="form-control form-control-sm gluten-input flex-shrink-0"
+                               style="width: 80px"
+                               step="0.05" min="0" max="1"
+                               placeholder="—">
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-floppy"></i> Enregistrer les valeurs de gluten

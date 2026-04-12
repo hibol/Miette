@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Dessus du couvercle -->
+  <rect x="10" y="2" width="12" height="3" rx="1" fill="#5a5d68"/>
+  <!-- Bague du couvercle -->
+  <rect x="9"  y="5" width="14" height="4" rx="1" fill="#454851"/>
+  <!-- Col -->
+  <rect x="11" y="9" width="10" height="3" fill="#549f93"/>
+  <!-- Épaules + corps -->
+  <path d="M11 12 L7 16 L7 27 Q7 30 10 30 L22 30 Q25 30 25 27 L25 16 L21 12 Z" fill="#549f93"/>
+  <!-- Reflet -->
+  <rect x="9" y="18" width="2.5" height="8" rx="1.25" fill="rgba(255,255,255,0.2)"/>
+</svg>

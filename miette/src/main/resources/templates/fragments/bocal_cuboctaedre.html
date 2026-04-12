@@ -55,63 +55,99 @@
     }
     
     function drawJar(cx, cy, jarW, jarH, jarY) {
-        const neckW = jarW * 0.72;
-        const neckH = jarH * 0.06;
-        const shoulderH = jarH * 0.08;
-        const bodyH = jarH * 0.68;
-        const baseH = jarH * 0.06;
-        
-        const top = jarY;
-        const neckBot = top + neckH;
-        const shoulderBot = neckBot + shoulderH;
-        const bodyBot = shoulderBot + bodyH;
-        const baseBot = bodyBot + baseH;
-        
+        const neckW  = jarW * 0.62;
+        const ry     = jarW * 0.065; // profondeur ellipses (aspect 3D)
+
+        const lidTop      = jarY;
+        const lidBot      = jarY + jarH * 0.055;
+        const neckBot     = jarY + jarH * 0.135;
+        const shoulderBot = jarY + jarH * 0.23;
+        const bodyBot     = jarY + jarH * 0.92;
+
         ctx.save();
-        ctx.strokeStyle = 'rgba(84, 159, 147, 0.8)';
-        ctx.lineWidth = 1.6;
         ctx.lineJoin = 'round';
-        
-        // left outline
-        ctx.beginPath();
-        ctx.moveTo(cx - neckW/2, top);
-        ctx.lineTo(cx - neckW/2, neckBot);
-        ctx.bezierCurveTo(
-        cx - neckW/2, neckBot + shoulderH*0.6,
-        cx - jarW/2, shoulderBot - shoulderH*0.2,
-        cx - jarW/2, shoulderBot
-        );
-        ctx.lineTo(cx - jarW/2, bodyBot);
-        ctx.bezierCurveTo(cx - jarW/2, baseBot, cx - jarW*0.42, baseBot, cx, baseBot);
-        ctx.stroke();
-        
-        // right outline
-        ctx.beginPath();
-        ctx.moveTo(cx + neckW/2, top);
-        ctx.lineTo(cx + neckW/2, neckBot);
-        ctx.bezierCurveTo(
-        cx + neckW/2, neckBot + shoulderH*0.6,
-        cx + jarW/2, shoulderBot - shoulderH*0.2,
-        cx + jarW/2, shoulderBot
-        );
-        ctx.lineTo(cx + jarW/2, bodyBot);
-        ctx.bezierCurveTo(cx + jarW/2, baseBot, cx + jarW*0.42, baseBot, cx, baseBot);
-        ctx.stroke();
-        
-        // rim
-        ctx.beginPath();
-        ctx.moveTo(cx - neckW/2 - 3, top);
-        ctx.lineTo(cx + neckW/2 + 3, top);
-        ctx.stroke();
-        
-        // highlight
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(84, 159, 147, 0.33)';
-        ctx.lineWidth = 4;
-        ctx.moveTo(cx - jarW/2 + 6, shoulderBot + jarH*0.05);
-        ctx.lineTo(cx - jarW/2 + 6, bodyBot - jarH*0.08);
-        ctx.stroke();
-        
+
+        function ellipse(y, rx, alpha, full = false) {
+            if (full) {
+                ctx.beginPath();
+                ctx.ellipse(cx, y, rx, ry, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(84, 159, 147, ${alpha})`;
+                ctx.lineWidth = 1.4;
+                ctx.stroke();
+                return;
+            }
+            // arc arrière (haut) — discret
+            ctx.beginPath();
+            ctx.ellipse(cx, y, rx, ry, 0, Math.PI, Math.PI * 2);
+            ctx.strokeStyle = `rgba(84, 159, 147, ${alpha * 0.35})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+            // arc avant (bas) — mis en avant
+            ctx.beginPath();
+            ctx.ellipse(cx, y, rx, ry, 0, 0, Math.PI);
+            ctx.strokeStyle = `rgba(84, 159, 147, ${alpha})`;
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+        }
+
+        function line(alpha, lw, fn) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(84, 159, 147, ${alpha})`;
+            ctx.lineWidth = lw;
+            fn();
+            ctx.stroke();
+        }
+
+        // Couvercle — deux ellipses + côtés
+        ellipse(lidTop, neckW / 2 + 3, 0.55, true);
+        ellipse(lidBot, neckW / 2 + 3, 0.45, true);
+        line(0.8, 1.4, () => {
+            ctx.moveTo(cx - neckW / 2 - 3, lidTop);
+            ctx.lineTo(cx - neckW / 2 - 3, lidBot);
+        });
+        line(0.8, 1.4, () => {
+            ctx.moveTo(cx + neckW / 2 + 3, lidTop);
+            ctx.lineTo(cx + neckW / 2 + 3, lidBot);
+        });
+
+        // Épaule gauche
+        line(0.75, 1.4, () => {
+            ctx.moveTo(cx - neckW / 2, lidBot);
+            ctx.lineTo(cx - neckW / 2, neckBot);
+            ctx.bezierCurveTo(
+                cx - neckW / 2, neckBot + (shoulderBot - neckBot) * 0.55,
+                cx - jarW / 2,  shoulderBot - (shoulderBot - neckBot) * 0.15,
+                cx - jarW / 2,  shoulderBot
+            );
+        });
+
+        // Épaule droite
+        line(0.75, 1.4, () => {
+            ctx.moveTo(cx + neckW / 2, lidBot);
+            ctx.lineTo(cx + neckW / 2, neckBot);
+            ctx.bezierCurveTo(
+                cx + neckW / 2, neckBot + (shoulderBot - neckBot) * 0.55,
+                cx + jarW / 2,  shoulderBot - (shoulderBot - neckBot) * 0.15,
+                cx + jarW / 2,  shoulderBot
+            );
+        });
+
+        // Corps — côtés verticaux
+        line(0.8, 1.4, () => {
+            ctx.moveTo(cx - jarW / 2, shoulderBot);
+            ctx.lineTo(cx - jarW / 2, bodyBot);
+        });
+        line(0.8, 1.4, () => {
+            ctx.moveTo(cx + jarW / 2, shoulderBot);
+            ctx.lineTo(cx + jarW / 2, bodyBot);
+        });
+
+        // Ellipse épaule (jonction col / corps)
+        ellipse(shoulderBot, jarW / 2, 0.30);
+
+        // Ellipse fond (plat)
+        ellipse(bodyBot, jarW / 2, 0.65);
+
         ctx.restore();
     }
     
@@ -126,7 +162,7 @@
         const jarH = h * 0.75;
         const jarW = jarH * 0.65;
         const jarY = (h - jarH) / 2;
-        const cubeCenter = jarY + jarH * 0.47;
+        const cubeCenter = jarY + jarH * 0.58;
         const scale = Math.min(w, h) * 0.55;
         
         ctx.clearRect(0, 0, w, h);

@@ -109,13 +109,18 @@ export function cuboLoading(el, { color = '--verdigris', size = 64, lineWidth = 
 export const vCuboSpinner = {
     mounted(el, binding) {
         const opts = binding.value ?? {};
-        const size = opts.size ?? 16;
+        const btnEl = el.closest('button, .btn, label');
+        const btnStyle = btnEl ? getComputedStyle(btnEl) : null;
+        // Taille calée sur la font-size du bouton pour ne pas changer la hauteur
+        const size = opts.size ?? (btnStyle ? Math.round(parseFloat(btnStyle.fontSize)) : 16);
         const lineWidth = opts.lineWidth ?? 1.5;
+        const color = opts.color ?? '--verdigris';
         el.style.display = 'inline-block';
         el.style.width = size + 'px';
         el.style.height = size + 'px';
         el.style.verticalAlign = 'middle';
-        el._stopCubo = cuboLoading(el, { size, color: opts.color ?? '--verdigris', lineWidth });
+        el.style.lineHeight = '0';
+        el._stopCubo = cuboLoading(el, { size, color, lineWidth });
     },
     unmounted(el) {
         el._stopCubo?.();

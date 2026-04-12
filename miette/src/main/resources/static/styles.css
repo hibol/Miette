@@ -298,6 +298,11 @@ body > .page-content {
     flex-shrink: 0;
 }
 
+/* Admin — liste gluten */
+.gluten-list {
+    max-width: 420px;
+}
+
 /* Carrousel photo */
 .photo-thumb {
     object-fit: cover;
@@ -354,6 +359,15 @@ body > .page-content {
     bottom: 1rem;
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.85rem;
+}
+
+/* Transition fluide lors du switch de thème */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+    transition: background-color 0.6s ease, color 0.6s ease,
+                border-color 0.6s ease, box-shadow 0.6s ease !important;
 }
 
 /* Dark mode */
@@ -468,6 +482,16 @@ body > .page-content {
 
 [data-theme="dark"] hr {
     border-color: rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .form-check-input {
+    background-color: var(--dark-surface-deep);
+    border-color: rgba(255,255,255,0.3);
+}
+
+[data-theme="dark"] .form-check-input:checked {
+    background-color: var(--verdigris);
+    border-color: var(--verdigris);
 }
 
 [data-theme="dark"] .alert-success {

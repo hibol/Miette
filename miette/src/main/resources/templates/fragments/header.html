@@ -57,7 +57,9 @@
             document.getElementById('theme-toggle').addEventListener('click', function () {
                 const dark = document.documentElement.getAttribute('data-theme') !== 'dark';
                 localStorage.setItem('theme', dark ? 'dark' : 'light');
+                document.documentElement.classList.add('theme-transition');
                 applyTheme(dark);
+                window.setTimeout(() => document.documentElement.classList.remove('theme-transition'), 600);
             });
         }());
     </script>
