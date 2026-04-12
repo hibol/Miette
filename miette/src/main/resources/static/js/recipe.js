@@ -166,6 +166,17 @@ createApp({
 
         const { notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate } = useNotes(recipe);
         const { photos, uploadingPhoto, currentPhotoIndex, prevPhoto, nextPhoto, handleFileChange, setCover } = usePhotos(recipe);
+        const lightboxOpen = ref(false);
+
+        function onLightboxKey(e) {
+            if (e.key === 'ArrowLeft')  { e.preventDefault(); prevPhoto(); }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); nextPhoto(); }
+            else if (e.key === 'Escape') lightboxOpen.value = false;
+        }
+        watch(lightboxOpen, open => {
+            if (open) window.addEventListener('keydown', onLightboxKey);
+            else window.removeEventListener('keydown', onLightboxKey);
+        });
         const { errors, validateDraft, getError, clearErrors } = useValidation(draft);
 
         const filteredTags = computed(() => {
@@ -412,7 +423,7 @@ createApp({
             startEdit, cancelEdit, saveRecipe, deleteRecipe,
             addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
-            uploadingPhoto, handleFileChange, setCover,
+            uploadingPhoto, handleFileChange, setCover, lightboxOpen,
             errors, validateDraft, getError, clearErrors,
             glossaryEnabled, glossaryTerms, glossaryLoading, glossaryGrouped, glossaryLetters,
             activeModalLetter, toggleGlossary, scrollToInModal,
@@ -460,7 +471,7 @@ createApp({
             </div>
 
             <!-- Modal coller depuis texte -->
-            <div v-if="pasteModalOpen" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)" @click.self="pasteModalOpen = false">
+            <div v-if="pasteModalOpen" class="modal d-block modal-dimmed" tabindex="-1" @click.self="pasteModalOpen = false">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -494,7 +505,7 @@ createApp({
                         class="badge bg-primary d-flex align-items-center gap-1">
                         {{ tag }}
                         <button @click="draft.tags.splice(index, 1)"
-                            class="btn-close btn-close-white" style="font-size: 0.6rem;"></button>
+                            class="btn-close btn-close-white text-xs"></button>
                     </span>
                     <div class="d-flex gap-1 position-relative">
                         <input v-model="newTag"
@@ -507,12 +518,10 @@ createApp({
                         </button>
                         <!-- Dropdown suggestions -->
                         <ul v-if="filteredTags.length > 0"
-                            class="list-group position-absolute shadow-sm"
-                            style="top: 100%; left: 0; z-index: 1000; min-width: 150px">
+                            class="list-group position-absolute shadow-sm tag-dropdown">
                             <li v-for="(tag, index) in filteredTags" :key="tag"
                                 @mousedown.prevent="draft.tags.push(tag); newTag = ''"
-                                :class="['list-group-item', 'list-group-item-action', 'py-1', 'px-2', { active: index === selectedTagIndex }]"
-                                style="cursor: pointer; font-size: 0.85rem">
+                                :class="['list-group-item', 'list-group-item-action', 'py-1', 'px-2', 'tag-dropdown-item', { active: index === selectedTagIndex }]">
                                 {{ tag }}
                             </li>
                         </ul>
@@ -564,7 +573,7 @@ createApp({
                                     <i class="bi bi-x"></i>
                                 </button>
                             </div>
-                            <p class="mb-0 mt-1" style="white-space: pre-wrap">{{ asset.description }}</p>
+                            <p class="mb-0 mt-1 pre-wrap">{{ asset.description }}</p>
                         </div>
                     </div>
                     <p v-else class="text-muted small">Aucune note.</p>
@@ -576,7 +585,7 @@ createApp({
                 <div class="d-flex align-items-center gap-1">
                     <span>Hydratation : </span>
                     <span>{{ hydration }}%</span>
-                    <span style="color: var(--verdigris)">
+                    <span class="text-verdigris">
                         <i class="bi bi-droplet-fill"></i>
                         <i v-if="hydration >= 70" class="bi bi-droplet-fill"></i>
                         <i v-if="hydration > 80" class="bi bi-droplet-fill"></i>
@@ -584,7 +593,7 @@ createApp({
                     <span v-if="hydrationApprox" class="text-muted small ms-1">(farine et liquide uniquement)</span>
                 </div>
                 <div v-if="ajouts" class="d-flex align-items-center gap-1">
-                    <i class="bi bi-plus-circle-fill" style="color: var(--verdigris)"></i>
+                    <i class="bi bi-plus-circle-fill text-verdigris"></i>
                     <span>Avec ajouts</span>
                 </div>
             </div>
@@ -594,12 +603,13 @@ createApp({
                 <div class="col-12 col-lg-10">
                     <div v-if="photos.length > 0" class="card shadow-sm">
                         <img :src="photos[currentPhotoIndex].url"
-                            class="card-img-top"
-                            style="object-fit: cover; max-height: 420px;">
+                            class="card-img-top photo-thumb"
+                            @click="lightboxOpen = true">
                         <div class="card-footer d-flex justify-content-between align-items-center py-2">
-                            <button @click="prevPhoto" class="btn btn-outline-secondary btn-sm">
+                            <button v-if="photos.length > 1" @click="prevPhoto" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-chevron-left"></i>
                             </button>
+                            <div v-else style="width: 2rem;"></div>
                             <div class="text-center">
                                 <small class="text-muted d-block">{{ formatNoteDate(photos[currentPhotoIndex].date) }}</small>
                                 <small v-if="photos.length > 1" class="text-muted">{{ currentPhotoIndex + 1 }} / {{ photos.length }}</small>
@@ -616,7 +626,7 @@ createApp({
                                     class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>
                                 </button>
-                                <button @click="nextPhoto" class="btn btn-outline-secondary btn-sm">
+                                <button v-if="photos.length > 1" @click="nextPhoto" class="btn btn-outline-secondary btn-sm">
                                     <i class="bi bi-chevron-right"></i>
                                 </button>
                             </div>
@@ -657,7 +667,7 @@ createApp({
                     </div>
                 </div>
                 <div class="card-footer py-2 d-flex justify-content-between align-items-center bg-transparent border-top">
-                    <div class="text-muted lh-sm" style="font-size: 0.7rem;">
+                    <div class="text-muted lh-sm text-xs">
                         <div>Créé le {{ formatDate(recipe.createdAt) }}<span v-if="recipe.createdBy"> par {{ recipe.createdBy }}</span></div>
                         <div v-if="recipe.updatedAt">Modifié le {{ formatDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></div>
                     </div>
@@ -705,7 +715,7 @@ createApp({
                         </div>
                     </div>
                     <div v-if="phaseIndex === recipe.phases.length - 1" class="card-footer py-2 d-flex justify-content-between align-items-center bg-transparent border-top">
-                        <div class="text-muted lh-sm" style="font-size: 0.7rem;">
+                        <div class="text-muted lh-sm text-xs">
                             <div>Créé le {{ formatNoteDate(recipe.createdAt) }}<span v-if="recipe.createdBy"> par {{ recipe.createdBy }}</span></div>
                             <div v-if="recipe.updatedAt">Modifié le {{ formatNoteDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></div>
                         </div>
@@ -734,7 +744,7 @@ createApp({
 
                     <!-- Card header : label de phase (multiples phases uniquement) -->
                     <div v-if="draft.phases.length > 1" class="card-header d-flex align-items-center gap-2">
-                        <i class="bi bi-grip-vertical phase-drag-handle text-muted" style="cursor: grab"></i>
+                        <i class="bi bi-grip-vertical phase-drag-handle text-muted"></i>
                         <div class="flex-grow-1">
                             <input v-model="phase.label"
                                 class="form-control fw-bold text-primary" placeholder="Nom de la phase"
@@ -757,7 +767,7 @@ createApp({
                                     <li v-for="(ing, ingIndex) in phase.ingredients" :key="ing.id ?? ing._key"
                                         class="list-group-item px-0 border-0 py-2">
                                         <div class="d-flex gap-2 align-items-start">
-                                            <i class="bi bi-grip-vertical drag-handle text-muted mt-2" style="cursor: grab; flex-shrink: 0"></i>
+                                            <i class="bi bi-grip-vertical drag-handle text-muted mt-2 flex-shrink-0"></i>
                                             <div class="flex-grow-1">
                                                 <input v-model="ing.label" class="form-control form-control-sm mb-1" placeholder="Ingrédient"
                                                     :class="{'is-invalid': getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label')}" />
@@ -765,8 +775,7 @@ createApp({
                                                     {{ getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].label') }}
                                                 </div>
                                                 <div class="d-flex gap-1">
-                                                    <input v-model="ing.quantity" type="number" class="form-control form-control-sm" placeholder="Qté"
-                                                        style="width: 70px"
+                                                    <input v-model="ing.quantity" type="number" class="form-control form-control-sm ingredient-qty" placeholder="Qté"
                                                         :class="{'is-invalid': getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity')}" />
                                                     <input v-model="ing.unit" class="form-control form-control-sm" placeholder="unité" />
                                                 </div>
@@ -774,7 +783,7 @@ createApp({
                                                     {{ getError('phases[' + phaseIndex + '].ingredients[' + ingIndex + '].quantity') }}
                                                 </div>
                                             </div>
-                                            <button @click="phase.ingredients.splice(ingIndex, 1)" class="btn btn-outline-danger btn-sm mt-1" style="flex-shrink: 0">
+                                            <button @click="phase.ingredients.splice(ingIndex, 1)" class="btn btn-outline-danger btn-sm mt-1 flex-shrink-0">
                                                 <i class="bi bi-x"></i>
                                             </button>
                                         </div>
@@ -792,9 +801,9 @@ createApp({
                                 <ol v-sortable-steps="{ items: phase.steps, clearErrors }" class="list-group list-group-flush">
                                     <li v-for="(step, stepIndex) in phase.steps" :key="step.id ?? step._key"
                                         class="list-group-item px-0 border-0 py-2 d-flex gap-2 align-items-center">
-                                        <i class="bi bi-grip-vertical drag-handle text-muted" style="cursor: grab"></i>
+                                        <i class="bi bi-grip-vertical drag-handle text-muted"></i>
                                         <span class="text-muted me-1">{{ stepIndex + 1 }}.</span>
-                                        <textarea v-model="step.label" v-auto-resize class="form-control" rows="1" style="resize: none;"></textarea>
+                                        <textarea v-model="step.label" v-auto-resize class="form-control no-resize" rows="1"></textarea>
                                         <button @click="phase.steps.splice(stepIndex, 1)" class="btn btn-outline-danger btn-sm">
                                             <i class="bi bi-x"></i>
                                         </button>
@@ -832,7 +841,7 @@ createApp({
                         <!-- Layout desktop : barre verticale + contenu -->
                         <div class="d-flex gap-3">
                         <!-- Index alphabétique vertical -->
-                        <div class="d-none d-md-flex flex-column align-items-center gap-1 flex-shrink-0 pt-1" style="position: sticky; top: 0; align-self: flex-start;">
+                        <div class="d-none d-md-flex flex-column align-items-center gap-1 flex-shrink-0 pt-1 sticky-sidebar">
                             <span v-for="letter in glossaryLetters" :key="letter"
                                   @click="scrollToInModal(letter)"
                                   :class="['alphabet-letter', { active: letter === activeModalLetter }]">{{ letter }}</span>
@@ -858,6 +867,38 @@ createApp({
                 </div>
             </div>
         </div>
+
+        </div>
+
+        <!-- Lightbox -->
+        <Teleport to="body">
+            <div v-if="lightboxOpen"
+                class="lightbox-overlay"
+                @click="lightboxOpen = false"
+                @touchstart.passive="e => _lbTouchX = e.touches[0].clientX"
+                @touchend.passive="e => { const dx = e.changedTouches[0].clientX - _lbTouchX; if (Math.abs(dx) > 40) dx < 0 ? nextPhoto() : prevPhoto(); }">
+                <img :src="photos[currentPhotoIndex].url"
+                    class="lightbox-img"
+                    @click.stop>
+                <button v-if="photos.length > 1"
+                    class="lightbox-btn lightbox-btn-prev"
+                    @click.stop="prevPhoto">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button v-if="photos.length > 1"
+                    class="lightbox-btn lightbox-btn-next"
+                    @click.stop="nextPhoto">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+                <button class="lightbox-btn lightbox-btn-close"
+                    @click.stop="lightboxOpen = false">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                <div v-if="photos.length > 1" class="lightbox-counter">
+                    {{ currentPhotoIndex + 1 }} / {{ photos.length }}
+                </div>
+            </div>
+        </Teleport>
 
         </div>
     `

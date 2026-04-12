@@ -100,7 +100,7 @@
                     <th:block th:with="photoRel=${recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'][0] : (recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null)}">
                         <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
                              th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
-                             class="card-img-top" style="object-fit: cover; height: 180px;"
+                             class="card-img-top card-recipe-img"
                              loading="lazy" alt="">
                     </th:block>
                     <div class="card-body">
@@ -170,10 +170,10 @@
                     <th:block th:with="photoRel=${recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'][0] : (recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null)}">
                         <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
                              th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
-                             style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px;"
+                             class="recipe-thumb-sm"
                              loading="lazy" alt="">
                         <div th:unless="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
-                             style="width: 48px; height: 48px; border-radius: 6px; background: var(--tan); opacity: 0.3; flex-shrink: 0;">
+                             class="recipe-thumb-sm-placeholder">
                         </div>
                     </th:block>
                     <div>
@@ -181,7 +181,7 @@
                         <div th:if="${!#sets.isEmpty(recipe.tags)}" class="mt-1">
                             <span th:each="tagRel : ${recipe.tags}"
                                   th:text="${tagRel.tag.label}"
-                                  class="badge bg-primary me-1" style="font-size: 0.7rem;"></span>
+                                  class="badge bg-primary me-1 text-xs"></span>
                         </div>
                     </div>
                 </div>

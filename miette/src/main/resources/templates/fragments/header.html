@@ -14,6 +14,10 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="theme-toggle" title="Thème">
+                    <i class="bi bi-moon-fill" id="theme-icon"></i>
+                </button>
+
                 <!-- Non connecté -->
                 <div sec:authorize="!isAuthenticated()">
                     <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
@@ -41,6 +45,22 @@
             </div>
         </div>
     </header>
+
+    <script>
+        (function () {
+            const icon = document.getElementById('theme-icon');
+            function applyTheme(dark) {
+                document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+                icon.className = dark ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+            }
+            applyTheme(document.documentElement.getAttribute('data-theme') === 'dark');
+            document.getElementById('theme-toggle').addEventListener('click', function () {
+                const dark = document.documentElement.getAttribute('data-theme') !== 'dark';
+                localStorage.setItem('theme', dark ? 'dark' : 'light');
+                applyTheme(dark);
+            });
+        }());
+    </script>
 </div>
 </body>
 </html>
