@@ -64,9 +64,14 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 - A rotating cuboctahedron (wireframe, 12 vertices, 24 edges) serves as the app's loading indicator: full-page before Vue mounts, inline spinner on async buttons
 - Animation runs via Canvas 2D with perspective projection and depth-based edge weight; DPR-aware for retina screens
 
+**Recipe characteristics**
+- Hydration rate calculated from water, milk, and levain (counted at 100% hydration); displayed with depth indicators; annotated when fat or eggs are present
+- "Ajouts" indicator flags any ingredient outside the configurable standard list (farine, eau, sel, levain, levure, lait)
+
 **Admin**
 - Create, edit, and delete recipes
 - Maintenance page: rebuild the search index, view and delete orphan ingredients
+- Generic key/value settings table (`app_setting`) editable from the admin page — currently used for the standard ingredient keywords list
 
 ---
 
@@ -82,10 +87,11 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 | `tag` | Unique label-based tag |
 | `recipe_rel_tag` | Many-to-many between recipe and tag |
 | `asset` | Media file with date, path, and description |
-| `recipe_rel_asset` | Many-to-many between recipe and asset |
+| `recipe_rel_asset` | Many-to-many between recipe and asset; `cover` flag marks the thumbnail shown in the list |
 | `glossary_term` | Culinary term with definition |
 | `glossary_alias` | Alternative names for a glossary term |
 | `users` | User accounts with BCrypt password and role (ADMIN / USER) |
+| `app_setting` | Generic key/value configuration table; editable from the admin page |
 
 ---
 

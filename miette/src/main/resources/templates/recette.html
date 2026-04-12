@@ -11,7 +11,8 @@
         th:data-recipe-id="${recipeId != null ? recipeId : ''}"
         th:data-return-url="${returnUrl}"
         th:data-edit-mode="${editMode}"
-        th:data-is-admin="${#authorization.expression('hasRole(''ADMIN'')')}">
+        th:data-is-admin="${#authorization.expression('hasRole(''ADMIN'')')}"
+        th:data-standard-keywords="${standardKeywords}">
     </div>
 
     </div><!-- fin page-content -->

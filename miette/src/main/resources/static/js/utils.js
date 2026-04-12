@@ -22,6 +22,15 @@ function allIngredients(recipe) {
     return recipe.phases.flatMap(p => p.ingredients);
 }
 
+// Retourne true si la recette contient au moins un ingrédient hors liste des standards.
+// keywords : tableau de mots-clés (ex: ["farine", "eau", "sel", ...])
+export function detectAjouts(recipe, keywords) {
+    return allIngredients(recipe).some(ing => {
+        const label = ing.label.toLowerCase();
+        return !keywords.some(kw => label.includes(kw.trim().toLowerCase()));
+    });
+}
+
 // Retourne l'hydratation en %, ou null si aucune farine détectée.
 // Levain compté à 100% d'hydratation (50% eau / 50% farine).
 // Lait et eau comptent comme liquides.

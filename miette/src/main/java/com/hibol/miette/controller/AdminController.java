@@ -8,10 +8,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import java.util.Map;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hibol.miette.entity.User;
 import com.hibol.miette.repository.UserRepository;
+import com.hibol.miette.service.AppSettingService;
 import com.hibol.miette.service.IngredientService;
 import com.hibol.miette.service.RecipeIndexingService;
 import com.hibol.miette.service.UmamiService;
@@ -30,12 +32,24 @@ public class AdminController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UmamiService umamiService;
+    private final AppSettingService appSettingService;
 
     @GetMapping("/admin")
     public String admin(Model model) {
         model.addAttribute("orphanIngredients", ingredientService.findOrphans());
         model.addAttribute("umamiData", umamiService.fetchStats());
+        model.addAttribute("appSettings", appSettingService.findAll());
         return "admin";
+    }
+
+    @PostMapping("/admin/settings")
+    public String updateSettings(@RequestParam Map<String, String> params,
+                                 RedirectAttributes redirectAttributes) {
+        params.entrySet().stream()
+            .filter(e -> e.getKey().startsWith("s__"))
+            .forEach(e -> appSettingService.update(e.getKey().substring(3), e.getValue()));
+        redirectAttributes.addFlashAttribute("message", "✅ Paramètres mis à jour.");
+        return "redirect:/admin";
     }
 
     @PostMapping("/admin/search/reindex")

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.hibol.miette.entity.Recipe;
+import com.hibol.miette.service.AppSettingService;
 import com.hibol.miette.service.RecipeService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +33,7 @@ public class RecipeController {
     private String storagePublicUrl;
 
     private final RecipeService recipeService;
+    private final AppSettingService appSettingService;
 
     @GetMapping("/")
     public String home() {
@@ -97,6 +99,7 @@ public class RecipeController {
         model.addAttribute("recipeId", id);
         model.addAttribute("editMode", edit != null);
         model.addAttribute("returnUrl", returnUrl != null ? returnUrl : "/recettes");
+        model.addAttribute("standardKeywords", appSettingService.getValue("standard_ingredient_keywords", "farine,eau,sel,levain,levure,lait"));
         return "recette";
     }
 
@@ -110,6 +113,7 @@ public class RecipeController {
         model.addAttribute("recipeId", null);
         model.addAttribute("editMode", true);
         model.addAttribute("returnUrl", "/recettes");
+        model.addAttribute("standardKeywords", appSettingService.getValue("standard_ingredient_keywords", "farine,eau,sel,levain,levure,lait"));
         return "recette";
     }
 }

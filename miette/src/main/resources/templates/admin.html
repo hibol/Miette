@@ -60,6 +60,44 @@
         </div>
     </div>
 
+    <!-- Paramètres -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Paramètres</h5>
+            <p class="card-text text-muted">Configuration générale de l'application.</p>
+            <form th:action="@{/admin/settings}" method="post">
+                <div th:each="setting : ${appSettings}" class="row align-items-start mb-3 g-2">
+                    <div class="col-12 col-md-4">
+                        <div class="fw-semibold" th:text="${setting.key}"></div>
+                        <div th:if="${setting.description}" class="text-muted small" th:text="${setting.description}"></div>
+                    </div>
+                    <div class="col">
+                        <input type="text" th:name="'s__' + ${setting.key}" class="form-control form-control-sm setting-input" th:value="${setting.value}">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-outline-secondary mt-3">
+                    <i class="bi bi-floppy"></i> Enregistrer les paramètres
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.setting-input').forEach(input => {
+            const original = input.value;
+            input.addEventListener('input', () => {
+                input.dataset.dirty = input.value !== original ? 'true' : '';
+            });
+        });
+        document.querySelector('form[action*="settings"]')?.addEventListener('submit', () => {
+            document.querySelectorAll('.setting-input').forEach(i => delete i.dataset.dirty);
+        });
+        window.addEventListener('beforeunload', e => {
+            const dirty = document.querySelector('.setting-input[data-dirty="true"]');
+            if (dirty) e.preventDefault();
+        });
+    </script>
+
     <div class="card mt-4">
         <div class="card-body">
             <h5 class="card-title">Ingrédients orphelins</h5>

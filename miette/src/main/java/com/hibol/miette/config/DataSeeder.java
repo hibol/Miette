@@ -31,6 +31,7 @@ import com.hibol.miette.repository.IngredientRepository;
 import com.hibol.miette.repository.RecipeRepository;
 import com.hibol.miette.repository.TagRepository;
 import com.hibol.miette.repository.UserRepository;
+import com.hibol.miette.service.AppSettingService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,7 @@ public class DataSeeder {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final GlossaryTermRepository glossaryTermRepo;
+    private final AppSettingService appSettingService;
 
     @Value("${miette.admin.password:}")
     private String adminPassword;
@@ -60,6 +62,7 @@ public class DataSeeder {
             seedRecipes();
             seedGlossary();
             seedAdmin();
+            seedSettings();
         };
     }
 
@@ -130,6 +133,14 @@ public class DataSeeder {
         admin.setRole(User.Role.ADMIN);
         userRepository.save(admin);
         log.info("✅ Admin '{}' created", adminUsername);
+    }
+
+    public void seedSettings() {
+        appSettingService.seedIfAbsent(
+            "standard_ingredient_keywords",
+            "farine,eau,sel,levain,levure,lait",
+            "Mots-clés des ingrédients standards (séparés par des virgules). Utilisés pour détecter les ajouts dans une recette."
+        );
     }
 
     private Recipe buildRecipe(YamlRecipe yamlRecipe) {
