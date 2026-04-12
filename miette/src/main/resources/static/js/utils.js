@@ -31,6 +31,19 @@ export function detectAjouts(recipe, keywords) {
     });
 }
 
+// Retourne le score de gluten (0–1) pondéré par les quantités de farines renseignées,
+// ou null si aucun ingrédient avec glutenStrength n'est présent.
+export function calcGluten(recipe) {
+    let weightedSum = 0, totalFlour = 0;
+    for (const ing of allIngredients(recipe)) {
+        if (ing.glutenStrength == null || !ing.quantity) continue;
+        weightedSum += ing.glutenStrength * ing.quantity;
+        totalFlour += ing.quantity;
+    }
+    if (totalFlour === 0) return null;
+    return weightedSum / totalFlour;
+}
+
 // Retourne l'hydratation en %, ou null si aucune farine détectée.
 // Levain compté à 100% d'hydratation (50% eau / 50% farine).
 // Lait et eau comptent comme liquides.

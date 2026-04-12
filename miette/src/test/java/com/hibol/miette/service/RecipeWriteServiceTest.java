@@ -122,7 +122,7 @@ class RecipeWriteServiceTest {
             List.of(),
             List.of(
                 new PhaseDto(null, "Pâte", 1,
-                    List.of(new IngredientDto(null, "Farine", 200.0, "g", 1)),
+                    List.of(new IngredientDto(null, "Farine", 200.0, "g", 1, null)),
                     List.of()),
                 new PhaseDto(null, "Variante sans gluten", 2,
                     List.of(),  // ← phase intentionnellement sans ingrédients
@@ -156,9 +156,9 @@ class RecipeWriteServiceTest {
             List.of(
                 new PhaseDto(null, "", 1,
                     List.of(
-                        new IngredientDto(null, "Œufs", 3.0, "pcs", 1),
-                        new IngredientDto(null, "Crème", 200.0, "ml", 2),
-                        new IngredientDto(null, "Lardons", 150.0, "g", 3)
+                        new IngredientDto(null, "Œufs", 3.0, "pcs", 1, null),
+                        new IngredientDto(null, "Crème", 200.0, "ml", 2, null),
+                        new IngredientDto(null, "Lardons", 150.0, "g", 3, null)
                     ),
                     List.of())
             ),
@@ -190,9 +190,9 @@ class RecipeWriteServiceTest {
             List.of(
                 new PhaseDto(null, "", 1,
                     List.of(
-                        new IngredientDto(null, "Œufs", 3.0, "pcs", 1),
-                        new IngredientDto(null, "",    null, "",   2),  // ← label vide
-                        new IngredientDto(null, "   ", null, "",   3)   // ← label blanc
+                        new IngredientDto(null, "Œufs", 3.0, "pcs", 1, null),
+                        new IngredientDto(null, "",    null, "",   2, null),  // ← label vide
+                        new IngredientDto(null, "   ", null, "",   3, null)   // ← label blanc
                     ),
                     List.of())
             ),
@@ -346,7 +346,7 @@ class RecipeWriteServiceTest {
             List.of(),
             List.of(
                 new PhaseDto(null, "", 1,
-                    List.of(new IngredientDto(null, "Carottes", 3.0, "pcs", 1)),
+                    List.of(new IngredientDto(null, "Carottes", 3.0, "pcs", 1, null)),
                     List.of(
                         new StepDto(null, "Éplucher les carottes", 1),
                         new StepDto(null, "Faire bouillir", 2)

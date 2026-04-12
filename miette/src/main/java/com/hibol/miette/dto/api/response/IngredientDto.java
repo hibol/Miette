@@ -7,5 +7,6 @@ public record IngredientDto(
     String label,
     @Positive(message = "La quantité doit être positive") Double quantity,
     String unit,
-    Integer position
+    Integer position,
+    Double glutenStrength
 ) {}

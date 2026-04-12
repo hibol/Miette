@@ -57,6 +57,53 @@ class IngredientServiceTest {
     }
 
     @Test
+    void updateGlutenStrength_ingredientTrouve_valeurMiseAJour() {
+        // GIVEN
+        Ingredient ing = new Ingredient();
+        ing.setLabel("Manitoba");
+        when(ingredientRepo.findById(1L)).thenReturn(Optional.of(ing));
+        when(ingredientRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // WHEN
+        ingredientService.updateGlutenStrength(1L, 1.0);
+
+        // THEN
+        ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
+        verify(ingredientRepo).save(captor.capture());
+        assertThat(captor.getValue().getGlutenStrength()).isEqualTo(1.0);
+    }
+
+    @Test
+    void updateGlutenStrength_valeurNull_effaceLaValeur() {
+        // GIVEN — on efface une valeur existante en passant null
+        Ingredient ing = new Ingredient();
+        ing.setLabel("Farine T65");
+        ing.setGlutenStrength(0.7);
+        when(ingredientRepo.findById(2L)).thenReturn(Optional.of(ing));
+        when(ingredientRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // WHEN
+        ingredientService.updateGlutenStrength(2L, null);
+
+        // THEN
+        ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
+        verify(ingredientRepo).save(captor.capture());
+        assertThat(captor.getValue().getGlutenStrength()).isNull();
+    }
+
+    @Test
+    void updateGlutenStrength_ingredientInconnu_aucunSave() {
+        // GIVEN — l'id n'existe pas en base
+        when(ingredientRepo.findById(99L)).thenReturn(Optional.empty());
+
+        // WHEN
+        ingredientService.updateGlutenStrength(99L, 0.5);
+
+        // THEN — aucune sauvegarde ne doit avoir lieu
+        verify(ingredientRepo, never()).save(any());
+    }
+
+    @Test
     void findOrCreate_uniteModifiee_estMiseAJour() {
         // GIVEN — l'ingrédient existe mais avec une unité différente
         Ingredient existant = new Ingredient();

@@ -15,6 +15,22 @@ public class IngredientService {
 
     private final IngredientRepository ingredientRepo;
 
+    public List<Ingredient> findAllSorted() {
+        return ingredientRepo.findAllByOrderByLabelAsc();
+    }
+
+    public List<Ingredient> findFlourIngredients() {
+        return ingredientRepo.findFlourIngredients();
+    }
+
+    @Transactional
+    public void updateGlutenStrength(Long id, Double value) {
+        ingredientRepo.findById(id).ifPresent(ing -> {
+            ing.setGlutenStrength(value);
+            ingredientRepo.save(ing);
+        });
+    }
+
     public List<Ingredient> findOrphans() {
         return ingredientRepo.findOrphans();
     }

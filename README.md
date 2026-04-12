@@ -67,10 +67,11 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 **Recipe characteristics**
 - Hydration rate calculated from water, milk, and levain (counted at 100% hydration); displayed with depth indicators; annotated when fat or eggs are present
 - "Ajouts" indicator flags any ingredient outside the configurable standard list (farine, eau, sel, levain, levure, lait)
+- Gluten strength score computed as a quantity-weighted average of ingredient `gluten_strength` values (0–1); displayed as fort / moyen / faible (thresholds 0.75 / 0.5) when at least one flour ingredient has a value set
 
 **Admin**
 - Create, edit, and delete recipes
-- Maintenance page: rebuild the search index, view and delete orphan ingredients
+- Maintenance page: rebuild the search index, set gluten strength values per flour ingredient, view and delete orphan ingredients
 - Generic key/value settings table (`app_setting`) editable from the admin page — currently used for the standard ingredient keywords list
 
 ---
@@ -82,7 +83,7 @@ A personal Spring Boot web application for managing and browsing recipes, with f
 | `recipe` | Core recipe with title, creation and modification metadata |
 | `phase` | Named preparation phase, ordered by position, linked to a recipe |
 | `step` | Individual step within a phase, ordered by position |
-| `ingredient` | Ingredient with label and optional unit |
+| `ingredient` | Ingredient with label, optional unit, and optional `gluten_strength` (0–1) |
 | `ingredient_rel_phase` | Junction table: quantity of an ingredient within a phase |
 | `tag` | Unique label-based tag |
 | `recipe_rel_tag` | Many-to-many between recipe and tag |

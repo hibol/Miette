@@ -83,27 +83,67 @@
     </div>
 
     <script>
-        document.querySelectorAll('.setting-input').forEach(input => {
+        document.querySelectorAll('.setting-input, .gluten-input').forEach(input => {
             const original = input.value;
             input.addEventListener('input', () => {
                 input.dataset.dirty = input.value !== original ? 'true' : '';
             });
         });
-        document.querySelector('form[action*="settings"]')?.addEventListener('submit', () => {
-            document.querySelectorAll('.setting-input').forEach(i => delete i.dataset.dirty);
+        document.querySelectorAll('form[action*="settings"], form[action*="gluten"]').forEach(f => {
+            f.addEventListener('submit', () => {
+                document.querySelectorAll('.setting-input, .gluten-input').forEach(i => delete i.dataset.dirty);
+            });
         });
         window.addEventListener('beforeunload', e => {
-            const dirty = document.querySelector('.setting-input[data-dirty="true"]');
+            const dirty = document.querySelector('.setting-input[data-dirty="true"], .gluten-input[data-dirty="true"]');
             if (dirty) e.preventDefault();
         });
     </script>
 
     <div class="card mt-4">
         <div class="card-body">
-            <h5 class="card-title">Ingrédients orphelins</h5>
-            <p class="card-text text-muted">
-                Ingrédients présents en base mais n'appartenant à aucune recette.
-            </p>
+            <h5 class="card-title">Ingrédients</h5>
+
+            <!-- Force du gluten -->
+            <h6 class="mt-2 mb-1">Force du gluten</h6>
+            <p class="text-muted small mb-3">Valeur de 0 (pas de gluten) à 1 (gluten très fort). Laisser vide si inconnu.</p>
+
+            <form th:action="@{/admin/ingredients/gluten}" method="post">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-3">
+                        <thead>
+                            <tr>
+                                <th>Ingrédient</th>
+                                <th class="text-muted small fw-normal">Unité</th>
+                                <th style="width: 110px">Force (0–1)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ing : ${allIngredients}">
+                                <td th:text="${ing.label}"></td>
+                                <td class="text-muted small" th:text="${ing.unit}"></td>
+                                <td>
+                                    <input type="number"
+                                           th:name="'g__' + ${ing.id}"
+                                           th:value="${ing.glutenStrength}"
+                                           class="form-control form-control-sm gluten-input"
+                                           step="0.05" min="0" max="1"
+                                           placeholder="—">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-floppy"></i> Enregistrer les valeurs de gluten
+                </button>
+            </form>
+
+            <hr class="my-4">
+
+            <!-- Ingrédients orphelins -->
+            <h6 class="mb-1">Ingrédients orphelins</h6>
+            <p class="text-muted small mb-3">Ingrédients présents en base mais n'appartenant à aucune recette.</p>
 
             <div th:if="${#lists.isEmpty(orphanIngredients)}" class="text-success mb-3">
                 <i class="bi bi-check-circle"></i> Aucun ingrédient orphelin.
@@ -121,7 +161,7 @@
                 <form th:action="@{/admin/ingredients/purge-orphans}" method="post"
                       onsubmit="return confirm('Supprimer les ' + this.dataset.count + ' ingrédient(s) orphelin(s) ?')"
                       th:data-count="${#lists.size(orphanIngredients)}">
-                    <button type="submit" class="btn btn-danger">
+                    <button type="submit" class="btn btn-danger btn-sm">
                         <i class="bi bi-trash"></i>
                         Supprimer les <span th:text="${#lists.size(orphanIngredients)}"></span> orphelin(s)
                     </button>

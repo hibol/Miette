@@ -103,7 +103,8 @@ public class RecipeMapper {
             ip.getIngredient().getLabel(),
             ip.getQuantity(),
             ip.getIngredient().getUnit(),
-            ip.getPosition()
+            ip.getPosition(),
+            ip.getIngredient().getGlutenStrength()
         );
     }
 

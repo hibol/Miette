@@ -36,10 +36,26 @@ public class AdminController {
 
     @GetMapping("/admin")
     public String admin(Model model) {
+        model.addAttribute("allIngredients", ingredientService.findFlourIngredients());
         model.addAttribute("orphanIngredients", ingredientService.findOrphans());
         model.addAttribute("umamiData", umamiService.fetchStats());
         model.addAttribute("appSettings", appSettingService.findAll());
         return "admin";
+    }
+
+    @PostMapping("/admin/ingredients/gluten")
+    public String updateGlutenStrengths(@RequestParam Map<String, String> params,
+                                        RedirectAttributes redirectAttributes) {
+        params.entrySet().stream()
+            .filter(e -> e.getKey().startsWith("g__"))
+            .forEach(e -> {
+                Long id = Long.parseLong(e.getKey().substring(3));
+                String raw = e.getValue().trim();
+                Double value = raw.isEmpty() ? null : Double.parseDouble(raw);
+                ingredientService.updateGlutenStrength(id, value);
+            });
+        redirectAttributes.addFlashAttribute("message", "Valeurs de gluten mises à jour.");
+        return "redirect:/admin";
     }
 
     @PostMapping("/admin/settings")

@@ -3,7 +3,7 @@ import { usePhotos } from './usePhotos.js';
 import { useValidation } from './useValidation.js';
 import { useGlossaryHighlight } from './useGlossaryHighlight.js';
 import { vCuboSpinner } from './cubo.js';
-import { nextTempKey, capitalize, formatDate, formatQuantity, calcHydration, detectAjouts } from './utils.js';
+import { nextTempKey, capitalize, formatDate, formatQuantity, calcHydration, detectAjouts, calcGluten } from './utils.js';
 
 const { createApp, ref, onMounted, computed, watch } = Vue;
 
@@ -334,6 +334,7 @@ createApp({
         });
 
         const hydration = computed(() => recipe.value ? calcHydration(recipe.value) : null);
+        const gluten = computed(() => recipe.value ? calcGluten(recipe.value) : null);
         const ajouts = computed(() => recipe.value && standardKeywords.value.length > 0
             ? detectAjouts(recipe.value, standardKeywords.value)
             : null);
@@ -419,7 +420,7 @@ createApp({
             recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft,
             returnUrl, availableTags, filteredTags, newTag,
             photos, currentPhotoIndex, prevPhoto, nextPhoto,
-            noteAssets, isSinglePhase, hydration, hydrationApprox, ajouts, nextTempKey, formatQuantity, capitalize, formatDate,
+            noteAssets, isSinglePhase, hydration, hydrationApprox, ajouts, gluten, nextTempKey, formatQuantity, capitalize, formatDate,
             startEdit, cancelEdit, saveRecipe, deleteRecipe,
             addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
@@ -581,8 +582,8 @@ createApp({
             </div>
 
             <!-- Indicateurs -->
-            <div v-if="!editMode && hydration !== null" class="d-flex flex-wrap gap-3 mb-4">
-                <div class="d-flex align-items-center gap-1">
+            <div v-if="!editMode && (hydration !== null || gluten !== null)" class="d-flex flex-wrap gap-3 mb-4">
+                <div v-if="hydration !== null" class="d-flex align-items-center gap-1">
                     <span>Hydratation : </span>
                     <span>{{ hydration }}%</span>
                     <span class="text-verdigris">
@@ -595,6 +596,13 @@ createApp({
                 <div v-if="ajouts" class="d-flex align-items-center gap-1">
                     <i class="bi bi-plus-circle-fill text-verdigris"></i>
                     <span>Avec ajouts</span>
+                </div>
+                <div v-if="gluten !== null" class="d-flex align-items-center gap-1">
+                    <i class="bi bi-tsunami text-verdigris"></i>
+                    <span>Gluten :&nbsp;</span>
+                    <span v-if="gluten >= 0.75">fort</span>
+                    <span v-else-if="gluten >= 0.5">moyen</span>
+                    <span v-else>faible</span>
                 </div>
             </div>
 

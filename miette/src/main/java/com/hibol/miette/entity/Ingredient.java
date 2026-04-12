@@ -18,4 +18,7 @@ public class Ingredient {
     @Column
     private String unit;
 
+    @Column(name = "gluten_strength")
+    private Double glutenStrength;
+
 }
