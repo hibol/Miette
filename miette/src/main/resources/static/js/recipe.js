@@ -214,17 +214,13 @@ createApp({
                     recipe.value = { id: null, title: '', tags: [], assets: [], phases: [
                         { id: null, _key: nextTempKey(), label: '', position: 1, ingredients: [], steps: [] }
                     ]};
-                    startEdit();
+                    await startEdit();
                 } else {
-                    const response = await fetch(`/api/recipes/${recipeId}`);
-                    if (!response.ok) throw new Error('Recette introuvable');
-                    recipe.value = await response.json();
+                    recipe.value = JSON.parse(appEl.dataset.recipe);
                     if (appEl.dataset.editMode === 'true') {
-                        startEdit();
+                        await startEdit();
                     }
                 }
-                const tagsResponse = await fetch('/api/tags');
-                availableTags.value = await tagsResponse.json();
                 const kw = appEl.dataset.standardKeywords;
                 if (kw) standardKeywords.value = kw.split(',');
             } catch (e) {
@@ -235,8 +231,12 @@ createApp({
             }
         });
 
-        function startEdit() {
+        async function startEdit() {
             clearErrors();
+            if (availableTags.value.length === 0) {
+                const tagsResponse = await fetch('/api/tags');
+                availableTags.value = await tagsResponse.json();
+            }
             draft.value = JSON.parse(JSON.stringify(recipe.value));
             editMode.value = true;
         }
@@ -572,7 +572,7 @@ createApp({
             </div>
 
             <!-- Indicateurs -->
-            <div v-if="!editMode && (hydration !== null || ajouts !== null)" class="d-flex flex-wrap gap-3 mb-4">
+            <div v-if="!editMode && hydration !== null" class="d-flex flex-wrap gap-3 mb-4">
                 <div class="d-flex align-items-center gap-1">
                     <span>Hydratation : </span>
                     <span>{{ hydration }}%</span>

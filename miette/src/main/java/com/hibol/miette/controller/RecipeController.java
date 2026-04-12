@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hibol.miette.entity.Recipe;
+import com.hibol.miette.mapper.RecipeMapper;
 import com.hibol.miette.service.AppSettingService;
 import com.hibol.miette.service.RecipeService;
 
@@ -34,6 +37,8 @@ public class RecipeController {
 
     private final RecipeService recipeService;
     private final AppSettingService appSettingService;
+    private final RecipeMapper recipeMapper;
+    private final ObjectMapper objectMapper;
 
     @GetMapping("/")
     public String home() {
@@ -84,8 +89,8 @@ public class RecipeController {
     }
 
     @GetMapping("/recette/{id}")
-    public String detail(@PathVariable Long id, @RequestParam(required = false) String edit, HttpServletRequest request, Model model) {
-        recipeService.findByIdWithDetails(id)
+    public String detail(@PathVariable Long id, @RequestParam(required = false) String edit, HttpServletRequest request, Model model) throws JsonProcessingException {
+        Recipe recipe = recipeService.findByIdWithDetails(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
 
         String referer = request.getHeader("Referer");
@@ -100,6 +105,7 @@ public class RecipeController {
         model.addAttribute("editMode", edit != null);
         model.addAttribute("returnUrl", returnUrl != null ? returnUrl : "/recettes");
         model.addAttribute("standardKeywords", appSettingService.getValue("standard_ingredient_keywords", "farine,eau,sel,levain,levure,lait"));
+        model.addAttribute("recipeJson", objectMapper.writeValueAsString(recipeMapper.toDto(recipe)));
         return "recette";
     }
 
@@ -114,6 +120,7 @@ public class RecipeController {
         model.addAttribute("editMode", true);
         model.addAttribute("returnUrl", "/recettes");
         model.addAttribute("standardKeywords", appSettingService.getValue("standard_ingredient_keywords", "farine,eau,sel,levain,levure,lait"));
+        model.addAttribute("recipeJson", null);
         return "recette";
     }
 }
