@@ -15,3 +15,30 @@ export function formatQuantity(quantity) {
     if (quantity === null || quantity === undefined) return '';
     return quantity % 1 === 0 ? quantity.toFixed(0) : quantity.toFixed(1);
 }
+
+// --- Caractéristiques boulangerie ---
+
+function allIngredients(recipe) {
+    return recipe.phases.flatMap(p => p.ingredients);
+}
+
+// Retourne l'hydratation en %, ou null si aucune farine détectée.
+// Levain compté à 100% d'hydratation (50% eau / 50% farine).
+// Lait et eau comptent comme liquides.
+export function calcHydration(recipe) {
+    let water = 0, flour = 0;
+    for (const ing of allIngredients(recipe)) {
+        if (!ing.quantity) continue;
+        const label = ing.label.toLowerCase();
+        if (label.includes('levain')) {
+            water += ing.quantity * 0.5;
+            flour += ing.quantity * 0.5;
+        } else if (label.includes('farine')) {
+            flour += ing.quantity;
+        } else if (label.includes('eau') || label.includes('lait')) {
+            water += ing.quantity;
+        }
+    }
+    if (flour === 0) return null;
+    return Math.round(water / flour * 100);
+}

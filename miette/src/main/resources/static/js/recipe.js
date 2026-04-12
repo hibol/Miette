@@ -3,7 +3,7 @@ import { usePhotos } from './usePhotos.js';
 import { useValidation } from './useValidation.js';
 import { useGlossaryHighlight } from './useGlossaryHighlight.js';
 import { vCuboSpinner } from './cubo.js';
-import { nextTempKey, capitalize, formatDate, formatQuantity } from './utils.js';
+import { nextTempKey, capitalize, formatDate, formatQuantity, calcHydration } from './utils.js';
 
 const { createApp, ref, onMounted, computed, watch } = Vue;
 
@@ -319,6 +319,16 @@ createApp({
             return data.phases.length === 1;
         });
 
+        const hydration = computed(() => recipe.value ? calcHydration(recipe.value) : null);
+
+        const hydrationApprox = computed(() => {
+            if (!recipe.value) return false;
+            return recipe.value.phases.flatMap(p => p.ingredients).some(ing => {
+                const l = ing.label.toLowerCase();
+                return l.includes('beurre') || l.includes('oeuf') || l.includes('œuf');
+            });
+        });
+
         function addPhase() {
             draft.value.phases.push({
                 id: null,
@@ -392,7 +402,7 @@ createApp({
             recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft,
             returnUrl, availableTags, filteredTags, newTag,
             photos, currentPhotoIndex, prevPhoto, nextPhoto,
-            noteAssets, isSinglePhase, nextTempKey, formatQuantity, capitalize, formatDate,
+            noteAssets, isSinglePhase, hydration, hydrationApprox, nextTempKey, formatQuantity, capitalize, formatDate,
             startEdit, cancelEdit, saveRecipe, deleteRecipe,
             addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
@@ -552,6 +562,20 @@ createApp({
                         </div>
                     </div>
                     <p v-else class="text-muted small">Aucune note.</p>
+                </div>
+            </div>
+
+            <!-- Indicateurs -->
+            <div v-if="!editMode && hydration !== null" class="d-flex flex-wrap gap-3 mb-4">
+                <div class="d-flex align-items-center gap-1">
+                    <span>Hydratation : </span>
+                    <span>{{ hydration }}%</span>
+                    <span style="color: var(--verdigris)">
+                        <i class="bi bi-droplet-fill"></i>
+                        <i v-if="hydration >= 70" class="bi bi-droplet-fill"></i>
+                        <i v-if="hydration > 80" class="bi bi-droplet-fill"></i>
+                    </span>
+                    <span v-if="hydrationApprox" class="text-muted small ms-1">(farine et liquide uniquement)</span>
                 </div>
             </div>
 
