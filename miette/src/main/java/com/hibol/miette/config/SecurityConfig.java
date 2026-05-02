@@ -36,6 +36,7 @@ public class SecurityConfig {
             .anyRequest().authenticated()
         )
         .formLogin(form -> form
+            .loginPage("/recettes")
             .successHandler((request, response, authentication) -> {
                 response.setStatus(200);
                 response.setContentType("application/json");
@@ -52,7 +53,7 @@ public class SecurityConfig {
             .logoutUrl("/logout")
             .logoutSuccessHandler((request, response, authentication) -> {
                 String redirectTo = request.getParameter("redirectTo");
-                if (redirectTo != null && redirectTo.startsWith("/")) {
+                if (redirectTo != null && redirectTo.startsWith("/") && !redirectTo.startsWith("/admin")) {
                     response.sendRedirect(redirectTo);
                 } else {
                     response.sendRedirect("/recettes");
