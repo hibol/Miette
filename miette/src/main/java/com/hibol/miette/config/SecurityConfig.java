@@ -37,6 +37,7 @@ public class SecurityConfig {
         )
         .formLogin(form -> form
             .loginPage("/recettes")
+            .loginProcessingUrl("/login")
             .successHandler((request, response, authentication) -> {
                 response.setStatus(200);
                 response.setContentType("application/json");
