@@ -4,6 +4,7 @@
 <body class="container-fluid px-0">
     <div th:replace="~{fragments/header :: site-header}"></div>
     <div th:replace="~{fragments/login-modal :: login-modal}"></div>
+    <script th:if="${recipeJsonLd != null}" type="application/ld+json" th:utext="${recipeJsonLd}"></script>
 
     <div th:replace="~{fragments/cubo-preloader :: cubo-preloader}"></div>
     <div class="page-content">

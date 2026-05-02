@@ -3,6 +3,7 @@ package com.hibol.miette.controller;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,7 +19,10 @@ import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hibol.miette.entity.Asset;
+import com.hibol.miette.entity.IngredientPhase;
+import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
+import com.hibol.miette.entity.Step;
 import com.hibol.miette.mapper.RecipeMapper;
 import com.hibol.miette.service.AppSettingService;
 import com.hibol.miette.service.RecipeService;
@@ -102,17 +106,21 @@ public class RecipeController {
         }
 
         String returnUrl = (String) session.getAttribute("returnUrl");
-        model.addAttribute("recipeId", id);
-        model.addAttribute("recipeTitle", recipe.getTitle());
-        model.addAttribute("editMode", edit != null);
-        recipe.getAssets().stream()
+        String ogImage = recipe.getAssets().stream()
             .filter(ra -> ra.getAsset().getType() == Asset.AssetType.PHOTO)
             .filter(ra -> ra.isCover())
             .findFirst()
             .or(() -> recipe.getAssets().stream()
                 .filter(ra -> ra.getAsset().getType() == Asset.AssetType.PHOTO)
                 .findFirst())
-            .ifPresent(ra -> model.addAttribute("ogImage", storagePublicUrl + "/" + ra.getAsset().getPath()));
+            .map(ra -> storagePublicUrl + "/" + ra.getAsset().getPath())
+            .orElse(null);
+
+        model.addAttribute("recipeId", id);
+        model.addAttribute("recipeTitle", recipe.getTitle());
+        model.addAttribute("editMode", edit != null);
+        if (ogImage != null) model.addAttribute("ogImage", ogImage);
+        model.addAttribute("recipeJsonLd", buildJsonLd(recipe, ogImage));
         model.addAttribute("returnUrl", returnUrl != null ? returnUrl : "/recettes");
         model.addAttribute("standardKeywords", appSettingService.getValue("standard_ingredient_keywords", "farine,eau,sel,levain,levure,lait"));
         model.addAttribute("recipeJson", objectMapper.writeValueAsString(recipeMapper.toDto(recipe)));
@@ -132,5 +140,55 @@ public class RecipeController {
         model.addAttribute("standardKeywords", appSettingService.getValue("standard_ingredient_keywords", "farine,eau,sel,levain,levure,lait"));
         model.addAttribute("recipeJson", null);
         return "recette";
+    }
+
+    private String buildJsonLd(Recipe recipe, String ogImage) throws JsonProcessingException {
+        Map<String, Object> ld = new LinkedHashMap<>();
+        ld.put("@context", "https://schema.org");
+        ld.put("@type", "Recipe");
+        ld.put("name", recipe.getTitle());
+        ld.put("author", Map.of("@type", "Person", "name", "Miette"));
+        if (ogImage != null) ld.put("image", List.of(ogImage));
+        if (recipe.getCreatedAt() != null)
+            ld.put("datePublished", recipe.getCreatedAt().toLocalDate().toString());
+        if (recipe.getUpdatedAt() != null)
+            ld.put("dateModified", recipe.getUpdatedAt().toLocalDate().toString());
+
+        List<String> ingredients = recipe.getPhases().stream()
+            .sorted(Comparator.comparingInt(Phase::getPosition))
+            .flatMap(p -> p.getIngredientPhases().stream()
+                .sorted(Comparator.comparingInt(IngredientPhase::getPosition)))
+            .map(this::formatIngredient)
+            .collect(Collectors.toList());
+        if (!ingredients.isEmpty()) ld.put("recipeIngredient", ingredients);
+
+        List<Map<String, Object>> instructions = recipe.getPhases().stream()
+            .sorted(Comparator.comparingInt(Phase::getPosition))
+            .filter(p -> !p.getSteps().isEmpty())
+            .map(p -> {
+                Map<String, Object> section = new LinkedHashMap<>();
+                section.put("@type", "HowToSection");
+                section.put("name", p.getLabel());
+                section.put("itemListElement", p.getSteps().stream()
+                    .sorted(Comparator.comparingInt(Step::getPosition))
+                    .map(s -> Map.of("@type", "HowToStep", "text", s.getLabel()))
+                    .collect(Collectors.toList()));
+                return section;
+            })
+            .collect(Collectors.toList());
+        if (!instructions.isEmpty()) ld.put("recipeInstructions", instructions);
+
+        return objectMapper.writeValueAsString(ld).replace("</", "<\\/");
+    }
+
+    private String formatIngredient(IngredientPhase ip) {
+        List<String> parts = new ArrayList<>();
+        if (ip.getQuantity() != null) {
+            double q = ip.getQuantity();
+            parts.add(q % 1 == 0 ? String.valueOf((int) q) : String.valueOf(q));
+        }
+        if (ip.getIngredient().getUnit() != null) parts.add(ip.getIngredient().getUnit());
+        parts.add(ip.getIngredient().getLabel());
+        return String.join(" ", parts);
     }
 }
