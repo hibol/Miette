@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.hibol.miette.entity.Asset;
 import com.hibol.miette.entity.IngredientPhase;
 import com.hibol.miette.entity.Phase;
@@ -106,21 +107,23 @@ public class RecipeController {
         }
 
         String returnUrl = (String) session.getAttribute("returnUrl");
-        String ogImage = recipe.getAssets().stream()
-            .filter(ra -> ra.getAsset().getType() == Asset.AssetType.PHOTO)
-            .filter(ra -> ra.isCover())
+        var coverAsset = recipe.getAssets().stream()
+            .filter(ra -> ra.getAsset().getType() == Asset.AssetType.PHOTO && ra.isCover())
             .findFirst()
             .or(() -> recipe.getAssets().stream()
                 .filter(ra -> ra.getAsset().getType() == Asset.AssetType.PHOTO)
-                .findFirst())
-            .map(ra -> storagePublicUrl + "/" + ra.getAsset().getPath())
-            .orElse(null);
+                .findFirst());
+
+        String ogImage    = coverAsset.map(ra -> storagePublicUrl + "/" + ra.getAsset().getThumbPath()).orElse(null);
+        String fullImage  = coverAsset.map(ra -> storagePublicUrl + "/" + ra.getAsset().getPath()).orElse(null);
+        String ogUrl      = ServletUriComponentsBuilder.fromCurrentRequest().replaceQuery(null).build().toUriString();
 
         model.addAttribute("recipeId", id);
         model.addAttribute("recipeTitle", recipe.getTitle());
         model.addAttribute("editMode", edit != null);
         if (ogImage != null) model.addAttribute("ogImage", ogImage);
-        model.addAttribute("recipeJsonLd", buildJsonLd(recipe, ogImage));
+        model.addAttribute("ogUrl", ogUrl);
+        model.addAttribute("recipeJsonLd", buildJsonLd(recipe, fullImage));
         model.addAttribute("returnUrl", returnUrl != null ? returnUrl : "/recettes");
         model.addAttribute("standardKeywords", appSettingService.getValue("standard_ingredient_keywords", "farine,eau,sel,levain,levure,lait"));
         model.addAttribute("recipeJson", objectMapper.writeValueAsString(recipeMapper.toDto(recipe)));
