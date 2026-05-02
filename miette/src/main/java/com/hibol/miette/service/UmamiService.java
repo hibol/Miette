@@ -95,8 +95,8 @@ public class UmamiService {
             return new UmamiStats(0, 0);
         }
         JsonNode json = objectMapper.readTree(response.body());
-        long pageviews = json.path("pageviews").path("value").asLong(0);
-        long visitors = json.path("visitors").path("value").asLong(0);
+        long pageviews = json.path("pageviews").asLong(0);
+        long visitors = json.path("visitors").asLong(0);
         return new UmamiStats(pageviews, visitors);
     }
 
