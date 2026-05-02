@@ -1,5 +1,6 @@
 package com.hibol.miette.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import com.hibol.miette.entity.Recipe;
@@ -46,4 +47,12 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
         WHERE r.id = :id
         """)
     Optional<Recipe> findByIdWithDetails(@Param("id") Long id);
+
+    @Query("SELECT r.id as id, r.updatedAt as updatedAt FROM Recipe r ORDER BY r.id")
+    List<RecipeSitemap> findAllForSitemap();
+
+    interface RecipeSitemap {
+        Long getId();
+        LocalDateTime getUpdatedAt();
+    }
 }
