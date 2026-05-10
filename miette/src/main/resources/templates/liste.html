@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Liste des recettes')}"></head>
-<body class="container-fluid px-0">
+<body class="container-fluid px-0 page-liste">
     <div th:replace="~{fragments/header :: site-header}"></div>
     <div th:replace="~{fragments/login-modal :: login-modal}"></div>
 
     <div class="page-content">
+    <div id="liste-paper">
     <!-- Barre de recherche -->
     <div class="search-bar mb-4">
         <form method="GET">
@@ -194,6 +195,7 @@
         </a>
     </div>
 
+    </div><!-- fin liste-paper -->
     </div><!-- fin page-content -->
     <div th:replace="~{fragments/footer :: site-footer}"></div>
     <div th:replace="~{fragments/layout :: scripts}"></div>

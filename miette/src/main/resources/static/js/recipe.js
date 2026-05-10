@@ -831,7 +831,10 @@ createApp({
                 </button>
             </div>
 
+        </div>
+
         <!-- Modal glossaire -->
+        <Teleport to="body">
         <div class="modal fade" id="glossaryModal" tabindex="-1">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
@@ -864,7 +867,7 @@ createApp({
                                     <div class="d-flex align-items-baseline gap-2 mb-1 flex-wrap">
                                         <span class="fw-bold">{{ term.term }}</span>
                                         <span v-for="alias in term.aliases" :key="alias.id"
-                                              class="badge bg-light text-muted border small fw-normal">{{ alias.alias }}</span>
+                                              class="badge badge-verdigris small fw-normal">{{ alias.alias }}</span>
                                     </div>
                                     <p class="mb-0 small">{{ term.definition }}</p>
                                 </div>
@@ -875,8 +878,7 @@ createApp({
                 </div>
             </div>
         </div>
-
-        </div>
+        </Teleport>
 
         <!-- Lightbox -->
         <Teleport to="body">
@@ -907,7 +909,5 @@ createApp({
                 </div>
             </div>
         </Teleport>
-
-        </div>
     `
 }).mount('#app');

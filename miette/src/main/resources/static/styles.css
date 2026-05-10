@@ -7,6 +7,13 @@
     --dark-surface: #363840;
     --dark-surface-deep: #2d2f35;
 
+    --paper-bg:      #f5ede0;
+    --paper-overlay: rgba(255, 255, 255, 0.45);
+    --wood-overlay:  rgba(0, 0, 0, 0);
+    --paper-filter:  drop-shadow(2px 6px 12px rgba(20, 8, 2, 0.65));
+    --flat-body-bg:  #ffffff;
+    --flat-surface:  #ffffff;
+
     /* Bootstrap theme overrides */
     --bs-focus-ring-color: rgba(84, 159, 147, 0.35);
     --bs-primary: #454851;
@@ -16,6 +23,15 @@
     --bs-font-sans-serif: 'Klee One', sans-serif;
     --bs-body-font-family: 'Klee One', serif;
 }
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.35) transparent;
+}
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.35); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(128, 128, 128, 0.6); }
 
 body {
     font-family: 'Klee One', serif;
@@ -143,6 +159,11 @@ h1, h2, h3, h4, h5, h6,
     background-color: var(--dusty-rose) !important;
 }
 
+.badge-verdigris {
+    background-color: var(--verdigris);
+    color: #fff;
+}
+
 .alphabet-index {
     position: fixed;
     right: 0.75rem;
@@ -210,6 +231,16 @@ h1, h2, h3, h4, h5, h6,
     justify-content: center;
     pointer-events: none;
     z-index: 999;
+}
+
+body.page-recette #pre-loader,
+body.page-liste #pre-loader {
+    background-color: var(--paper-bg);
+    background-image: linear-gradient(var(--paper-overlay), var(--paper-overlay)), url('/paper.webp');
+    background-size: auto, 700px;
+    background-position: center, center;
+    padding: 1.5rem;
+    box-shadow: 4px 5px 14px rgba(20, 8, 2, 0.45);
 }
 
 body > .page-content {
@@ -373,6 +404,11 @@ body > .page-content {
 /* Dark mode */
 [data-theme="dark"] {
     color-scheme: dark;
+    --paper-bg:      #1c130b;
+    --paper-overlay: rgba(0, 0, 0, 0.58);
+    --wood-overlay:  rgba(0, 0, 0, 0.62);
+    --flat-body-bg:  var(--charcoal-blue);
+    --flat-surface:  var(--dark-surface);
 }
 
 [data-theme="dark"] body {
@@ -504,4 +540,361 @@ body > .page-content {
     --bs-alert-color: #f5a0a0;
     --bs-alert-bg: #4a2525;
     --bs-alert-border-color: #7a3a3a;
+}
+
+/* ── Cuisine virtuelle — fond bois + papier (recette + liste) */
+body.page-recette,
+body.page-liste,
+body.page-a-propos,
+body.page-admin {
+    background-color: #1a120a;
+    background-image: linear-gradient(var(--wood-overlay), var(--wood-overlay)), url('/wood-table.webp');
+    background-size: auto, 512px;
+}
+
+body.page-recette .site-header,
+body.page-liste .site-header,
+body.page-a-propos .site-header,
+body.page-admin .site-header {
+    background-color: var(--paper-bg);
+    background-image: linear-gradient(var(--paper-overlay), var(--paper-overlay)), url('/paper.webp');
+    background-size: auto, 700px;
+    background-position: center, center;
+    border-bottom: 1px solid rgba(100, 60, 20, 0.18);
+    filter: var(--paper-filter);
+}
+
+body.page-recette .site-header {
+    margin-bottom: 0;
+    position: relative;
+    z-index: 2;
+}
+
+body.page-recette .site-footer,
+body.page-liste .site-footer,
+body.page-a-propos .site-footer,
+body.page-admin .site-footer {
+    background-color: var(--paper-bg);
+    background-image: linear-gradient(var(--paper-overlay), var(--paper-overlay)), url('/paper.webp');
+    background-size: auto, 700px;
+    background-position: center, center;
+    border-top: 1px solid rgba(100, 60, 20, 0.18);
+    filter: var(--paper-filter);
+}
+
+/* ── Page liste ─────────────────────────────────────────── */
+body.page-liste .page-content {
+    margin: 2vh 4vw;
+    padding: 0;
+    filter: var(--paper-filter);
+}
+
+#liste-paper {
+    background-color: var(--paper-bg);
+    background-image: linear-gradient(var(--paper-overlay), var(--paper-overlay)), url('/paper.webp');
+    background-size: auto, 700px;
+    background-position: center, center;
+    padding: 2rem clamp(1.2rem, 2.5vw, 2.8rem) 3rem;
+    clip-path: polygon(
+        0.5% 2px,  18% 0px,                40% 4px,               62% 0px,                82% 2px,               99.3% 3px,
+        100% 18%,  99.6% 40%,              100% 62%,              99.7% 82%,              99.4% calc(100% - 3px),
+        82% 100%,  60% calc(100% - 2px),   38% 100%,              18% calc(100% - 3px),    0.6% calc(100% - 4px),
+        0% 82%,    0.3% 60%,               0% 38%,                0.2% 18%
+    );
+}
+
+body.page-liste .card {
+    background: transparent !important;
+    border-color: rgba(100, 60, 20, 0.18) !important;
+    box-shadow: none !important;
+}
+
+body.page-liste .card-header {
+    background: transparent !important;
+    border-bottom-color: rgba(100, 60, 20, 0.12) !important;
+}
+
+body.page-liste .card-body,
+body.page-liste .card-footer {
+    background: transparent !important;
+}
+
+body.page-liste .card-footer {
+    border-top-color: rgba(100, 60, 20, 0.1) !important;
+}
+
+body.page-liste .recipe-list-item .border-bottom {
+    border-bottom-color: rgba(100, 60, 20, 0.15) !important;
+}
+
+/* ── Page a-propos ───────────────────────────────────────── */
+body.page-a-propos .page-content {
+    margin: 2vh 4vw;
+    padding: 0;
+    filter: var(--paper-filter);
+}
+
+#apropos-paper {
+    background-color: var(--paper-bg);
+    background-image: linear-gradient(var(--paper-overlay), var(--paper-overlay)), url('/paper.webp');
+    background-size: auto, 700px;
+    background-position: center, center;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3.5rem);
+    clip-path: polygon(
+        0.5% 2px,  18% 0px,                40% 4px,               62% 0px,                82% 2px,               99.3% 3px,
+        100% 18%,  99.6% 40%,              100% 62%,              99.7% 82%,              99.4% calc(100% - 3px),
+        82% 100%,  60% calc(100% - 2px),   38% 100%,              18% calc(100% - 3px),    0.6% calc(100% - 4px),
+        0% 82%,    0.3% 60%,               0% 38%,                0.2% 18%
+    );
+}
+
+/* ── Page admin ──────────────────────────────────────────── */
+body.page-admin .page-content {
+    margin: 2vh 4vw;
+    padding: 0;
+    filter: var(--paper-filter);
+}
+
+#admin-paper {
+    background-color: var(--paper-bg);
+    background-image: linear-gradient(var(--paper-overlay), var(--paper-overlay)), url('/paper.webp');
+    background-size: auto, 700px;
+    background-position: center, center;
+    padding: 2rem clamp(1.2rem, 2.5vw, 2.8rem) 3rem;
+    clip-path: polygon(
+        0.5% 2px,  18% 0px,                40% 4px,               62% 0px,                82% 2px,               99.3% 3px,
+        100% 18%,  99.6% 40%,              100% 62%,              99.7% 82%,              99.4% calc(100% - 3px),
+        82% 100%,  60% calc(100% - 2px),   38% 100%,              18% calc(100% - 3px),    0.6% calc(100% - 4px),
+        0% 82%,    0.3% 60%,               0% 38%,                0.2% 18%
+    );
+}
+
+body.page-admin .card {
+    background: transparent !important;
+    border-color: rgba(100, 60, 20, 0.18) !important;
+    box-shadow: none !important;
+}
+
+body.page-admin .card-header {
+    background: transparent !important;
+    border-bottom-color: rgba(100, 60, 20, 0.12) !important;
+}
+
+body.page-admin .card-body,
+body.page-admin .card-footer {
+    background: transparent !important;
+}
+
+body.page-admin .card-footer {
+    border-top-color: rgba(100, 60, 20, 0.1) !important;
+}
+
+body.page-admin .list-group-item {
+    background: transparent !important;
+    border-color: rgba(100, 60, 20, 0.15) !important;
+}
+
+html:not(.style-flat) #glossaryModal .modal-content {
+    background-color: var(--paper-bg);
+    background-image: linear-gradient(var(--paper-overlay), var(--paper-overlay)), url('/paper.webp');
+    background-size: auto, 700px;
+    background-position: center, center;
+}
+
+#kitchen-scene {
+    padding: 2.5vh 0 3vh;
+    position: relative;
+    background-image: linear-gradient(var(--wood-overlay), var(--wood-overlay)), url('/wood-table.webp');
+    background-repeat: repeat;
+    background-size: auto, 512px;
+    min-height: 60vh;
+}
+
+#card-wrap {
+    position: relative;
+    z-index: 1;
+    width: min(1100px, 92vw);
+    margin: 0 auto;
+    filter: var(--paper-filter);
+}
+
+#recipe-paper {
+    background: var(--paper-bg) url('/paper.webp') center / 700px;
+    padding: clamp(1.5rem, 3vw, 3rem) clamp(1.2rem, 2.5vw, 2.8rem);
+    position: relative;
+    clip-path: polygon(
+        0.5% 0.3%, 18% 0%,   40% 0.4%, 62% 0%,   82% 0.2%, 99.3% 0.5%,
+        100% 18%,  99.6% 40%, 100% 62%, 99.7% 82%, 99.4% 99.3%,
+        82% 100%,  60% 99.6%, 38% 100%, 18% 99.7%, 0.6% 99.4%,
+        0% 82%,    0.3% 60%,  0% 38%,   0.2% 18%
+    );
+}
+
+/* Voile blanc pour éclaircir la texture */
+#recipe-paper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--paper-overlay);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Tout le contenu doit passer au-dessus du voile */
+#recipe-paper > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Cartes de contenu (phases, notes) — transparentes, sur le papier */
+#recipe-paper .card:not(:has(.photo-thumb)) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#recipe-paper .card-header {
+    background: transparent !important;
+    border-bottom-color: rgba(100, 60, 20, 0.15) !important;
+}
+
+#recipe-paper .card-body {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+#recipe-paper .list-group-item {
+    --bs-list-group-bg: transparent;
+    background-color: transparent !important;
+}
+
+/* Carte photo — on garde le fond blanc (effet polaroid) */
+#recipe-paper .card:has(.photo-thumb) {
+    background: white !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+/* ── Style plat (toggle cuisine ↔ flat) ─────────────────── */
+body:not(.page-recette):not(.page-liste):not(.page-a-propos):not(.page-admin) #style-toggle {
+    display: none;
+}
+
+html.style-flat body.page-recette,
+html.style-flat body.page-liste,
+html.style-flat body.page-a-propos,
+html.style-flat body.page-admin {
+    background-image: none;
+    background-color: var(--flat-body-bg);
+}
+
+html.style-flat body.page-recette .site-header,
+html.style-flat body.page-liste .site-header,
+html.style-flat body.page-a-propos .site-header,
+html.style-flat body.page-admin .site-header {
+    background-color: var(--flat-surface);
+    background-image: none;
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    filter: none;
+    margin-bottom: 1.5rem;
+}
+
+html.style-flat body.page-recette .site-footer,
+html.style-flat body.page-liste .site-footer,
+html.style-flat body.page-a-propos .site-footer,
+html.style-flat body.page-admin .site-footer {
+    background-color: var(--flat-surface);
+    background-image: none;
+    border-top-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+    filter: none;
+}
+
+html.style-flat #kitchen-scene {
+    background-image: none;
+    background-color: transparent;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: clamp(1rem, 3vw, 3rem);
+    padding-right: clamp(1rem, 3vw, 3rem);
+}
+
+html.style-flat #card-wrap {
+    filter: none;
+}
+
+html.style-flat #recipe-paper {
+    background: transparent;
+    clip-path: none;
+    padding: 0;
+}
+
+html.style-flat #recipe-paper::before {
+    display: none;
+}
+
+html.style-flat body.page-liste .page-content,
+html.style-flat body.page-a-propos .page-content,
+html.style-flat body.page-admin .page-content {
+    margin: 0;
+    filter: none;
+    padding-left: clamp(1rem, 3vw, 3rem);
+    padding-right: clamp(1rem, 3vw, 3rem);
+}
+
+html.style-flat #liste-paper,
+html.style-flat #apropos-paper,
+html.style-flat #admin-paper {
+    background-color: transparent;
+    background-image: none;
+    clip-path: none;
+    padding: 0;
+}
+
+html.style-flat body.page-liste .card {
+    background-color: var(--flat-surface) !important;
+    border-color: rgba(0, 0, 0, 0.125) !important;
+    box-shadow: none !important;
+}
+
+html.style-flat body.page-liste .card-header {
+    background: transparent !important;
+    border-bottom-color: rgba(0, 0, 0, 0.125) !important;
+}
+
+html.style-flat body.page-liste .card-body,
+html.style-flat body.page-liste .card-footer {
+    background: transparent !important;
+}
+
+html.style-flat body.page-liste .card-footer {
+    border-top-color: rgba(0, 0, 0, 0.125) !important;
+}
+
+html.style-flat body.page-liste .recipe-list-item .border-bottom {
+    border-bottom-color: rgba(0, 0, 0, 0.125) !important;
+}
+
+html.style-flat body.page-admin .card {
+    background-color: var(--flat-surface) !important;
+    border-color: rgba(0, 0, 0, 0.125) !important;
+    box-shadow: none !important;
+}
+
+html.style-flat body.page-admin .card-header {
+    background: transparent !important;
+    border-bottom-color: rgba(0, 0, 0, 0.125) !important;
+}
+
+html.style-flat body.page-admin .card-body,
+html.style-flat body.page-admin .card-footer {
+    background: transparent !important;
+}
+
+html.style-flat body.page-admin .card-footer {
+    border-top-color: rgba(0, 0, 0, 0.125) !important;
+}
+
+html.style-flat body.page-admin .list-group-item {
+    background-color: var(--flat-surface) !important;
+    border-color: rgba(0, 0, 0, 0.125) !important;
 }

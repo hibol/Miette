@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cuisine virtuelle</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Klee+One&family=Caveat:wght@400;600&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+      font-family: 'Klee One', serif;
+    }
+
+    /* ── Table ─────────────────────────────────────── */
+    #table-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('Seamless-Wood-Texture-5-1024x768.jpg');
+      background-repeat: repeat;
+      background-size: 512px;
+      z-index: 0;
+    }
+
+    #light-beam {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      transition: background 2s ease;
+    }
+
+    #scene {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100vh;
+    }
+
+    /* ── Grande carte recette ───────────────────────── */
+    #card-wrap {
+      position: absolute;
+      top: 4vh;
+      left: 4vw;
+      width: 63vw;
+      min-height: 90vh;
+    }
+
+    #recipe-card {
+      background: #f5ede0;
+      padding: clamp(1.8rem, 3vw, 3rem) clamp(1.5rem, 2.5vw, 2.8rem);
+      min-height: 90vh;
+      position: relative;
+      /* Bords légèrement irréguliers */
+      clip-path: polygon(
+        0.5% 0.3%, 18% 0%,   40% 0.4%, 62% 0%,   82% 0.2%, 99.3% 0.5%,
+        100% 18%,  99.6% 40%, 100% 62%, 99.7% 82%, 99.4% 99.3%,
+        82% 100%,  60% 99.6%, 38% 100%, 18% 99.7%, 0.6% 99.4%,
+        0% 82%,    0.3% 60%,  0% 38%,   0.2% 18%
+      );
+    }
+
+    /* Grain papier */
+    #recipe-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C%2Fsvg%3E");
+      background-size: 200px;
+      opacity: 0.07;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .recipe-title {
+      font-size: clamp(1.6rem, 2.8vw, 2.6rem);
+      color: #2d1a08;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+    }
+
+    .recipe-meta {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(0.85rem, 1.1vw, 1rem);
+      color: rgba(90,58,18,0.55);
+      margin-top: 0.3rem;
+    }
+
+    .recipe-divider {
+      border: none;
+      border-top: 1px solid rgba(100,60,20,0.18);
+      margin: 1rem 0 1.5rem;
+    }
+
+    .recipe-body {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: clamp(1.5rem, 4vw, 4rem);
+      align-items: start;
+    }
+
+    .section-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(80,50,15,0.55);
+      margin-bottom: 1rem;
+    }
+
+    .ingredient-item {
+      font-size: clamp(0.82rem, 1.05vw, 1rem);
+      color: #4a2e10;
+      line-height: 2;
+      display: flex;
+      gap: 0.5rem;
+      align-items: baseline;
+    }
+
+    .ingredient-item::before {
+      content: '–';
+      color: rgba(120,75,25,0.35);
+      flex-shrink: 0;
+    }
+
+    .step-item {
+      font-size: clamp(0.82rem, 1.05vw, 1rem);
+      color: #4a2e10;
+      line-height: 1.65;
+      margin-bottom: 0.85rem;
+      padding-left: 1.8em;
+      position: relative;
+    }
+
+    .step-num {
+      position: absolute;
+      left: 0;
+      color: rgba(120,75,25,0.4);
+      font-family: 'Caveat', cursive;
+      font-size: 1em;
+      line-height: inherit;
+    }
+
+    .recipe-tags {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(100,60,20,0.1);
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-size: 0.78rem;
+      color: #2a6b62;
+      background: rgba(84,159,147,0.13);
+      border: 1px solid rgba(84,159,147,0.32);
+      border-radius: 20px;
+      padding: 0.18em 0.75em;
+    }
+
+    /* ── Polaroid ───────────────────────────────────── */
+    .polaroid {
+      position: absolute;
+      background: #faf6f0;
+      padding: 8px 8px 36px;
+      width: clamp(130px, 12vw, 175px);
+    }
+
+    .polaroid-img {
+      width: 100%;
+      aspect-ratio: 1;
+      background: #b8956a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+    }
+
+    .polaroid-caption {
+      font-family: 'Caveat', cursive;
+      font-size: 0.88rem;
+      text-align: center;
+      color: #4a3020;
+      padding-top: 7px;
+    }
+
+    /* ── Post-it ────────────────────────────────────── */
+    .postit {
+      position: absolute;
+      background: #d3b99f; /* --tan */
+      padding: 1rem 0.9rem 0.9rem;
+      width: clamp(150px, 14vw, 190px);
+      font-family: 'Klee One', serif;
+      font-size: clamp(0.88rem, 1vw, 1rem);
+      color: #2d1a08;
+      line-height: 1.6;
+    }
+
+    .postit::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 5px;
+      background: #c17767; /* --dusty-rose */
+    }
+
+    /* ── Heure ──────────────────────────────────────── */
+    .time-display {
+      position: fixed;
+      bottom: 1rem;
+      right: 1.2rem;
+      z-index: 10;
+      font-family: 'Caveat', cursive;
+      font-size: 0.82rem;
+      color: rgba(255,240,200,0.55);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Filtres SVG (ombres dynamiques) -->
+  <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <defs>
+      <filter id="shadow-card" x="-6%" y="-3%" width="118%" height="112%">
+        <feDropShadow id="dsCard" dx="8" dy="10" stdDeviation="2" flood-color="rgba(20,8,2,0.65)"/>
+      </filter>
+      <filter id="shadow-pola1" x="-18%" y="-12%" width="160%" height="150%">
+        <feDropShadow id="dsPola1" dx="6" dy="8" stdDeviation="1.5" flood-color="rgba(20,8,2,0.6)"/>
+      </filter>
+      <filter id="shadow-pola2" x="-18%" y="-12%" width="160%" height="150%">
+        <feDropShadow id="dsPola2" dx="6" dy="8" stdDeviation="1.5" flood-color="rgba(20,8,2,0.6)"/>
+      </filter>
+      <filter id="shadow-note" x="-18%" y="-12%" width="160%" height="150%">
+        <feDropShadow id="dsNote" dx="6" dy="8" stdDeviation="1.5" flood-color="rgba(20,8,2,0.5)"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <div id="table-bg"></div>
+  <div id="light-beam"></div>
+
+  <div id="scene">
+
+    <!-- Carte recette principale -->
+    <div id="card-wrap" style="filter: url(#shadow-card);">
+      <div id="recipe-card">
+        <div class="card-content">
+
+          <h1 class="recipe-title">Pain de campagne</h1>
+          <div class="recipe-meta">levain naturel · fermentation longue</div>
+          <hr class="recipe-divider">
+
+          <div class="recipe-body">
+            <div>
+              <div class="section-title">Ingrédients</div>
+              <div class="ingredient-item">500 g farine T65</div>
+              <div class="ingredient-item">350 ml eau</div>
+              <div class="ingredient-item">100 g levain actif</div>
+              <div class="ingredient-item">10 g sel</div>
+            </div>
+            <div>
+              <div class="section-title">Préparation</div>
+              <div class="step-item"><span class="step-num">1.</span>Autolyse 45 min — mélanger farine et eau, laisser reposer couvert.</div>
+              <div class="step-item"><span class="step-num">2.</span>Incorporer le levain actif puis le sel. Mélanger vigoureusement.</div>
+              <div class="step-item"><span class="step-num">3.</span>Rabats toutes les 30 min × 4. La pâte doit devenir lisse et élastique.</div>
+              <div class="step-item"><span class="step-num">4.</span>Façonnage. Placer en banneton fariné. Couvrir et réfrigérer 12 h.</div>
+              <div class="step-item"><span class="step-num">5.</span>Préchauffer four + cocotte à 240 °C. Cuire 20 min couvert, 25 min découvert.</div>
+            </div>
+          </div>
+
+          <div class="recipe-tags">
+            <span class="tag">levain</span>
+            <span class="tag">rustique</span>
+            <span class="tag">fermentation longue</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Polaroid 1 -->
+    <div class="polaroid" style="top:7vh; left:67vw; transform:rotate(-5deg); filter:url(#shadow-pola1);">
+      <div class="polaroid-img">🍞</div>
+      <div class="polaroid-caption">sortie du four</div>
+    </div>
+
+    <!-- Polaroid 2 -->
+    <div class="polaroid" style="top:44vh; left:70vw; transform:rotate(3.5deg); filter:url(#shadow-pola2);">
+      <div class="polaroid-img">🌾</div>
+      <div class="polaroid-caption">alvéolage ✓</div>
+    </div>
+
+    <!-- Post-it -->
+    <div class="postit" style="top:73vh; left:64vw; transform:rotate(-2.5deg); filter:url(#shadow-note);">
+      Essayer avec 10% de seigle.<br>
+      Croûte parfaite à 240° vapeur.<br><br>
+      <span style="color:#5a8a50">✓ approuvé !</span>
+    </div>
+
+  </div>
+
+  <div class="time-display" id="time-label"></div>
+
+  <script>
+  (function () {
+    const beam  = document.getElementById('light-beam');
+    const label = document.getElementById('time-label');
+    const now   = new Date();
+    const h     = now.getHours() + now.getMinutes() / 60;
+
+    const phases = [
+      { start:0,  end:6,  overlay:'rgba(10,5,2,0.62)',      beam:'rgba(0,0,0,0)',          name:'nuit'        },
+      { start:6,  end:9,  overlay:'rgba(180,100,20,0.18)',   beam:'rgba(255,185,90,0.28)',  name:'matin'       },
+      { start:9,  end:12, overlay:'rgba(180,140,60,0.08)',   beam:'rgba(255,220,140,0.15)', name:'matinée'     },
+      { start:12, end:15, overlay:'rgba(255,240,200,0.04)',  beam:'rgba(255,235,180,0.06)', name:'midi'        },
+      { start:15, end:18, overlay:'rgba(160,90,10,0.1)',     beam:'rgba(255,160,60,0.22)',  name:'après-midi'  },
+      { start:18, end:21, overlay:'rgba(100,30,5,0.28)',     beam:'rgba(180,60,10,0.3)',    name:'soir'        },
+      { start:21, end:24, overlay:'rgba(20,8,2,0.55)',       beam:'rgba(0,0,0,0)',          name:'nuit tombée' },
+    ];
+
+    let phase = phases[3];
+    for (const p of phases) { if (h >= p.start && h < p.end) { phase = p; break; } }
+
+    function shadowForHour(h) {
+      const t    = Math.max(0, Math.min(1, (h - 6) / 12));
+      const dx   = Math.round(12 - 16 * Math.sin(t * Math.PI));
+      const dy   = Math.round(2  +  6 * Math.sin(t * Math.PI));
+      const blur = (h < 6 || h >= 21) ? 4   : 1.5;
+      const op   = (h < 6 || h >= 21) ? 0.4 : 0.65;
+      return { dx, dy, blur, op };
+    }
+
+    const sh = shadowForHour(h);
+    const col = `rgba(20,8,2,${sh.op})`;
+
+    ['dsCard','dsPola1','dsPola2','dsNote'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.setAttribute('dx', sh.dx);
+      el.setAttribute('dy', sh.dy);
+      el.setAttribute('stdDeviation', sh.blur);
+      el.setAttribute('flood-color', col);
+    });
+
+    const bx = 10 + ((h % 12) / 12) * 70;
+    const by = h >= 12 ? 60 : 20;
+    beam.style.background =
+      `linear-gradient(rgba(0,0,0,0), ${phase.overlay}),` +
+      `radial-gradient(ellipse 65% 55% at ${bx}% ${by}%, ${phase.beam} 0%, transparent 70%)`;
+
+    label.textContent =
+      now.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' }) +
+      ' · ' + phase.name;
+  })();
+  </script>
+
+</body>
+</html>

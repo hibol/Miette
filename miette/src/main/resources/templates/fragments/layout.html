@@ -19,7 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Klee+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/styles.css}">
     <link rel="icon" type="image/svg+xml" th:href="@{/bocal_favicon.svg}">
-    <script>(function(){if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}());</script>
+    <script>(function(){if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');if(localStorage.getItem('style')==='flat')document.documentElement.classList.add('style-flat');}());</script>
     <meta name="google-site-verification" content="F2_xH7BhY_ZJzNYfrp9xrFbMEQ07d0YENyeBjb_gLd8">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">

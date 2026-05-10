@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head(${recipeTitle != null ? recipeTitle : 'Nouvelle recette'})}"></head>
-<body class="container-fluid px-0">
+<body class="container-fluid px-0 page-recette">
     <div th:replace="~{fragments/header :: site-header}"></div>
     <div th:replace="~{fragments/login-modal :: login-modal}"></div>
     <script th:if="${recipeJsonLd != null}" type="application/ld+json" th:utext="${recipeJsonLd}"></script>
 
     <div th:replace="~{fragments/cubo-preloader :: cubo-preloader}"></div>
-    <div class="page-content">
-    <div id="app"
-        th:data-recipe-id="${recipeId != null ? recipeId : ''}"
-        th:data-return-url="${returnUrl}"
-        th:data-edit-mode="${editMode}"
-        th:data-is-admin="${#authorization.expression('hasRole(''ADMIN'')')}"
-        th:data-standard-keywords="${standardKeywords}"
-        th:data-recipe="${recipeJson != null ? recipeJson : ''}">
-    </div>
-
+    <div class="page-content" id="kitchen-scene">
+        <div id="card-wrap">
+            <div id="recipe-paper">
+                <div id="app"
+                    th:data-recipe-id="${recipeId != null ? recipeId : ''}"
+                    th:data-return-url="${returnUrl}"
+                    th:data-edit-mode="${editMode}"
+                    th:data-is-admin="${#authorization.expression('hasRole(''ADMIN'')')}"
+                    th:data-standard-keywords="${standardKeywords}"
+                    th:data-recipe="${recipeJson != null ? recipeJson : ''}">
+                </div>
+            </div>
+        </div>
     </div><!-- fin page-content -->
     <div th:replace="~{fragments/footer :: site-footer}"></div>
     <div th:replace="~{fragments/layout :: scripts}"></div>
     <script type="module" src="/js/recipe.js"></script>
+
 </body>
 </html>

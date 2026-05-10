@@ -14,6 +14,9 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="style-toggle" title="Style">
+                    <i class="bi bi-palette-fill" id="style-icon"></i>
+                </button>
                 <button class="btn btn-sm btn-outline-secondary" id="theme-toggle" title="Thème">
                     <i class="bi bi-moon-fill" id="theme-icon"></i>
                 </button>
@@ -47,6 +50,19 @@
     </header>
 
     <script>
+        (function () {
+            const styleIcon = document.getElementById('style-icon');
+            function applyStyle(flat) {
+                document.documentElement.classList.toggle('style-flat', flat);
+                styleIcon.className = flat ? 'bi bi-palette' : 'bi bi-palette-fill';
+            }
+            applyStyle(document.documentElement.classList.contains('style-flat'));
+            document.getElementById('style-toggle').addEventListener('click', function () {
+                const flat = !document.documentElement.classList.contains('style-flat');
+                localStorage.setItem('style', flat ? 'flat' : 'cuisine');
+                applyStyle(flat);
+            });
+        }());
         (function () {
             const icon = document.getElementById('theme-icon');
             function applyTheme(dark) {

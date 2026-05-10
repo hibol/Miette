@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Chez Miette ?')}"></head>
-<body class="container-fluid px-0">
+<body class="container-fluid px-0 page-a-propos">
     <div th:replace="~{fragments/header :: site-header}"></div>
     <div th:replace="~{fragments/login-modal :: login-modal}"></div>
 
     <div class="page-content">
-        <div class="row justify-content-center" style="margin-top: 5vh; margin-bottom: 5vh;">
+    <div id="apropos-paper">
+        <div class="row justify-content-center">
             <div class="col-12 col-lg-4 order-2 order-lg-1 d-flex align-items-center justify-content-center mt-4 mt-lg-0">
                 <div th:replace="~{fragments/bocal_cuboctaedre :: bocal}" style="width:100%;"></div>
             </div>
@@ -19,6 +20,7 @@
                 </div>
             </div>
         </div>
+    </div><!-- fin apropos-paper -->
     </div>
 
     <div th:replace="~{fragments/footer :: site-footer}"></div>
