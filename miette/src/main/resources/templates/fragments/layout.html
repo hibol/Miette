@@ -9,6 +9,7 @@
     <meta property="og:type" content="website">
     <meta property="og:title" th:content="${title}">
     <meta property="og:url" th:if="${ogUrl != null}" th:content="${ogUrl}">
+    <link rel="canonical" th:if="${ogUrl != null}" th:href="${ogUrl}">
     <meta property="og:image" th:if="${ogImage != null}" th:content="${ogImage}">
     <meta property="og:image:type" th:if="${ogImage != null}" content="image/webp">
     <meta property="og:description" th:if="${ogDescription != null}" th:content="${ogDescription}">

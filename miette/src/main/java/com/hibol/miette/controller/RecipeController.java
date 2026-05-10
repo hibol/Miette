@@ -71,8 +71,12 @@ public class RecipeController {
         Map<Long, LocalDateTime> activityDates = recipes.stream()
                 .collect(Collectors.toMap(Recipe::getId, this::latestActivity));
 
+        String canonicalUrl = ServletUriComponentsBuilder.fromCurrentRequest()
+                .replacePath("/recettes").replaceQuery(null).build().toUriString();
+
         model.addAttribute("recipes", recipes);
         model.addAttribute("activityDates", activityDates);
+        model.addAttribute("ogUrl", canonicalUrl);
         model.addAttribute("query", q);
         model.addAttribute("resultCount", recipes.size());
         model.addAttribute("isSearchMode", q != null && !q.trim().isEmpty());
