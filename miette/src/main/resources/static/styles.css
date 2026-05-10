@@ -694,6 +694,13 @@ body.page-admin .list-group-item {
     border-color: rgba(100, 60, 20, 0.15) !important;
 }
 
+html:not(.style-flat) #glossaryModal .alphabet-mobile-bar {
+    background-color: var(--paper-bg);
+    background-image: linear-gradient(var(--paper-overlay), var(--paper-overlay)), url('/paper.webp');
+    background-size: auto, 700px;
+    background-position: center, center;
+}
+
 html:not(.style-flat) #glossaryModal .modal-content {
     background-color: var(--paper-bg);
     background-image: linear-gradient(var(--paper-overlay), var(--paper-overlay)), url('/paper.webp');
