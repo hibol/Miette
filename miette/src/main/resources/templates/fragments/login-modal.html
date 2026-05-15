@@ -20,7 +20,11 @@
                         <input type="password" id="modal-password" class="form-control">
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer d-flex flex-column gap-2 align-items-stretch">
+                    <div class="form-check ms-1">
+                        <input class="form-check-input" type="checkbox" id="modal-remember-me">
+                        <label class="form-check-label text-muted small" for="modal-remember-me">Se souvenir de moi (30 jours)</label>
+                    </div>
                     <button type="button" class="btn btn-verdigris w-100" id="modal-login-btn">
                         <i class="bi bi-box-arrow-in-right"></i> Se connecter
                     </button>
@@ -43,6 +47,9 @@
             const params = new URLSearchParams();
             params.append('username', username);
             params.append('password', password);
+            if (document.getElementById('modal-remember-me').checked) {
+                params.append('remember-me', 'on');
+            }
 
             const response = await fetch('/login', {
                 method: 'POST',
