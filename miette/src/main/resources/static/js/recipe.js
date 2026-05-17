@@ -279,6 +279,10 @@ createApp({
             pasteText.value = '';
         }
 
+        function sendToWidget() {
+            window.location.href = `miette://recette/${recipe.value.id}`;
+        }
+
         const copied = ref(false);
 
         function copyToClipboard() {
@@ -428,7 +432,7 @@ createApp({
             errors, validateDraft, getError, clearErrors,
             glossaryEnabled, glossaryTerms, glossaryLoading, glossaryGrouped, glossaryLetters,
             activeModalLetter, toggleGlossary, scrollToInModal,
-            copied, copyToClipboard,
+            sendToWidget, copied, copyToClipboard,
             pasteModalOpen, pasteText, pasteError, applyPasteText
         };
     },
@@ -680,6 +684,9 @@ createApp({
                         <div v-if="recipe.updatedAt">Modifié le {{ formatDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></div>
                     </div>
                     <div class="d-flex gap-2">
+                        <button v-if="isAdmin" @click="sendToWidget" v-tooltip data-bs-title="Envoyer au widget" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-phone"></i>
+                        </button>
                         <button @click="copyToClipboard" v-tooltip data-bs-title="Copier la recette" class="btn btn-outline-secondary btn-sm">
                             <i :class="copied ? 'bi bi-check2' : 'bi bi-clipboard'"></i>
                         </button>
@@ -728,6 +735,9 @@ createApp({
                             <div v-if="recipe.updatedAt">Modifié le {{ formatNoteDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></div>
                         </div>
                         <div class="d-flex gap-2">
+                            <button v-if="isAdmin" @click="sendToWidget" v-tooltip data-bs-title="Envoyer au widget" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-phone"></i>
+                            </button>
                             <button @click="copyToClipboard" v-tooltip data-bs-title="Copier la recette" class="btn btn-outline-secondary btn-sm">
                                 <i :class="copied ? 'bi bi-check2' : 'bi bi-clipboard'"></i>
                             </button>
