@@ -300,7 +300,8 @@ body > .page-content {
 .modal-dimmed    { background: rgba(0, 0, 0, 0.5); }
 
 /* Tags autocomplete */
-.tag-dropdown      { top: 100%; left: 0; z-index: 1000; min-width: 150px; }
+.tag-dropdown      { top: 100%; left: 0; z-index: 1000; min-width: 150px; background-color: white; border: 1px solid #dee2e6; }
+[data-theme="dark"] .tag-dropdown { background-color: var(--dark-surface-deep); border-color: rgba(255,255,255,0.2); }
 .tag-dropdown-item { cursor: pointer; font-size: 0.85rem; }
 
 /* Ingrédients */
@@ -702,7 +703,8 @@ html:not(.style-flat) #glossaryModal .alphabet-mobile-bar {
 }
 
 html:not(.style-flat) #glossaryModal .modal-content,
-html:not(.style-flat) #loginModal .modal-content {
+html:not(.style-flat) #loginModal .modal-content,
+html:not(.style-flat) #pasteModal .modal-content {
     background-color: var(--paper-bg);
     background-image: linear-gradient(var(--paper-overlay), var(--paper-overlay)), url('/paper.webp');
     background-size: auto, 700px;
@@ -710,7 +712,9 @@ html:not(.style-flat) #loginModal .modal-content {
 }
 
 html:not(.style-flat) #loginModal .modal-header,
-html:not(.style-flat) #loginModal .modal-footer {
+html:not(.style-flat) #loginModal .modal-footer,
+html:not(.style-flat) #pasteModal .modal-header,
+html:not(.style-flat) #pasteModal .modal-footer {
     border-color: rgba(100, 60, 20, 0.18);
 }
 

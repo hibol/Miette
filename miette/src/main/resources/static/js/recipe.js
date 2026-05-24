@@ -467,7 +467,7 @@ createApp({
                         <i class="bi bi-clipboard"></i>
                         <span class="d-none d-md-inline"> Coller depuis texte</span>
                     </button>
-                    <button v-if="editMode" @click="saveRecipe" :disabled="saving" class="btn btn-primary">
+                    <button v-if="editMode" @click="saveRecipe" :disabled="saving" class="btn btn-verdigris">
                         <span v-if="saving" v-cubo-spinner="{ color: '#fff' }" class="me-1"></span>
                         <i v-else class="bi bi-floppy"></i>
                         <span class="d-none d-md-inline">{{ saving ? ' Enregistrement...' : ' Enregistrer' }}</span>
@@ -476,8 +476,9 @@ createApp({
             </div>
 
             <!-- Modal coller depuis texte -->
-            <div v-if="pasteModalOpen" class="modal d-block modal-dimmed" tabindex="-1" @click.self="pasteModalOpen = false">
-                <div class="modal-dialog modal-lg">
+            <Teleport to="body">
+            <div v-if="pasteModalOpen" id="pasteModal" class="modal d-block modal-dimmed" tabindex="-1" @click.self="pasteModalOpen = false">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title"><i class="bi bi-clipboard"></i> Coller une recette</h5>
@@ -485,16 +486,17 @@ createApp({
                         </div>
                         <div class="modal-body">
                             <p class="text-muted small mb-2">Collez une recette au format exporté depuis ce site (copie presse-papier).</p>
-                            <textarea v-model="pasteText" class="form-control font-monospace" rows="14" placeholder="Tarte aux pommes&#10;&#10;Ingrédients :&#10;  • 200 g farine&#10;&#10;Étapes :&#10;  1. Mélanger..."></textarea>
+                            <textarea v-model="pasteText" class="form-control font-monospace" rows="8" placeholder="Quelque chose de bon&#10;&#10;Ingrédients :&#10;  • 200 g farine&#10;&#10;Étapes :&#10;  1. Mélanger..."></textarea>
                             <div v-if="pasteError" class="text-danger small mt-2">{{ pasteError }}</div>
                         </div>
                         <div class="modal-footer">
                             <button @click="pasteModalOpen = false" class="btn btn-outline-secondary">Annuler</button>
-                            <button @click="applyPasteText" class="btn btn-primary"><i class="bi bi-check-lg"></i> Importer</button>
+                            <button @click="applyPasteText" class="btn btn-verdigris"><i class="bi bi-check-lg"></i> Importer</button>
                         </div>
                     </div>
                 </div>
             </div>
+            </Teleport>
 
             <!-- Titre -->
             <h1 v-if="!editMode" class="mb-4">{{ recipe.title }}</h1>
@@ -588,14 +590,14 @@ createApp({
             <!-- Indicateurs -->
             <div v-if="!editMode && (hydration !== null || gluten !== null)" class="d-flex flex-wrap gap-3 mb-4">
                 <div v-if="hydration !== null" class="d-flex align-items-center gap-1">
-                    <span>Hydratation : </span>
+                    <span>Hydratation&nbsp;: </span>
                     <span>{{ hydration }}%</span>
                     <span class="text-verdigris">
                         <i class="bi bi-droplet-fill"></i>
                         <i v-if="hydration >= 70" class="bi bi-droplet-fill"></i>
                         <i v-if="hydration > 80" class="bi bi-droplet-fill"></i>
                     </span>
-                    <span v-if="hydrationApprox" class="text-muted small ms-1">(farine et liquide uniquement)</span>
+                    <span v-if="hydrationApprox" class="text-muted small ms-1">(farine et liquide)</span>
                 </div>
                 <div v-if="ajouts" class="d-flex align-items-center gap-1">
                     <i class="bi bi-plus-circle-fill text-verdigris"></i>
