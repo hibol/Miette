@@ -36,6 +36,9 @@ public class Recipe {
 
     @Column(nullable = true)
     private String updatedBy;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean archived = false;
     
     // Relations
     @IndexedEmbedded

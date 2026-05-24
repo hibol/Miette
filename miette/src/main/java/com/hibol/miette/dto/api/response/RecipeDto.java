@@ -12,6 +12,7 @@ public record RecipeDto (
     String createdBy,
     LocalDateTime updatedAt,
     String updatedBy,
+    boolean archived,
     List<String> tags,
     @Valid List<PhaseDto> phases,
     List<AssetDto> assets

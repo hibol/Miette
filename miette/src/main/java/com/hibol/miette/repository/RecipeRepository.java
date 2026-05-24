@@ -22,6 +22,18 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
         ORDER BY r.title ASC
         """)
     List<Recipe> findAllWithDetails();
+
+    @Query("""
+        SELECT DISTINCT r FROM Recipe r
+        LEFT JOIN FETCH r.tags rt
+        LEFT JOIN FETCH rt.tag
+        LEFT JOIN FETCH r.phases p
+        LEFT JOIN FETCH p.ingredientPhases ip
+        LEFT JOIN FETCH ip.ingredient
+        WHERE r.archived = false
+        ORDER BY r.title ASC
+        """)
+    List<Recipe> findAllNonArchivedWithDetails();
     
     // For search results, we only want the matching recipes with their details
     @Query("""

@@ -73,6 +73,13 @@ public class RecipeWriteService {
     }
 
     @Transactional
+    public void setArchived(Long id, boolean archived) {
+        Recipe recipe = recipeRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
+        recipe.setArchived(archived);
+        recipeRepo.save(recipe);
+    }
+
     public void delete(Long id) {
         Recipe recipe = recipeRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));

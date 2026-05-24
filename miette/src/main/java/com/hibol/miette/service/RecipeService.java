@@ -35,6 +35,10 @@ public class RecipeService {
         return recipeRepo.findAllWithDetails();
     }
 
+    public List<Recipe> findAllNonArchivedWithDetails() {
+        return recipeRepo.findAllNonArchivedWithDetails();
+    }
+
     private static final Pattern QUOTED_PHRASE = Pattern.compile("[\"\\u201C\\u201D]([^\"\\u201C\\u201D]+)[\"\\u201C\\u201D]");
 
     public List<Recipe> search(String query) {

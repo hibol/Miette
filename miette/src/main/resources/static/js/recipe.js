@@ -157,6 +157,7 @@ createApp({
         const error = ref(null);
         const isAdmin = ref(false);
         const editMode = ref(false);
+        const archiving = ref(false);
         const draft = ref(null);
         const availableTags = ref([]);
         const newTag = ref('');
@@ -405,6 +406,25 @@ createApp({
             }
         }
 
+        async function toggleArchive() {
+            const willArchive = !recipe.value.archived;
+            if (willArchive && !confirm('Archiver cette recette ? Elle ne sera plus visible des visiteurs.')) return;
+            archiving.value = true;
+            const csrf = document.querySelector('meta[name="_csrf"]').content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            const action = willArchive ? 'archive' : 'unarchive';
+            const response = await fetch(`/api/recipes/${recipe.value.id}/${action}`, {
+                method: 'PATCH',
+                headers: { [csrfHeader]: csrf }
+            });
+            if (response.ok) {
+                recipe.value.archived = willArchive;
+            } else {
+                alert('Erreur lors de l\'archivage');
+            }
+            archiving.value = false;
+        }
+
         async function deleteRecipe() {
             if (!confirm('⚠️ Confirmer la suppression ?')) return;
             const csrf = document.querySelector('meta[name="_csrf"]').content;
@@ -425,7 +445,7 @@ createApp({
             returnUrl, availableTags, filteredTags, newTag,
             photos, currentPhotoIndex, prevPhoto, nextPhoto,
             noteAssets, isSinglePhase, hydration, hydrationApprox, ajouts, gluten, nextTempKey, formatQuantity, capitalize, formatDate,
-            startEdit, cancelEdit, saveRecipe, deleteRecipe,
+            startEdit, cancelEdit, saveRecipe, deleteRecipe, toggleArchive, archiving,
             addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
             uploadingPhoto, handleFileChange, setCover, lightboxOpen,
@@ -458,6 +478,10 @@ createApp({
                     <button v-if="!editMode && isAdmin" @click="startEdit" class="btn btn-success">
                         <i class="bi bi-pencil"></i>
                         <span class="d-none d-md-inline"> Modifier</span>
+                    </button>
+                    <button v-if="!editMode && isAdmin" @click="toggleArchive" :disabled="archiving" class="btn btn-outline-secondary">
+                        <i :class="recipe.archived ? 'bi bi-archive-fill' : 'bi bi-archive'"></i>
+                        <span class="d-none d-md-inline">{{ recipe.archived ? ' Désarchiver' : ' Archiver' }}</span>
                     </button>
                     <button v-if="!editMode && isAdmin" @click="deleteRecipe" class="btn btn-danger">
                         <i class="bi bi-trash"></i>

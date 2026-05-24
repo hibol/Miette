@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.hibol.miette.entity.Asset;
 import com.hibol.miette.entity.IngredientPhase;
@@ -56,11 +57,22 @@ public class RecipeController {
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(required = false) String withNotes,
                        @RequestParam(required = false) String withPhotos,
+                       @RequestParam(required = false) String withArchived,
+                       Authentication auth,
                        Model model) {
+
+        boolean isAdmin = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         List<Recipe> recipes = new ArrayList<>((q != null && !q.trim().isEmpty())
                 ? recipeService.search(q.trim())
                 : recipeService.findAllWithDetails());
+
+        if (!isAdmin || withArchived == null) {
+            recipes = recipes.stream().filter(r -> !r.isArchived()).collect(Collectors.toList());
+        } else {
+            recipes = recipes.stream().filter(Recipe::isArchived).collect(Collectors.toList());
+        }
 
         boolean filterNotes = withNotes != null;
         if (filterNotes) recipes = recipeService.filterByAssetType(recipes, Asset.AssetType.NOTE);
@@ -82,6 +94,8 @@ public class RecipeController {
         model.addAttribute("isSearchMode", q != null && !q.trim().isEmpty());
         model.addAttribute("withNotes", filterNotes);
         model.addAttribute("withPhotos", filterPhotos);
+        model.addAttribute("withArchived", withArchived != null);
+        model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("storagePublicUrl", storagePublicUrl);
 
         return "liste";
@@ -99,8 +113,11 @@ public class RecipeController {
     }
 
     @GetMapping("/recette/{id}")
-    public String detail(@PathVariable Long id, @RequestParam(required = false) String edit, HttpServletRequest request, Model model) throws JsonProcessingException {
+    public String detail(@PathVariable Long id, @RequestParam(required = false) String edit, HttpServletRequest request, Authentication auth, Model model) throws JsonProcessingException {
+        boolean isAdmin = auth != null && auth.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         Recipe recipe = recipeService.findByIdWithDetails(id)
+            .filter(r -> isAdmin || !r.isArchived())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
 
         String referer = request.getHeader("Referer");

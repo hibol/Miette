@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.core.Authentication;
+
 import java.util.List;
 
 @RestController
@@ -29,22 +31,40 @@ public class RecipeApiController {
 
     @GetMapping
     @PreAuthorize("permitAll()")
-    public List<RecipeDto> list(@RequestParam(required = false) String q) {
+    public List<RecipeDto> list(@RequestParam(required = false) String q, Authentication auth) {
+        boolean isAdmin = auth != null && auth.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         var recipes = (q != null && !q.trim().isEmpty())
             ? recipeService.search(q.trim())
-            : recipeService.findAllWithDetails();
-        return recipes.stream()
-            .map(recipeMapper::toDto)
-            .toList();
+            : (isAdmin ? recipeService.findAllWithDetails() : recipeService.findAllNonArchivedWithDetails());
+        if (!isAdmin && q != null && !q.trim().isEmpty()) {
+            recipes = recipes.stream().filter(r -> !r.isArchived()).toList();
+        }
+        return recipes.stream().map(recipeMapper::toDto).toList();
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<RecipeDto> get(@PathVariable Long id) {
+    public ResponseEntity<RecipeDto> get(@PathVariable Long id, Authentication auth) {
+        boolean isAdmin = auth != null && auth.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         return recipeService.findByIdWithDetails(id)
+            .filter(r -> isAdmin || !r.isArchived())
             .map(recipeMapper::toDto)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{id}/archive")
+    public ResponseEntity<Void> archive(@PathVariable Long id) {
+        recipeWriteService.setArchived(id, true);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/unarchive")
+    public ResponseEntity<Void> unarchive(@PathVariable Long id) {
+        recipeWriteService.setArchived(id, false);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
