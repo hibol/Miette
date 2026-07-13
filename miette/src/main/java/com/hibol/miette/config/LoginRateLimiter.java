@@ -1,33 +1,38 @@
 package com.hibol.miette.config;
 
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
 import org.springframework.stereotype.Component;
 
-import java.util.Deque;
+import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Component
 public class LoginRateLimiter {
 
     private static final int MAX_ATTEMPTS = 10;
-    private static final long WINDOW_MS = 15 * 60 * 1000L;
+    private static final Duration WINDOW = Duration.ofMinutes(15);
 
-    private final ConcurrentHashMap<String, Deque<Long>> attempts = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
 
     public boolean isBlocked(String ip) {
-        Deque<Long> timestamps = attempts.get(ip);
-        if (timestamps == null) return false;
-        long cutoff = System.currentTimeMillis() - WINDOW_MS;
-        timestamps.removeIf(t -> t < cutoff);
-        return timestamps.size() >= MAX_ATTEMPTS;
+        Bucket bucket = buckets.computeIfAbsent(ip, k -> newBucket());
+        return bucket.getAvailableTokens() <= 0;
     }
 
     public void recordFailure(String ip) {
-        attempts.computeIfAbsent(ip, k -> new ConcurrentLinkedDeque<>())
-                .addLast(System.currentTimeMillis());
+        buckets.computeIfAbsent(ip, k -> newBucket()).tryConsume(1);
     }
 
     public void reset(String ip) {
-        attempts.remove(ip);
+        buckets.remove(ip);
+    }
+
+    private Bucket newBucket() {
+        Bandwidth limit = Bandwidth.builder()
+                .capacity(MAX_ATTEMPTS)
+                .refillIntervally(MAX_ATTEMPTS, WINDOW)
+                .build();
+        return Bucket.builder().addLimit(limit).build();
     }
 }
