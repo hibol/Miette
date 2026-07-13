@@ -4,6 +4,7 @@ import com.hibol.miette.dto.api.response.RecipeDto;
 import com.hibol.miette.entity.Recipe;
 import com.hibol.miette.entity.Tag;
 import com.hibol.miette.mapper.RecipeMapper;
+import com.hibol.miette.security.SecurityUtils;
 import com.hibol.miette.service.RecipeService;
 import com.hibol.miette.repository.TagRepository;
 import com.hibol.miette.service.RecipeWriteService;
@@ -32,8 +33,7 @@ public class RecipeApiController {
     @GetMapping
     @PreAuthorize("permitAll()")
     public List<RecipeDto> list(@RequestParam(required = false) String q, Authentication auth) {
-        boolean isAdmin = auth != null && auth.getAuthorities().stream()
-            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isAdmin = SecurityUtils.isAdmin(auth);
         var recipes = (q != null && !q.trim().isEmpty())
             ? recipeService.search(q.trim())
             : (isAdmin ? recipeService.findAllWithDetails() : recipeService.findAllNonArchivedWithDetails());
@@ -46,8 +46,7 @@ public class RecipeApiController {
     @GetMapping("/{id}")
     @PreAuthorize("permitAll()")
     public ResponseEntity<RecipeDto> get(@PathVariable Long id, Authentication auth) {
-        boolean isAdmin = auth != null && auth.getAuthorities().stream()
-            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isAdmin = SecurityUtils.isAdmin(auth);
         return recipeService.findByIdWithDetails(id)
             .filter(r -> isAdmin || !r.isArchived())
             .map(recipeMapper::toDto)

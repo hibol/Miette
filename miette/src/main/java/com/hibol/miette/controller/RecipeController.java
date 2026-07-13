@@ -26,6 +26,7 @@ import com.hibol.miette.entity.Phase;
 import com.hibol.miette.entity.Recipe;
 import com.hibol.miette.entity.Step;
 import com.hibol.miette.mapper.RecipeMapper;
+import com.hibol.miette.security.SecurityUtils;
 import com.hibol.miette.service.AppSettingService;
 import com.hibol.miette.service.RecipeService;
 
@@ -61,8 +62,7 @@ public class RecipeController {
                        Authentication auth,
                        Model model) {
 
-        boolean isAdmin = auth != null && auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isAdmin = SecurityUtils.isAdmin(auth);
 
         List<Recipe> recipes = new ArrayList<>((q != null && !q.trim().isEmpty())
                 ? recipeService.search(q.trim())
@@ -114,8 +114,7 @@ public class RecipeController {
 
     @GetMapping("/recette/{id}")
     public String detail(@PathVariable Long id, @RequestParam(required = false) String edit, HttpServletRequest request, Authentication auth, Model model) throws JsonProcessingException {
-        boolean isAdmin = auth != null && auth.getAuthorities().stream()
-            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isAdmin = SecurityUtils.isAdmin(auth);
         Recipe recipe = recipeService.findByIdWithDetails(id)
             .filter(r -> isAdmin || !r.isArchived())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recette introuvable"));
