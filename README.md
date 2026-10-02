@@ -101,7 +101,17 @@ A personal Spring Boot web application for managing and browsing sourdough recip
 
 - Java 17+
 - Maven (or use the included `./mvnw` wrapper)
-- MySQL instance (local or remote)
+- Docker (MinIO, and the local database below)
+- MySQL 8, same engine as production. MariaDB 11+ is not supported: it no longer
+  reports a MySQL-compatible version, and `mysql-connector-j` then fails at startup
+  with `Unknown column 'RESERVED'` / "Unable to determine Dialect". Simplest local setup:
+
+  ```bash
+  docker run -d --name mysql-dev --restart unless-stopped -p 127.0.0.1:3306:3306 \
+    -e MYSQL_ROOT_PASSWORD=change_me -v mysql_dev_data:/var/lib/mysql mysql:8
+  ```
+
+- A `mysql` command-line client, only for `./run.sh --sync-prod` (imports the prod dump)
 
 ### Environment variables
 
