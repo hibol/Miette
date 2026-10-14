@@ -8,7 +8,7 @@ A personal Spring Boot web application for managing and browsing sourdough recip
 
 | Layer | Technology |
 |---|---|
-| Backend | Java 17, Spring Boot 3.5 |
+| Backend | Java 25, Spring Boot 3.5 |
 | Templating | Thymeleaf + Spring Security extras |
 | Frontend | Bootstrap 5, Bootstrap Icons, Vue 3, SortableJS, Klee One (Google Fonts) |
 | Database | MySQL |
@@ -99,7 +99,7 @@ A personal Spring Boot web application for managing and browsing sourdough recip
 
 ### Prerequisites
 
-- Java 17+
+- Java 25 (Temurin recommended)
 - Maven (or use the included `./mvnw` wrapper)
 - Docker (MinIO, and the local database below)
 - MySQL 8, same engine as production. MariaDB 11+ is not supported: it no longer
