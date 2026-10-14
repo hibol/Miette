@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.hibol.miette.dto.YamlGlossaryEntry;
 import com.hibol.miette.dto.YamlGlossaryRoot;
 import com.hibol.miette.dto.YamlIngredient;
@@ -74,7 +74,7 @@ public class DataSeeder {
         }
 
         log.info("🧑‍🍳 Seeding recipes from YAML...");
-        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+        ObjectMapper yamlMapper = YAMLMapper.builder().build();
         InputStream yamlStream = new ClassPathResource("recipes.yaml").getInputStream();
         YamlRoot root = yamlMapper.readValue(yamlStream, YamlRoot.class);
 
@@ -94,7 +94,7 @@ public class DataSeeder {
         }
 
         log.info("📖 Seeding glossary from YAML...");
-        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+        ObjectMapper yamlMapper = YAMLMapper.builder().build();
         InputStream yamlStream = new ClassPathResource("glossary.yaml").getInputStream();
         YamlGlossaryRoot root = yamlMapper.readValue(yamlStream, YamlGlossaryRoot.class);
 

@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.hibol.miette.entity.Asset;
@@ -113,7 +113,7 @@ public class RecipeController {
     }
 
     @GetMapping("/recette/{id}")
-    public String detail(@PathVariable Long id, @RequestParam(required = false) String edit, HttpServletRequest request, Authentication auth, Model model) throws JsonProcessingException {
+    public String detail(@PathVariable Long id, @RequestParam(required = false) String edit, HttpServletRequest request, Authentication auth, Model model) throws JacksonException {
         boolean isAdmin = SecurityUtils.isAdmin(auth);
         Recipe recipe = recipeService.findByIdWithDetails(id)
             .filter(r -> isAdmin || !r.isArchived())
@@ -165,7 +165,7 @@ public class RecipeController {
         return "recette";
     }
 
-    private String buildJsonLd(Recipe recipe, String ogImage) throws JsonProcessingException {
+    private String buildJsonLd(Recipe recipe, String ogImage) throws JacksonException {
         Map<String, Object> ld = new LinkedHashMap<>();
         ld.put("@context", "https://schema.org");
         ld.put("@type", "Recipe");
