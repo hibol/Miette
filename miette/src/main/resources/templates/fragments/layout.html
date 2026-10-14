@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:fragment="head(title)">
+<head th:fragment="head(title)"
+      th:with="umamiId=${@umamiProperties.websiteId},umamiUrl=${@umamiProperties.url}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title}">Mes Recettes</title>
@@ -24,9 +25,9 @@
     <meta name="google-site-verification" content="F2_xH7BhY_ZJzNYfrp9xrFbMEQ07d0YENyeBjb_gLd8">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <script th:if="${@umamiProperties.websiteId != null and !@umamiProperties.websiteId.isEmpty()}"
-            defer src="/script.js"
-            th:attr="data-website-id=${@umamiProperties.websiteId},src=${@umamiProperties.url + '/script.js'}"></script>
+    <script th:if="${umamiId != null and !umamiId.isEmpty()}"
+            defer th:src="${umamiUrl + '/script.js'}"
+            th:attr="data-website-id=${umamiId}"></script>
 </head>
 
 
