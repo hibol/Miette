@@ -8,11 +8,11 @@ A personal Spring Boot web application for managing and browsing sourdough recip
 
 | Layer | Technology |
 |---|---|
-| Backend | Java 25, Spring Boot 3.5 |
+| Backend | Java 25, Spring Boot 4.1 |
 | Templating | Thymeleaf + Spring Security extras |
 | Frontend | Bootstrap 5, Bootstrap Icons, Vue 3, SortableJS, Klee One (Google Fonts) |
 | Database | MySQL |
-| Search | Hibernate Search 7 + Lucene (embedded, ngram analyzer) |
+| Search | Hibernate Search 8 + Lucene (embedded, ngram analyzer) |
 | Security | Spring Security (BCrypt, Remember Me) |
 | Storage | Cloudflare R2 (prod), MinIO (local dev) |
 | Image processing | Thumbnailator + webp-imageio (WebP conversion) |
