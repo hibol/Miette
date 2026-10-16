@@ -7,197 +7,125 @@
 
     <div class="page-content">
     <div id="liste-paper">
-    <!-- Barre de recherche -->
-    <div class="search-bar mb-4">
-        <form method="GET">
-            <div class="d-flex">
-                <input type="search" name="q"
-                    th:value="${query}"
-                    th:placeholder="${isSearchMode} ? 'Recherche active...' : 'Titre, ingrédients, étapes, tags...'"
-                    class="form-control me-2">
-                <button type="submit" class="btn btn-verdigris px-4">
-                    <i class="bi bi-search"></i>
-                </button>
+    <!-- Recherche (formulaire GET côté serveur) -->
+    <form method="GET" id="searchForm" class="search-field-wrap">
+        <label class="search-field">
+            <button type="submit" class="search-submit" aria-label="Rechercher"><i class="bi bi-search"></i></button>
+            <input type="search" name="q"
+                th:value="${query}"
+                th:placeholder="${isSearchMode} ? 'Recherche active...' : 'Titre, ingrédients, étapes, tags...'">
+        </label>
+    </form>
+
+    <!-- Filtres (cases cachées rattachées au formulaire) + tri + vue -->
+    <div class="liste-controls">
+        <div class="filter-pills">
+            <span class="filter-pill-wrap">
+                <input class="filter-pill-input" type="checkbox" name="withNotes" id="withNotes" form="searchForm"
+                    th:checked="${withNotes}" onchange="this.form.submit()">
+                <label class="filter-pill" for="withNotes"><i class="bi bi-journal-text"></i> Avec notes</label>
+            </span>
+            <span class="filter-pill-wrap">
+                <input class="filter-pill-input" type="checkbox" name="withPhotos" id="withPhotos" form="searchForm"
+                    th:checked="${withPhotos}" onchange="this.form.submit()">
+                <label class="filter-pill" for="withPhotos"><i class="bi bi-image"></i> Avec photos</label>
+            </span>
+            <span class="filter-pill-wrap" th:if="${isAdmin}">
+                <input class="filter-pill-input" type="checkbox" name="withArchived" id="withArchived" form="searchForm"
+                    th:checked="${withArchived}" onchange="this.form.submit()">
+                <label class="filter-pill" for="withArchived"><i class="bi bi-archive"></i> Archivées</label>
+            </span>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <div class="seg-group sort-toggle" role="group" aria-label="Tri">
+                <button type="button" class="seg-btn" data-sort="alpha" title="Alphabétique"><i class="bi bi-sort-alpha-down"></i></button>
+                <button type="button" class="seg-btn" data-sort="created" title="Plus récemment créées"><i class="bi bi-calendar-plus"></i></button>
+                <button type="button" class="seg-btn" data-sort="activity" title="Activité récente"><i class="bi bi-clock-history"></i></button>
             </div>
-            <div class="d-flex gap-3 mt-2">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="withNotes" id="withNotes"
-                        th:checked="${withNotes}" onchange="this.form.submit()">
-                    <label class="form-check-label" for="withNotes">
-                        <i class="bi bi-journal-text"></i> Avec notes
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="withPhotos" id="withPhotos"
-                        th:checked="${withPhotos}" onchange="this.form.submit()">
-                    <label class="form-check-label" for="withPhotos">
-                        <i class="bi bi-image"></i> Avec photos
-                    </label>
-                </div>
-                <div class="form-check" th:if="${isAdmin}">
-                    <input class="form-check-input" type="checkbox" name="withArchived" id="withArchived"
-                        th:checked="${withArchived}" onchange="this.form.submit()">
-                    <label class="form-check-label" for="withArchived">
-                        <i class="bi bi-archive"></i> Archivées
-                    </label>
-                </div>
+            <div class="seg-group" id="viewToggle" role="group" aria-label="Affichage">
+                <button type="button" class="seg-btn active" id="btnGrid" title="Grille"><i class="bi bi-grid"></i></button>
+                <button type="button" class="seg-btn" id="btnList" title="Liste"><i class="bi bi-list-ul"></i></button>
             </div>
-        </form>
+        </div>
     </div>
 
     <!-- Message de succès (ex: suppression) -->
     <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle"></i> 
+        <i class="bi bi-check-circle"></i>
         <span th:text="${message}">Supprimé !</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    
-    <!-- Tri + toggle vue -->
-    <div class="d-flex align-items-center gap-2 mb-2">
-        <div class="btn-group btn-group-sm sort-toggle" role="group">
-            <button type="button" class="btn btn-verdigris" data-sort="alpha" title="Alphabétique"><i class="bi bi-sort-alpha-down"></i></button>
-            <button type="button" class="btn btn-verdigris" data-sort="created" title="Plus récemment créées"><i class="bi bi-calendar-plus"></i></button>
-            <button type="button" class="btn btn-verdigris" data-sort="activity" title="Activité récente"><i class="bi bi-clock-history"></i></button>
-        </div>
-        <div class="btn-group btn-group-sm" id="viewToggle">
-            <button type="button" class="btn btn-verdigris active" id="btnGrid" title="Grille"><i class="bi bi-grid"></i></button>
-            <button type="button" class="btn btn-verdigris" id="btnList" title="Liste"><i class="bi bi-list-ul"></i></button>
-        </div>
-    </div>
 
-    <!-- Résultats -->
-    <div th:if="${isSearchMode}" class="alert alert-success d-flex justify-content-between align-items-center">
-        <span class="fs-6"><i class="bi bi-search"></i> <span th:text="'Trouvé ' + ${resultCount} + ' recette(s)'"></span></span>
-        <a href="/recettes" class="btn btn-verdigris btn-sm">
-            <i class="bi bi-grid-3x3-gap"></i> Toutes
+    <!-- Compteur + nouvelle recette (admin) -->
+    <div class="liste-count">
+        <span th:text="${resultCount} + (${resultCount > 1} ? ' recettes' : ' recette')">30 recettes</span>
+        <a th:if="${isSearchMode or withNotes or withPhotos or withArchived}" href="/recettes" class="liste-count-reset">
+            <i class="bi bi-x-lg"></i> Tout afficher
         </a>
-    </div>
-    <div th:unless="${isSearchMode}" class="alert alert-success">
-        <span class="fs-6"><i class="bi bi-list-ul"></i> Toutes les recettes (<span th:text="${resultCount}"></span>)</span>
-    </div>
-
-    <!-- Bouton "Nouvelle recette" (si admin) -->
-    <div sec:authorize="hasRole('ADMIN')" class="mb-4">
-        <a th:href="@{/recette/new}" class="btn btn-success">
+        <span class="liste-count-rule"></span>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/recette/new}" class="btn-new-recipe">
             <i class="bi bi-plus-lg"></i> Nouvelle recette
         </a>
     </div>
-    
-    <div th:if="${recipes.isEmpty()}">
-        <p class="alert alert-success">Aucune recette</p>
-    </div>
-    
-    <div th:unless="${recipes.isEmpty()}" id="recipeGrid" class="row g-3">
-        <div th:each="recipe : ${recipes}" class="col-12 col-md-6 col-lg-4 recipe-grid-item"
-             th:attr="data-title=${recipe.title},data-created-at=${recipe.createdAt},data-activity-at=${activityDates[recipe.id]}">
-            <a th:href="@{/recette/{id}(id=${recipe.id})}" class="text-decoration-none recipe-link">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0" th:text="${recipe.title}">Recette</h5>
-                        <div th:if="${!#sets.isEmpty(recipe.tags)}" class="mt-2">
-                            <span th:each="tagRel : ${recipe.tags}" 
-                            th:text="${tagRel.tag.label}" 
-                            class="badge bg-primary me-1"></span>
-                        </div>
-                    </div>
-                    <div th:with="noteCount=${#lists.size(recipe.assets.?[asset.type.name() == 'NOTE'])}, photoCount=${#lists.size(recipe.assets.?[asset.type.name() == 'PHOTO'])}"
-                         th:if="${noteCount > 0 or photoCount > 0}" class="card-footer text-muted small py-1 d-flex gap-3">
-                        <span th:if="${noteCount > 0}"><i class="bi bi-journal-text"></i> <span th:text="${noteCount}"></span></span>
-                        <span th:if="${photoCount > 0}"><i class="bi bi-image"></i> <span th:text="${photoCount}"></span></span>
-                    </div>
-                    <th:block th:with="photoRel=${recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'][0] : (recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null)}">
-                        <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
-                             th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
-                             class="card-img-top card-recipe-img"
-                             loading="lazy" alt="">
-                    </th:block>
-                    <div class="card-body">
-                        <!-- UNE SEULE phase → ingrédients/étapes directs -->
-                        <div th:with="phase=${recipe.phases.iterator().next()}">
-                            <!-- Ingrédients -->
-                            <h6>Ingrédients</h6>
-                            <ul class="list-unstyled small">
-                                <li th:each="ingRel : ${recipe.phases[0].ingredientPhases}" 
-                                th:text="${ingRel.ingredient.label} + ' : ' + 
-                                (${ingRel.quantity} % 1 == 0 ? 
-                                ${#numbers.formatDecimal(ingRel.quantity, 0, 0)} : 
-                                ${#numbers.formatDecimal(ingRel.quantity, 0, 1)}) + 
-                                ' ' + 
-                                (${ingRel.ingredient.unit} == null ? '' : ${ingRel.ingredient.unit})">
-                            </ul>
-                                
-                            <!-- Étapes -->
-                            <h6 class="mt-3"><i class="bi bi-list-numbered"></i> Étapes</h6>
-                            <ol class="small">
-                                <li th:each="step : ${phase.steps}" 
-                                th:text="${step.label}"></li>
-                            </ol>
-                        </div>
-                        
-                        <!-- MULTIPLES phases nommées → détail par phase -->
-                        <div th:unless="${#sets.size(recipe.phases) == 1}">
-                            <div th:each="phase : ${recipe.phases}" class="mb-4">
-                                <h6 class="fw-bold text-primary" th:text="${phase.label}">Phase</h6>
-                                
-                                <!-- Ingrédients phase -->
-                                <div th:if="${#sets.size(phase.ingredientPhases) > 0}">
-                                    <small class="text-muted">Ingrédients :</small>
-                                    <ul class="list-unstyled small mt-1">
-                                        <li th:each="ingRel : ${phase.ingredientPhases}" 
-                                        th:text="${ingRel.ingredient.label} + ' : ' + 
-                                        (${ingRel.quantity} % 1 == 0 ? 
-                                        ${#numbers.formatDecimal(ingRel.quantity, 0, 0)} : 
-                                        ${#numbers.formatDecimal(ingRel.quantity, 0, 1)}) + 
-                                        ' ' + 
-                                        (${ingRel.ingredient.unit} == null ? '' : ${ingRel.ingredient.unit})">
-                                    </ul>
-                                </div>
-                                
-                                <!-- Étapes phase -->
-                                <div th:if="${#sets.size(phase.steps) > 0}" class="mt-2">
-                                    <ol class="small mb-0">
-                                        <li th:each="step : ${phase.steps}" 
-                                        th:text="${step.label}"></li>
-                                    </ol>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
+    <div th:if="${recipes.isEmpty()}" class="liste-empty">Aucune recette</div>
+
+    <div th:unless="${recipes.isEmpty()}" id="recipeGrid" class="recipe-grid">
+        <a th:each="recipe : ${recipes}"
+           th:href="@{/recette/{id}(id=${recipe.id})}"
+           class="recipe-card"
+           th:with="ingCount=${#aggregates.sum(recipe.phases.![ingredientPhases.size()]) ?: 0},
+                    photoRel=${recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'][0] : (recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null)}"
+           th:attr="data-title=${recipe.title},data-created-at=${recipe.createdAt},data-activity-at=${activityDates[recipe.id]}">
+            <span class="recipe-card-tape" aria-hidden="true"><span></span></span>
+            <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
+                 th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
+                 class="recipe-card-photo"
+                 loading="lazy" alt="">
+            <div th:unless="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
+                 class="recipe-card-photo recipe-card-photo-empty">
+                <i class="bi bi-image"></i>
+            </div>
+            <div class="recipe-card-body">
+                <h2 class="recipe-card-title" th:text="${recipe.title}">Recette</h2>
+                <div th:if="${!#sets.isEmpty(recipe.tags)}" class="recipe-card-tags">
+                    <span th:each="tagRel : ${recipe.tags}"
+                          th:text="${tagRel.tag.label}"
+                          class="tag-pill"></span>
                 </div>
-            </a>
-        </div>
+                <div class="recipe-card-foot">
+                    <span th:text="${ingCount} + (${ingCount == 1} ? ' ingrédient' : ' ingrédients')">0 ingrédients</span>
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+            </div>
+        </a>
     </div>
     <!-- Vue liste (cachée par défaut) -->
     <div th:unless="${recipes.isEmpty()}" id="recipeList" class="d-none">
         <a th:each="recipe : ${recipes}"
            th:href="@{/recette/{id}(id=${recipe.id})}"
-           class="text-decoration-none d-block recipe-list-item"
+           class="recipe-row"
+           th:with="photoRel=${recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'][0] : (recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null)},
+                    noteCount=${#lists.size(recipe.assets.?[asset.type.name() == 'NOTE'])},
+                    photoCount=${#lists.size(recipe.assets.?[asset.type.name() == 'PHOTO'])}"
            th:attr="data-title=${recipe.title},data-created-at=${recipe.createdAt},data-activity-at=${activityDates[recipe.id]}">
-            <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
-                <div class="d-flex align-items-center gap-3">
-                    <th:block th:with="photoRel=${recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'][0] : (recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null)}">
-                        <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
-                             th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
-                             class="recipe-thumb-sm"
-                             loading="lazy" alt="">
-                        <div th:unless="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
-                             class="recipe-thumb-sm-placeholder">
-                        </div>
-                    </th:block>
-                    <div>
-                        <span class="fw-semibold text-dark" th:text="${recipe.title}"></span>
-                        <div th:if="${!#sets.isEmpty(recipe.tags)}" class="mt-1">
-                            <span th:each="tagRel : ${recipe.tags}"
-                                  th:text="${tagRel.tag.label}"
-                                  class="badge bg-primary me-1 text-xs"></span>
-                        </div>
-                    </div>
+            <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
+                 th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
+                 class="recipe-thumb-sm"
+                 loading="lazy" alt="">
+            <div th:unless="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
+                 class="recipe-thumb-sm recipe-thumb-sm-placeholder"></div>
+            <div class="recipe-row-main">
+                <div class="recipe-row-title" th:text="${recipe.title}"></div>
+                <div th:if="${!#sets.isEmpty(recipe.tags)}" class="recipe-row-tags">
+                    <span th:each="tagRel : ${recipe.tags}"
+                          th:text="${tagRel.tag.label}"
+                          class="tag-pill tag-pill-sm"></span>
                 </div>
-                <div th:with="noteCount=${#lists.size(recipe.assets.?[asset.type.name() == 'NOTE'])}, photoCount=${#lists.size(recipe.assets.?[asset.type.name() == 'PHOTO'])}"
-                     class="d-flex gap-3 text-muted small flex-shrink-0 ms-3">
-                    <span th:if="${noteCount > 0}"><i class="bi bi-journal-text"></i> <span th:text="${noteCount}"></span></span>
-                    <span th:if="${photoCount > 0}"><i class="bi bi-image"></i> <span th:text="${photoCount}"></span></span>
-                </div>
+            </div>
+            <div class="recipe-row-counts">
+                <span th:if="${noteCount > 0}"><i class="bi bi-journal-text"></i> <span th:text="${noteCount}"></span></span>
+                <span th:if="${photoCount > 0}"><i class="bi bi-image"></i> <span th:text="${photoCount}"></span></span>
             </div>
         </a>
     </div>
@@ -232,7 +160,7 @@
 
         function applySort(type, save) {
             if (save) localStorage.setItem(SORT_KEY, type);
-            document.querySelectorAll('.sort-toggle .btn').forEach(btn =>
+            document.querySelectorAll('.sort-toggle .seg-btn').forEach(btn =>
                 btn.classList.toggle('active', btn.dataset.sort === type));
             ['recipeGrid', 'recipeList'].forEach(id => {
                 const container = document.getElementById(id);
@@ -247,7 +175,7 @@
             });
         }
 
-        document.querySelectorAll('.sort-toggle .btn').forEach(btn =>
+        document.querySelectorAll('.sort-toggle .seg-btn').forEach(btn =>
             btn.addEventListener('click', () => applySort(btn.dataset.sort, true)));
 
         applySort(localStorage.getItem(SORT_KEY) || 'alpha', false);

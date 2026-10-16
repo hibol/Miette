@@ -344,12 +344,11 @@ createApp({
             ? detectAjouts(recipe.value, standardKeywords.value)
             : null);
 
-        const hydrationApprox = computed(() => {
-            if (!recipe.value) return false;
-            return recipe.value.phases.flatMap(p => p.ingredients).some(ing => {
-                const l = ing.label.toLowerCase();
-                return l.includes('beurre') || l.includes('oeuf') || l.includes('œuf');
-            });
+        const glutenLabel = computed(() => {
+            if (gluten.value === null) return '';
+            if (gluten.value >= 0.75) return 'fort';
+            if (gluten.value >= 0.5) return 'moyen';
+            return 'faible';
         });
 
         function addPhase() {
@@ -444,7 +443,7 @@ createApp({
             recipe, loading, saving, isDraggingPhase, error, isAdmin, editMode, draft,
             returnUrl, availableTags, filteredTags, newTag,
             photos, currentPhotoIndex, prevPhoto, nextPhoto,
-            noteAssets, isSinglePhase, hydration, hydrationApprox, ajouts, gluten, nextTempKey, formatQuantity, capitalize, formatDate,
+            noteAssets, isSinglePhase, hydration, ajouts, gluten, glutenLabel, nextTempKey, formatQuantity, capitalize, formatDate,
             startEdit, cancelEdit, saveRecipe, deleteRecipe, toggleArchive, archiving,
             addTag, handleTagKeydown, selectedTagIndex, addPhase, removePhase,
             notesOpen, showNoteForm, noteDate, noteDescription, savingNote, openNoteForm, addNote, deleteNote, formatNoteDate,
@@ -465,9 +464,8 @@ createApp({
             <!-- Barre de boutons -->
             <div class="row mb-4">
                 <div class="col-auto">
-                    <a v-if="!editMode" :href="returnUrl" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i>
-                        <span class="d-none d-md-inline"> Retour</span>
+                    <a v-if="!editMode" :href="returnUrl" class="recipe-back">
+                        <i class="bi bi-arrow-left"></i> Toutes les recettes
                     </a>
                     <button v-else @click="cancelEdit" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left"></i>
@@ -523,15 +521,16 @@ createApp({
             </Teleport>
 
             <!-- Titre -->
-            <h1 v-if="!editMode" class="mb-4">{{ recipe.title }}</h1>
+            <h1 v-if="!editMode" class="recipe-title">{{ recipe.title }}</h1>
             <input v-else v-model="draft.title" class="form-control form-control-lg" :class="{'is-invalid': errors.title, 'mb-4': !errors.title, 'mb-1': errors.title}" />
             <div v-if="errors.title" class="text-danger small mb-3">{{ errors.title }}</div>
 
             <!-- Tags -->
-            <div class="mb-4">
-                <span v-if="!editMode" v-for="tag in recipe.tags" :key="tag"
-                    class="badge bg-primary me-2 mb-2">{{ tag }}</span>
-                <div v-else class="d-flex flex-wrap gap-2 align-items-center">
+            <div v-if="!editMode" class="recipe-tags">
+                <span v-for="tag in recipe.tags" :key="tag" class="tag-pill tag-pill-lg">{{ tag }}</span>
+            </div>
+            <div v-else class="mb-4">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
                     <span v-for="(tag, index) in draft.tags" :key="index"
                         class="badge bg-primary d-flex align-items-center gap-1">
                         {{ tag }}
@@ -560,226 +559,79 @@ createApp({
                 </div>
             </div>
 
-            <!-- Notes -->
-            <div v-if="recipe.id !== null && (noteAssets.length > 0 || isAdmin)" class="mb-4">
-                <button @click="notesOpen = !notesOpen"
-                    class="btn btn-link text-decoration-none px-0 text-muted d-flex align-items-center gap-2">
-                    <i :class="notesOpen ? 'bi bi-chevron-down' : 'bi bi-chevron-right'"></i>
-                    <span>Notes <span v-if="noteAssets.length > 0" class="badge bg-secondary">{{ noteAssets.length }}</span></span>
-                </button>
-
-                <div v-if="notesOpen" class="mt-2">
-                    <!-- Formulaire ajout note (admin) -->
-                    <div v-if="isAdmin && !editMode && !showNoteForm" class="mb-3">
-                        <button @click="openNoteForm" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-plus"></i> Nouvelle note
+            <!-- Photos -->
+            <div v-if="recipe.id !== null && !editMode && (photos.length > 0 || isAdmin)" class="recipe-photo-block">
+                <figure v-if="photos.length > 0" class="recipe-photo-frame">
+                    <img :src="photos[currentPhotoIndex].url"
+                        class="photo-thumb"
+                        :alt="recipe.title"
+                        @click="lightboxOpen = true">
+                    <figcaption class="recipe-photo-caption">
+                        <button v-if="photos.length > 1" @click="prevPhoto" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-chevron-left"></i>
                         </button>
-                    </div>
-                    <div v-if="isAdmin && showNoteForm" class="card mb-3">
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <label class="form-label small text-muted">Date</label>
-                                <input v-model="noteDate" type="datetime-local" class="form-control form-control-sm" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small text-muted">Description</label>
-                                <textarea v-model="noteDescription" class="form-control form-control-sm" rows="3"></textarea>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button @click="addNote" :disabled="savingNote" class="btn btn-primary btn-sm">
-                                    <span v-if="savingNote" v-cubo-spinner="{ color: '#fff' }" class="me-1"></span>
-                                    Enregistrer
-                                </button>
-                                <button @click="showNoteForm = false" class="btn btn-outline-secondary btn-sm">Annuler</button>
-                            </div>
+                        <div v-else class="recipe-photo-spacer"></div>
+                        <div class="text-center">
+                            <span class="d-block">{{ formatNoteDate(photos[currentPhotoIndex].date) }}</span>
+                            <span v-if="photos.length > 1" class="small opacity-75">{{ currentPhotoIndex + 1 }} / {{ photos.length }}</span>
                         </div>
-                    </div>
-                    <div v-if="noteAssets.length > 0">
-                        <div v-for="asset in noteAssets" :key="asset.id"
-                            class="border-start border-2 ps-3 mb-3">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <small class="text-muted">{{ formatNoteDate(asset.date) }}</small>
-                                <button v-if="isAdmin && !editMode" @click="deleteNote(asset.id)"
-                                    class="btn btn-outline-danger btn-sm ms-2">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </div>
-                            <p class="mb-0 mt-1 pre-wrap">{{ asset.description }}</p>
+                        <div class="d-flex gap-1 align-items-center">
+                            <button v-if="isAdmin && !editMode" @click="setCover(photos[currentPhotoIndex].id)"
+                                class="btn btn-sm"
+                                :class="photos[currentPhotoIndex].cover ? 'btn-verdigris' : 'btn-outline-verdigris'"
+                                v-tooltip :title="photos[currentPhotoIndex].cover ? 'Photo de couverture' : 'Définir comme couverture'">
+                                <i class="bi bi-bookmark-check-fill" v-if="photos[currentPhotoIndex].cover"></i>
+                                <i class="bi bi-bookmark" v-else></i>
+                            </button>
+                            <button v-if="isAdmin && !editMode" @click="deleteNote(photos[currentPhotoIndex].id)"
+                                class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button v-if="photos.length > 1" @click="nextPhoto" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
                         </div>
-                    </div>
-                    <p v-else class="text-muted small">Aucune note.</p>
-                </div>
+                    </figcaption>
+                </figure>
+                <label v-if="isAdmin && !editMode"
+                    class="btn btn-outline-secondary btn-sm mt-2" :class="{ disabled: uploadingPhoto }">
+                    <span v-if="uploadingPhoto" v-cubo-spinner class="me-1"></span>
+                    <i v-else class="bi bi-image"></i> {{ uploadingPhoto ? 'Envoi en cours...' : 'Ajouter une photo' }}
+                    <input type="file" accept="image/*" style="display:none" @change="handleFileChange">
+                </label>
             </div>
 
             <!-- Indicateurs -->
-            <div v-if="!editMode && (hydration !== null || gluten !== null)" class="d-flex flex-wrap gap-3 mb-4">
-                <div v-if="hydration !== null" class="d-flex align-items-center gap-1">
-                    <span>Hydratation&nbsp;: </span>
-                    <span>{{ hydration }}%</span>
-                    <span class="text-verdigris">
-                        <i class="bi bi-droplet-fill"></i>
-                        <i v-if="hydration >= 70" class="bi bi-droplet-fill"></i>
-                        <i v-if="hydration > 80" class="bi bi-droplet-fill"></i>
-                    </span>
-                    <span v-if="hydrationApprox" class="text-muted small ms-1">(farine et liquide)</span>
-                </div>
-                <div v-if="ajouts" class="d-flex align-items-center gap-1">
-                    <i class="bi bi-plus-circle-fill text-verdigris"></i>
-                    <span>Avec ajouts</span>
-                </div>
-                <div v-if="gluten !== null" class="d-flex align-items-center gap-1">
-                    <i class="bi bi-tsunami text-verdigris"></i>
-                    <span>Gluten :&nbsp;</span>
-                    <span v-if="gluten >= 0.75">fort</span>
-                    <span v-else-if="gluten >= 0.5">moyen</span>
-                    <span v-else>faible</span>
-                </div>
-            </div>
-
-            <!-- Photos -->
-            <div v-if="recipe.id !== null && !editMode && (photos.length > 0 || isAdmin)" class="row justify-content-center mb-4">
-                <div class="col-12 col-lg-10">
-                    <div v-if="photos.length > 0" class="card shadow-sm">
-                        <img :src="photos[currentPhotoIndex].url"
-                            class="card-img-top photo-thumb"
-                            @click="lightboxOpen = true">
-                        <div class="card-footer d-flex justify-content-between align-items-center py-2">
-                            <button v-if="photos.length > 1" @click="prevPhoto" class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-chevron-left"></i>
-                            </button>
-                            <div v-else style="width: 2rem;"></div>
-                            <div class="text-center">
-                                <small class="text-muted d-block">{{ formatNoteDate(photos[currentPhotoIndex].date) }}</small>
-                                <small v-if="photos.length > 1" class="text-muted">{{ currentPhotoIndex + 1 }} / {{ photos.length }}</small>
-                            </div>
-                            <div class="d-flex gap-1 align-items-center">
-                                <button v-if="isAdmin && !editMode" @click="setCover(photos[currentPhotoIndex].id)"
-                                    class="btn btn-sm"
-                                    :class="photos[currentPhotoIndex].cover ? 'btn-verdigris' : 'btn-outline-verdigris'"
-                                    v-tooltip :title="photos[currentPhotoIndex].cover ? 'Photo de couverture' : 'Définir comme couverture'">
-                                    <i class="bi bi-bookmark-check-fill" v-if="photos[currentPhotoIndex].cover"></i>
-                                    <i class="bi bi-bookmark" v-else></i>
-                                </button>
-                                <button v-if="isAdmin && !editMode" @click="deleteNote(photos[currentPhotoIndex].id)"
-                                    class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                <button v-if="photos.length > 1" @click="nextPhoto" class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <label v-if="isAdmin && !editMode"
-                        class="btn btn-outline-secondary btn-sm mt-2" :class="{ disabled: uploadingPhoto }">
-                        <span v-if="uploadingPhoto" v-cubo-spinner class="me-1"></span>
-                        <i v-else class="bi bi-image"></i> {{ uploadingPhoto ? 'Envoi en cours...' : 'Ajouter une photo' }}
-                        <input type="file" accept="image/*" style="display:none" @change="handleFileChange">
-                    </label>
-                </div>
+            <div v-if="!editMode && (hydration !== null || gluten !== null)" class="recipe-meta">
+                <span v-if="hydration !== null">Hydratation ≈ {{ hydration }}&nbsp;% <i class="bi bi-droplet-fill"></i></span>
+                <span v-if="hydration !== null && gluten !== null" aria-hidden="true">·</span>
+                <span v-if="gluten !== null">Gluten&nbsp;: {{ glutenLabel }}</span>
+                <span v-if="ajouts" aria-hidden="true">·</span>
+                <span v-if="ajouts">Avec ajouts</span>
             </div>
 
             <!-- Phases en lecture -->
             <div id="phases-content">
-
-            <!-- Phase unique -->
-            <div v-if="!editMode && isSinglePhase" class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <div class="row g-4">
-                        <div class="col-12 col-md-4">
-                            <h5><i class="bi text-warning"></i> Ingrédients</h5>
-                            <ul class="list-group list-group-flush">
-                                <li v-for="ing in recipe.phases[0].ingredients" :key="ing.id"
-                                    class="list-group-item px-0 border-0 py-2">
-                                    {{ capitalize(ing.label) }} : {{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-12 col-md-8">
-                            <h5><i class="bi bi-list-numbered text-info"></i> Étapes</h5>
-                            <ol class="list-group list-group-numbered list-group-flush">
-                                <li v-for="step in recipe.phases[0].steps" :key="step.id"
-                                    class="list-group-item px-0 border-0 py-3">{{ step.label }}</li>
-                            </ol>
-                        </div>
+                <section v-if="!editMode" v-for="phase in recipe.phases" :key="phase.id" class="recipe-phase">
+                    <div v-if="!isSinglePhase" class="recipe-phase-head">
+                        <h2 class="recipe-phase-title">{{ phase.label }}</h2>
+                        <span class="recipe-phase-rule"></span>
                     </div>
-                </div>
-                <div class="card-footer py-2 d-flex justify-content-between align-items-center bg-transparent border-top">
-                    <div class="text-muted lh-sm text-xs">
-                        <div>Créé le {{ formatDate(recipe.createdAt) }}<span v-if="recipe.createdBy"> par {{ recipe.createdBy }}</span></div>
-                        <div v-if="recipe.updatedAt">Modifié le {{ formatDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></div>
+                    <div class="recipe-phase-grid" :class="{ 'is-single': phase.ingredients.length === 0 || phase.steps.length === 0 }">
+                        <ul v-if="phase.ingredients.length > 0" class="recipe-ingredients">
+                            <li v-for="ing in phase.ingredients" :key="ing.id">
+                                <span>{{ capitalize(ing.label) }}</span>
+                                <span class="recipe-ing-qty">{{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}</span>
+                            </li>
+                        </ul>
+                        <ol v-if="phase.steps.length > 0" class="recipe-steps">
+                            <li v-for="(step, stepIndex) in phase.steps" :key="step.id">
+                                <span class="recipe-step-n">{{ stepIndex + 1 }}.</span>
+                                <span>{{ step.label }}</span>
+                            </li>
+                        </ol>
                     </div>
-                    <div class="d-flex gap-2">
-                        <button v-if="isAdmin" @click="sendToWidget" v-tooltip data-bs-title="Envoyer au widget" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-phone"></i>
-                        </button>
-                        <button @click="copyToClipboard" v-tooltip data-bs-title="Copier la recette" class="btn btn-outline-secondary btn-sm">
-                            <i :class="copied ? 'bi bi-check2' : 'bi bi-clipboard'"></i>
-                        </button>
-                        <button v-if="glossaryEnabled" v-tooltip data-bs-title="Voir le glossaire" class="btn btn-outline-secondary btn-sm"
-                            data-bs-toggle="modal" data-bs-target="#glossaryModal">
-                            <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
-                        </button>
-                        <button @click="toggleGlossary" :disabled="glossaryLoading" v-tooltip data-bs-title="Surligner les termes techniques"
-                            :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']">
-                            <span v-if="glossaryLoading" v-cubo-spinner></span>
-                            <i v-else class="bi bi-question-circle"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Phases multiples -->
-            <div v-else-if="!editMode && !isSinglePhase">
-                <div v-for="(phase, phaseIndex) in recipe.phases" :key="phase.id" class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0 fw-bold text-primary">{{ phase.label }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-4">
-                            <div v-if="phase.ingredients.length > 0" class="col-12 col-md-4">
-                                <h6>Ingrédients</h6>
-                                <ul class="list-group list-group-flush">
-                                    <li v-for="ing in phase.ingredients" :key="ing.id"
-                                        class="list-group-item px-0 border-0 py-2">
-                                        {{ capitalize(ing.label) }} : {{ formatQuantity(ing.quantity) }} {{ ing.unit || '' }}
-                                    </li>
-                                </ul>
-                            </div>
-                            <div v-if="phase.steps.length > 0" class="col-12 col-md-8">
-                                <h6><i class="bi bi-list-numbered text-info"></i> Étapes</h6>
-                                <ol class="list-group list-group-numbered list-group-flush">
-                                    <li v-for="step in phase.steps" :key="step.id"
-                                        class="list-group-item px-0 border-0 py-3">{{ step.label }}</li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-if="phaseIndex === recipe.phases.length - 1" class="card-footer py-2 d-flex justify-content-between align-items-center bg-transparent border-top">
-                        <div class="text-muted lh-sm text-xs">
-                            <div>Créé le {{ formatNoteDate(recipe.createdAt) }}<span v-if="recipe.createdBy"> par {{ recipe.createdBy }}</span></div>
-                            <div v-if="recipe.updatedAt">Modifié le {{ formatNoteDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></div>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button v-if="isAdmin" @click="sendToWidget" v-tooltip data-bs-title="Envoyer au widget" class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-phone"></i>
-                            </button>
-                            <button @click="copyToClipboard" v-tooltip data-bs-title="Copier la recette" class="btn btn-outline-secondary btn-sm">
-                                <i :class="copied ? 'bi bi-check2' : 'bi bi-clipboard'"></i>
-                            </button>
-                            <button v-if="glossaryEnabled" v-tooltip data-bs-title="Voir le glossaire" class="btn btn-outline-secondary btn-sm"
-                                data-bs-toggle="modal" data-bs-target="#glossaryModal">
-                                <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
-                            </button>
-                            <button @click="toggleGlossary" v-tooltip data-bs-title="Surligner les termes techniques"
-                                :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']">
-                                <i class="bi bi-question-circle"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+                </section>
             </div><!-- fin phases-content -->
 
             <!-- Phases en édition -->
@@ -865,6 +717,84 @@ createApp({
                 <button @click="addPhase" class="btn btn-outline-secondary btn-sm mt-2">
                     <i class="bi bi-plus"></i> Ajouter une phase
                 </button>
+            </div>
+
+            <!-- Notes -->
+            <div v-if="recipe.id !== null && (noteAssets.length > 0 || isAdmin)" class="recipe-note-box">
+                <button @click="notesOpen = !notesOpen"
+                    class="recipe-note-toggle btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-text text-verdigris"></i>
+                    <b>Notes</b>
+                    <span v-if="noteAssets.length > 0" class="badge bg-secondary">{{ noteAssets.length }}</span>
+                    <i :class="notesOpen ? 'bi bi-chevron-down' : 'bi bi-chevron-right'" class="small"></i>
+                </button>
+
+                <div v-if="notesOpen" class="mt-3">
+                    <!-- Formulaire ajout note (admin) -->
+                    <div v-if="isAdmin && !editMode && !showNoteForm" class="mb-3">
+                        <button @click="openNoteForm" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-plus"></i> Nouvelle note
+                        </button>
+                    </div>
+                    <div v-if="isAdmin && showNoteForm" class="card mb-3">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">Date</label>
+                                <input v-model="noteDate" type="datetime-local" class="form-control form-control-sm" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">Description</label>
+                                <textarea v-model="noteDescription" class="form-control form-control-sm" rows="3"></textarea>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button @click="addNote" :disabled="savingNote" class="btn btn-primary btn-sm">
+                                    <span v-if="savingNote" v-cubo-spinner="{ color: '#fff' }" class="me-1"></span>
+                                    Enregistrer
+                                </button>
+                                <button @click="showNoteForm = false" class="btn btn-outline-secondary btn-sm">Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="noteAssets.length > 0">
+                        <div v-for="asset in noteAssets" :key="asset.id"
+                            class="border-start border-2 ps-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <small class="text-muted">{{ formatNoteDate(asset.date) }}</small>
+                                <button v-if="isAdmin && !editMode" @click="deleteNote(asset.id)"
+                                    class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                            <p class="mb-0 mt-1 pre-wrap">{{ asset.description }}</p>
+                        </div>
+                    </div>
+                    <p v-else class="text-muted small">Aucune note.</p>
+                </div>
+            </div>
+
+            <!-- Pied : dates + actions -->
+            <div v-if="!editMode" class="recipe-footer">
+                <div class="recipe-dates">
+                    <span>Créé le {{ formatDate(recipe.createdAt) }}<span v-if="recipe.createdBy"> par {{ recipe.createdBy }}</span></span>
+                    <span v-if="recipe.updatedAt"> · Modifié le {{ formatDate(recipe.updatedAt) }}<span v-if="recipe.updatedBy"> par {{ recipe.updatedBy }}</span></span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button v-if="isAdmin" @click="sendToWidget" v-tooltip data-bs-title="Envoyer au widget" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-phone"></i>
+                    </button>
+                    <button @click="copyToClipboard" v-tooltip data-bs-title="Copier la recette" class="btn btn-outline-secondary btn-sm">
+                        <i :class="copied ? 'bi bi-check2' : 'bi bi-clipboard'"></i>
+                    </button>
+                    <button v-if="glossaryEnabled" v-tooltip data-bs-title="Voir le glossaire" class="btn btn-outline-secondary btn-sm"
+                        data-bs-toggle="modal" data-bs-target="#glossaryModal">
+                        <i class="bi bi-book"></i><span class="d-none d-md-inline"> Glossaire</span>
+                    </button>
+                    <button @click="toggleGlossary" :disabled="glossaryLoading" v-tooltip data-bs-title="Surligner les termes techniques"
+                        :class="['btn', 'btn-sm', 'btn-glossary-toggle', glossaryEnabled ? 'btn-secondary' : 'btn-outline-secondary']">
+                        <span v-if="glossaryLoading" v-cubo-spinner></span>
+                        <i v-else class="bi bi-question-circle"></i>
+                    </button>
+                </div>
             </div>
 
         </div>
