@@ -104,33 +104,28 @@
     <div th:unless="${recipes.isEmpty()}" id="recipeList" class="d-none">
         <a th:each="recipe : ${recipes}"
            th:href="@{/recette/{id}(id=${recipe.id})}"
-           class="text-decoration-none d-block recipe-list-item"
+           class="recipe-row"
+           th:with="photoRel=${recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'][0] : (recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null)},
+                    noteCount=${#lists.size(recipe.assets.?[asset.type.name() == 'NOTE'])},
+                    photoCount=${#lists.size(recipe.assets.?[asset.type.name() == 'PHOTO'])}"
            th:attr="data-title=${recipe.title},data-created-at=${recipe.createdAt},data-activity-at=${activityDates[recipe.id]}">
-            <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
-                <div class="d-flex align-items-center gap-3">
-                    <th:block th:with="photoRel=${recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[cover == true and asset.type.name() == 'PHOTO'][0] : (recipe.assets.?[asset.type.name() == 'PHOTO'].size() > 0 ? recipe.assets.?[asset.type.name() == 'PHOTO'][0] : null)}">
-                        <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
-                             th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
-                             class="recipe-thumb-sm"
-                             loading="lazy" alt="">
-                        <div th:unless="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
-                             class="recipe-thumb-sm-placeholder">
-                        </div>
-                    </th:block>
-                    <div>
-                        <span class="fw-semibold text-dark" th:text="${recipe.title}"></span>
-                        <div th:if="${!#sets.isEmpty(recipe.tags)}" class="mt-1">
-                            <span th:each="tagRel : ${recipe.tags}"
-                                  th:text="${tagRel.tag.label}"
-                                  class="badge bg-primary me-1 text-xs"></span>
-                        </div>
-                    </div>
+            <img th:if="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
+                 th:src="${storagePublicUrl + '/' + photoRel.asset.thumbPath}"
+                 class="recipe-thumb-sm"
+                 loading="lazy" alt="">
+            <div th:unless="${photoRel != null and !#strings.isEmpty(storagePublicUrl)}"
+                 class="recipe-thumb-sm recipe-thumb-sm-placeholder"></div>
+            <div class="recipe-row-main">
+                <div class="recipe-row-title" th:text="${recipe.title}"></div>
+                <div th:if="${!#sets.isEmpty(recipe.tags)}" class="recipe-row-tags">
+                    <span th:each="tagRel : ${recipe.tags}"
+                          th:text="${tagRel.tag.label}"
+                          class="tag-pill tag-pill-sm"></span>
                 </div>
-                <div th:with="noteCount=${#lists.size(recipe.assets.?[asset.type.name() == 'NOTE'])}, photoCount=${#lists.size(recipe.assets.?[asset.type.name() == 'PHOTO'])}"
-                     class="d-flex gap-3 text-muted small flex-shrink-0 ms-3">
-                    <span th:if="${noteCount > 0}"><i class="bi bi-journal-text"></i> <span th:text="${noteCount}"></span></span>
-                    <span th:if="${photoCount > 0}"><i class="bi bi-image"></i> <span th:text="${photoCount}"></span></span>
-                </div>
+            </div>
+            <div class="recipe-row-counts">
+                <span th:if="${noteCount > 0}"><i class="bi bi-journal-text"></i> <span th:text="${noteCount}"></span></span>
+                <span th:if="${photoCount > 0}"><i class="bi bi-image"></i> <span th:text="${photoCount}"></span></span>
             </div>
         </a>
     </div>

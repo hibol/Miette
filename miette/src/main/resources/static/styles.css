@@ -177,6 +177,11 @@ h1, h2, h3, h4, h5, h6,
     color: #fff;
 }
 
+.tag-pill-sm {
+    font-size: 0.6875rem;
+    padding: 2px 8px;
+}
+
 .tag-pill-lg {
     font-size: 0.8125rem;
     padding: 3px 12px;
@@ -326,23 +331,6 @@ body > .page-content {
 .ingredient-qty { width: 70px; }
 
 /* Liste de recettes */
-.recipe-thumb-sm {
-    width: 48px;
-    height: 48px;
-    object-fit: cover;
-    border-radius: 6px;
-    flex-shrink: 0;
-}
-
-.recipe-thumb-sm-placeholder {
-    width: 48px;
-    height: 48px;
-    border-radius: 6px;
-    background: var(--tan);
-    opacity: 0.3;
-    flex-shrink: 0;
-}
-
 /* Admin — liste gluten */
 .gluten-list {
     max-width: 420px;
@@ -626,10 +614,6 @@ body.page-liste .page-content {
     );
 }
 
-body.page-liste .recipe-list-item .border-bottom {
-    border-bottom-color: rgba(100, 60, 20, 0.15) !important;
-}
-
 /* ── Liste : recherche, filtres, bascules, compteur ─────── */
 .search-field {
     display: flex;
@@ -812,6 +796,67 @@ html.style-flat .search-field {
 }
 
 html.style-flat[data-theme="dark"] .search-field { border-color: rgba(255, 255, 255, 0.2); }
+
+/* ── Liste : vue en lignes ──────────────────────────────── */
+.recipe-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px;
+    border-bottom: 1px solid rgba(100, 60, 20, 0.15);
+    border-radius: 8px;
+    color: var(--card-fg);
+    text-decoration: none;
+    transition: background-color 0.15s;
+}
+
+.recipe-row:hover,
+.recipe-row:focus-visible {
+    background: rgba(84, 159, 147, 0.12);
+    color: var(--card-fg);
+}
+
+.recipe-thumb-sm {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.recipe-thumb-sm-placeholder { background: rgba(211, 185, 159, 0.3); }
+
+.recipe-row-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.recipe-row-title {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.recipe-row-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.recipe-row-counts {
+    display: flex;
+    flex: none;
+    gap: 12px;
+    font-size: 13px;
+}
+
+[data-theme="dark"] .recipe-row { border-bottom-color: rgba(255, 255, 255, 0.12); }
+[data-theme="dark"] .recipe-row:hover,
+[data-theme="dark"] .recipe-row:focus-visible { background: rgba(84, 159, 147, 0.2); }
+
+html.style-flat .recipe-row { border-bottom-color: rgba(0, 0, 0, 0.125); }
+html.style-flat[data-theme="dark"] .recipe-row { border-bottom-color: rgba(255, 255, 255, 0.12); }
 
 /* ── Liste : grille de cartes polaroïd ──────────────────── */
 .recipe-grid {
@@ -1207,10 +1252,6 @@ html.style-flat .recipe-card:focus-visible {
 html.style-flat[data-theme="dark"] .recipe-card { border-color: rgba(255, 255, 255, 0.1); }
 
 html.style-flat .recipe-card-tape { display: none; }
-
-html.style-flat body.page-liste .recipe-list-item .border-bottom {
-    border-bottom-color: rgba(0, 0, 0, 0.125) !important;
-}
 
 html.style-flat body.page-admin .card {
     background-color: var(--flat-surface) !important;
