@@ -227,6 +227,9 @@ h1, h2, h3, h4, h5, h6,
     padding-bottom: 0.4rem;
 }
 
+/* Page glossaire : la barre se colle sous le header collant */
+body > .page-content .alphabet-mobile-bar { top: var(--site-header-h, 0px); }
+
 .alphabet-letter-mobile {
     font-size: 0.75rem;
     font-weight: 500;
@@ -278,12 +281,61 @@ body > .page-content {
     text-align: center;
 }
 
+html { scroll-padding-top: var(--site-header-h, 0px); }
+
 .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
     padding: 0.75rem 1rem;
     background: white;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     border-bottom: 1px solid rgba(0,0,0,0.06);
     margin-bottom: 1.5rem;
+}
+
+.site-logo { transition: transform 0.6s cubic-bezier(0.3, 1.4, 0.5, 1); }
+.site-brand:hover .site-logo,
+.site-brand:focus-visible .site-logo { transform: rotate(60deg); }
+
+.site-title {
+    font-size: clamp(1.4rem, 5.5vw, 2rem);
+    white-space: nowrap;
+}
+
+.header-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid rgba(69, 72, 81, 0.35);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.35);
+    color: var(--charcoal-blue);
+    font: inherit;
+    font-size: 0.9rem;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.header-btn:hover,
+.header-btn:focus-visible {
+    background: var(--charcoal-blue);
+    color: #fff;
+}
+
+@media (max-width: 575.98px) {
+    .site-header .site-logo { width: 38px; height: 38px; }
+    .header-btn { min-width: 34px; height: 34px; padding: 0 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .site-logo { transition: none; }
 }
 
 @media (min-width: 768px) {
@@ -438,6 +490,18 @@ body > .page-content {
     background: var(--charcoal-blue);
 }
 
+[data-theme="dark"] .header-btn {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: transparent;
+    color: #ccc;
+}
+
+[data-theme="dark"] .header-btn:hover,
+[data-theme="dark"] .header-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
 [data-theme="dark"] .card {
     background-color: var(--dark-surface);
     border-color: rgba(255,255,255,0.1);
@@ -577,8 +641,6 @@ body.page-admin .site-header {
 
 body.page-recette .site-header {
     margin-bottom: 0;
-    position: relative;
-    z-index: 2;
 }
 
 body.page-recette .site-footer,

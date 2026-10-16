@@ -3,27 +3,27 @@
 <head></head>
 <body>
 <!-- Fragment header -->
- <div th:fragment="site-header">
+ <th:block th:fragment="site-header">
     <header class="site-header">
         <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-2">
-                <a th:href="@{/recettes}" class="text-decoration-none text-dark d-flex align-items-center gap-2">
-                    <img th:src="@{/cuboctahedron_logo.svg}" alt="" width="50" height="50">
-                    <h1 class="mb-0 fs-1 align-self-center">Chez Miette</h1>
+                <a th:href="@{/recettes}" class="site-brand text-decoration-none text-dark d-flex align-items-center gap-2">
+                    <img th:src="@{/cuboctahedron_logo.svg}" class="site-logo" alt="" width="50" height="50">
+                    <h1 class="site-title mb-0 align-self-center">Chez Miette</h1>
                 </a>
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm btn-outline-secondary" id="style-toggle" title="Style">
+                <button class="header-btn" id="style-toggle" title="Style">
                     <i class="bi bi-palette-fill" id="style-icon"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-secondary" id="theme-toggle" title="Thème">
+                <button class="header-btn" id="theme-toggle" title="Thème">
                     <i class="bi bi-moon-fill" id="theme-icon"></i>
                 </button>
 
                 <!-- Non connecté -->
                 <div sec:authorize="!isAuthenticated()">
-                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    <button class="header-btn" data-bs-toggle="modal" data-bs-target="#loginModal">
                         <i class="bi bi-person-circle"></i>
                         <span class="d-none d-md-inline"> Connexion</span>
                     </button>
@@ -36,12 +36,12 @@
                     </span>
                     <form th:action="@{/logout}" method="post" class="d-inline">
                         <input type="hidden" name="redirectTo" th:value="${currentPath}">
-                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                        <button type="submit" class="header-btn">
                             <i class="bi bi-box-arrow-right"></i>
                             <span class="d-none d-md-inline"> Déconnexion</span>
                         </button>
                     </form>
-                    <a th:href="@{/admin}" class="btn btn-outline-secondary btn-sm">
+                    <a th:href="@{/admin}" class="header-btn" title="Administration">
                         <i class="bi bi-gear"></i>
                     </a>
                 </div>
@@ -50,6 +50,13 @@
     </header>
 
     <script>
+        (function () {
+            const header = document.querySelector('.site-header');
+            const syncHeaderHeight = () =>
+                document.documentElement.style.setProperty('--site-header-h', header.offsetHeight + 'px');
+            syncHeaderHeight();
+            window.addEventListener('resize', syncHeaderHeight);
+        }());
         (function () {
             const styleIcon = document.getElementById('style-icon');
             function applyStyle(flat) {
@@ -79,6 +86,6 @@
             });
         }());
     </script>
-</div>
+</th:block>
 </body>
 </html>
