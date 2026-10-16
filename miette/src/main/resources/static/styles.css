@@ -1130,8 +1130,8 @@ html:not(.style-flat) #pasteModal .modal-footer {
     z-index: 1;
 }
 
-/* Cartes de contenu (phases, notes) — transparentes, sur le papier */
-#recipe-paper .card:not(:has(.photo-thumb)) {
+/* Cartes de contenu (édition des phases) — transparentes, sur le papier */
+#recipe-paper .card {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -1152,11 +1152,187 @@ html:not(.style-flat) #pasteModal .modal-footer {
     background-color: transparent !important;
 }
 
-/* Carte photo — on garde le fond blanc (effet polaroid) */
-#recipe-paper .card:has(.photo-thumb) {
-    background: white !important;
-    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+
+/* ── Fiche recette : lecture ────────────────────────────── */
+.recipe-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--verdigris);
+    font-size: 15px;
+    text-decoration: none;
 }
+
+.recipe-back:hover { color: #437f75; text-decoration: underline; }
+
+.recipe-title {
+    margin: 14px 0 10px;
+    font-size: clamp(30px, 5vw, 44px);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--card-fg);
+}
+
+.recipe-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.recipe-photo-block {
+    max-width: 860px;
+    margin: 24px auto 8px;
+}
+
+.recipe-photo-frame {
+    margin: 0;
+    overflow: hidden;
+    border-radius: 6px;
+    background: #fafafa;
+    box-shadow: 0 2px 4px rgba(60, 30, 10, 0.2), 0 10px 24px rgba(60, 30, 10, 0.22);
+}
+
+.recipe-photo-frame .photo-thumb {
+    display: block;
+    width: 100%;
+}
+
+.recipe-photo-caption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px;
+    color: var(--charcoal-blue);
+    font-size: 13px;
+}
+
+.recipe-photo-spacer { width: 2rem; }
+
+.recipe-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+    color: var(--card-fg);
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.recipe-meta .bi-droplet-fill {
+    color: var(--verdigris);
+    font-size: 12px;
+}
+
+.recipe-phase { margin-top: 28px; }
+
+.recipe-phase-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.recipe-phase-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--card-fg);
+}
+
+.recipe-phase-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--rule-fade), transparent);
+}
+
+.recipe-phase-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: clamp(18px, 4vw, 44px);
+}
+
+.recipe-phase-grid.is-single { grid-template-columns: minmax(0, 1fr); }
+
+@media (max-width: 767.98px) {
+    .recipe-phase-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.recipe-ingredients,
+.recipe-steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.recipe-ingredients li {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px dotted var(--rule-fade);
+    font-size: 17px;
+}
+
+.recipe-ing-qty {
+    color: var(--verdigris-deep);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.recipe-steps li {
+    display: flex;
+    gap: 8px;
+    padding: 7px 0;
+    font-size: 17px;
+    line-height: 1.5;
+    text-wrap: pretty;
+}
+
+.recipe-step-n {
+    flex: none;
+    min-width: 1.4em;
+}
+
+.recipe-note-box {
+    margin-top: 32px;
+    padding: 14px 18px;
+    border: 1px solid rgba(100, 60, 20, 0.18);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.5);
+    font-size: 16px;
+}
+
+.recipe-note-toggle { color: var(--card-fg); }
+.recipe-note-toggle:hover { color: var(--card-fg); }
+
+.recipe-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 22px;
+}
+
+.recipe-dates {
+    color: var(--card-fg);
+    font-size: 12px;
+}
+
+[data-theme="dark"] .recipe-photo-frame {
+    background: var(--dark-surface-deep);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .recipe-photo-caption { color: #ddd; }
+[data-theme="dark"] .recipe-ing-qty { color: #a8d5cf; }
+
+[data-theme="dark"] .recipe-note-box {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+}
+
 /* ── Style plat (toggle cuisine ↔ flat) ─────────────────── */
 body:not(.page-recette):not(.page-liste):not(.page-a-propos):not(.page-admin) #style-toggle {
     display: none;
@@ -1252,6 +1428,20 @@ html.style-flat .recipe-card:focus-visible {
 html.style-flat[data-theme="dark"] .recipe-card { border-color: rgba(255, 255, 255, 0.1); }
 
 html.style-flat .recipe-card-tape { display: none; }
+
+html.style-flat .recipe-photo-frame {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    background: var(--flat-surface);
+    box-shadow: none;
+}
+
+html.style-flat .recipe-note-box {
+    border-color: rgba(0, 0, 0, 0.125);
+    background: var(--flat-surface);
+}
+
+html.style-flat[data-theme="dark"] .recipe-photo-frame,
+html.style-flat[data-theme="dark"] .recipe-note-box { border-color: rgba(255, 255, 255, 0.1); }
 
 html.style-flat body.page-admin .card {
     background-color: var(--flat-surface) !important;
