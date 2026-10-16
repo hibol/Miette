@@ -6,6 +6,7 @@
     --coffee-bean: #210203;
     --dark-surface: #363840;
     --dark-surface-deep: #2d2f35;
+    --verdigris-deep: #2f6e63;
 
     --paper-bg:      #f5ede0;
     --paper-overlay: rgba(255, 255, 255, 0.45);
@@ -22,6 +23,7 @@
     --card-shadow-hover: 0 16px 30px rgba(60, 30, 10, 0.3);
     --tape-bg:           rgba(232, 232, 232, 0.62);
     --tape-shadow:       drop-shadow(0 1px 1.5px rgba(60, 30, 10, 0.3));
+    --rule-fade:         rgba(100, 60, 20, 0.3);
 
     /* Bootstrap theme overrides */
     --bs-focus-ring-color: rgba(84, 159, 147, 0.35);
@@ -429,6 +431,7 @@ body > .page-content {
     --card-shadow-hover: 0 16px 30px rgba(0, 0, 0, 0.65);
     --tape-bg:           rgba(190, 190, 190, 0.32);
     --tape-shadow:       drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.6));
+    --rule-fade:         rgba(255, 255, 255, 0.25);
 }
 
 [data-theme="dark"] body {
@@ -626,6 +629,189 @@ body.page-liste .page-content {
 body.page-liste .recipe-list-item .border-bottom {
     border-bottom-color: rgba(100, 60, 20, 0.15) !important;
 }
+
+/* ── Liste : recherche, filtres, bascules, compteur ─────── */
+.search-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    margin: 0;
+    padding: 0 16px 0 6px;
+    border-radius: 12px;
+    border: 1px solid rgba(100, 60, 20, 0.22);
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: inset 0 1px 3px rgba(100, 60, 20, 0.12);
+}
+
+.search-field:focus-within {
+    border-color: var(--verdigris);
+    box-shadow: inset 0 1px 3px rgba(100, 60, 20, 0.12), 0 0 0 0.25rem rgba(84, 159, 147, 0.25);
+}
+
+.search-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--verdigris);
+    cursor: pointer;
+}
+
+.search-field input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 17px;
+    color: var(--coffee-bean);
+}
+
+.search-field input::placeholder { color: var(--charcoal-blue); opacity: 0.5; }
+
+.liste-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+}
+
+.filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-pill-wrap { position: relative; }
+
+.filter-pill-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.filter-pill {
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1px solid rgba(84, 159, 147, 0.6);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.4);
+    color: var(--verdigris-deep);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.filter-pill-input:checked + .filter-pill {
+    border-color: var(--verdigris);
+    background: var(--verdigris);
+    color: #fff;
+}
+
+.filter-pill-input:focus-visible + .filter-pill {
+    outline: 2px solid var(--verdigris);
+    outline-offset: 2px;
+}
+
+.seg-group {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--verdigris);
+    border-radius: 10px;
+}
+
+.seg-btn {
+    padding: 6px 12px;
+    border: 0;
+    background: transparent;
+    color: var(--verdigris-deep);
+    cursor: pointer;
+}
+
+.seg-btn + .seg-btn { border-left: 1px solid var(--verdigris); }
+
+.seg-btn.active {
+    background: var(--verdigris);
+    color: #fff;
+}
+
+.liste-count {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0 20px;
+    color: var(--card-fg);
+    font-size: 15px;
+}
+
+.liste-count-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--rule-fade), transparent);
+}
+
+.liste-count-reset {
+    color: var(--verdigris-deep);
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.liste-count-reset:hover { text-decoration: underline; }
+
+.btn-new-recipe {
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: var(--verdigris);
+    color: #fff;
+    font-size: 14px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-new-recipe:hover { background: #437f75; color: #fff; }
+
+.liste-empty {
+    padding: 2rem 0;
+    text-align: center;
+    color: var(--card-fg);
+}
+
+[data-theme="dark"] .search-field {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.25);
+    box-shadow: none;
+}
+
+[data-theme="dark"] .search-field input { color: #fff; }
+
+[data-theme="dark"] .filter-pill {
+    background: rgba(255, 255, 255, 0.06);
+    color: #a8d5cf;
+}
+
+[data-theme="dark"] .seg-btn { color: #a8d5cf; }
+
+[data-theme="dark"] .liste-count-reset { color: #a8d5cf; }
+
+html.style-flat .search-field {
+    border-color: rgba(0, 0, 0, 0.2);
+    background: var(--flat-surface);
+    box-shadow: none;
+}
+
+html.style-flat[data-theme="dark"] .search-field { border-color: rgba(255, 255, 255, 0.2); }
 
 /* ── Liste : grille de cartes polaroïd ──────────────────── */
 .recipe-grid {
