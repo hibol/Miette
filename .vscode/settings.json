@@ -2,5 +2,18 @@
     "java.configuration.updateBuildConfiguration": "interactive",
     "sqlfluff.rules":{
         "L050": "false"
+    },
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#437f75",
+        "titleBar.activeBackground": "#549f93",
+        "titleBar.activeForeground": "#FDFBFD",
+        "titleBar.inactiveBackground": "#437f75",
+        "titleBar.inactiveForeground": "#FDFBFD",
+        "statusBar.background": "#437f75",
+        "statusBar.foreground": "#FDFBFD",
+        "statusBar.debuggingBackground": "#437f75",
+        "statusBar.debuggingForeground": "#FDFBFD",
+        "statusBar.noFolderBackground": "#437f75",
+        "statusBar.noFolderForeground": "#FDFBFD"
     }
 }
